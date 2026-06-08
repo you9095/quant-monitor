@@ -1,0 +1,19 @@
+# 安全排除目录
+api/
+signals/
+
+# 复盘数据可选排除（取消注释以隐藏历史记录）
+# review/
+
+# 日志和临时文件
+*.log
+.DS_Store
+
+# 依赖目录
+node_modules/
+venv/
+__pycache__/
+
+# 个人配置
+.env
+.env.local

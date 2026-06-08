@@ -1,0 +1,23 @@
+{
+  "qixing": {
+    "name": "七星策略",
+    "color": "#3b82f6",
+    "initial_capital": 10000,
+    "description": "创业板动量策略",
+    "version": "1.7.2"
+  },
+  "r32": {
+    "name": "三驾马车R32",
+    "color": "#10b981",
+    "initial_capital": 10000,
+    "description": "行业轮动棘轮策略",
+    "version": "R32"
+  },
+  "zhuidian": {
+    "name": "追电策略",
+    "color": "#f59e0b",
+    "initial_capital": 10000,
+    "description": "跨境ETF动量轮动",
+    "version": "1.0"
+  }
+}

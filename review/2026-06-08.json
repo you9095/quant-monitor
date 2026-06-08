@@ -1,0 +1,40 @@
+{
+  "date": "2026-06-08",
+  "summary": {
+    "total_asset": 30462.05,
+    "total_return": 1.54,
+    "today_pnl": 462.05,
+    "today_return": 1.54,
+    "best_strategy": "r32",
+    "worst_strategy": "zhuidian",
+    "total_trades": 7,
+    "market_summary": "创业板回调，跨境ETF分化，日经ETF大涨"
+  },
+  "strategies": {
+    "qixing": {
+      "total_return": -3.77,
+      "today_pnl": -376.5,
+      "today_return": -3.77,
+      "trades_count": 1,
+      "positions_count": 1,
+      "notes": "创业板开盘买入后回调，符合首日建仓预期"
+    },
+    "r32": {
+      "total_return": 12.51,
+      "today_pnl": 1250.78,
+      "today_return": 12.51,
+      "trades_count": 5,
+      "positions_count": 5,
+      "notes": "日经ETF大涨65%，带动整体收益，等权重分散有效"
+    },
+    "zhuidian": {
+      "total_return": -4.12,
+      "today_pnl": -412.23,
+      "today_return": -4.12,
+      "trades_count": 1,
+      "positions_count": 1,
+      "notes": "纳指ETF回调，单日回撤可控"
+    }
+  },
+  "notes": "首日实盘运行正常，三策略独立执行无冲突。R32表现超预期，七星和追电首日浮亏在可接受范围内。明日关注创业板能否企稳反弹。"
+}
