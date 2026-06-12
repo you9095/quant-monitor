@@ -4,7 +4,7 @@
     "color": "#3b82f6",
     "initial_capital": 10000,
     "description": "创业板动量策略",
-    "version": "1.7.2"
+    "version": "R120"
   },
   "r32": {
     "name": "三驾马车R32",

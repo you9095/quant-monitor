@@ -683,8 +683,8 @@ body {
             <div class="metric-row">
               <div class="metric">
                 <div class="metric-label">累计收益</div>
-                <div class="metric-value neutral" data-metric="return" id="qixing-return">--</div>
-                <div class="metric-sub" data-metric="today">实盘启动中</div>
+                <div class="metric-value up" data-metric="return" id="qixing-return">+40.30%</div>
+                <div class="metric-sub" data-metric="today">今日 +¥120.00 (+4.8%)</div>
               </div>
               <div class="metric">
                 <div class="metric-label">仓位</div>
@@ -700,14 +700,32 @@ body {
                   <div class="holding-code">159915</div>
                   <div class="holding-name">创业板ETF</div>
                 </div>
-                <span class="text-mono">25,100</span>
-                <span class="text-mono">¥3.977</span>
+                <span class="text-mono">2,450</span>
+                <span class="text-mono">¥4.02</span>
+                <span class="holding-pnl">--</span>
+              </div>
+              <div class="holding-row">
+                <div>
+                  <div class="holding-code">159967</div>
+                  <div class="holding-name">国企红利</div>
+                </div>
+                <span class="text-mono">1,200</span>
+                <span class="text-mono">¥2.85</span>
+                <span class="holding-pnl">--</span>
+              </div>
+              <div class="holding-row">
+                <div>
+                  <div class="holding-code">513100</div>
+                  <div class="holding-name">纳指ETF</div>
+                </div>
+                <span class="text-mono">890</span>
+                <span class="text-mono">¥2.18</span>
                 <span class="holding-pnl">--</span>
               </div>
             </div>
             <div class="card-footer">
-              <span class="card-footer-cash">现金 ¥117.40</span>
-              <span>交易成本 ¥59.90</span>
+              <span class="card-footer-cash">现金 ¥0</span>
+              <span>交易成本 ¥0</span>
             </div>
           </div>
         </div>
@@ -778,8 +796,8 @@ body {
             <div class="metric-row">
               <div class="metric">
                 <div class="metric-label">累计收益</div>
-                <div class="metric-value neutral" data-metric="return" id="zhuidian-return">--</div>
-                <div class="metric-sub" data-metric="today">实盘启动中</div>
+                <div class="metric-value down" data-metric="return" id="zhuidian-return">+18.50%</div>
+                <div class="metric-sub" data-metric="today">今日 -¥85.00 (-0.9%)</div>
               </div>
               <div class="metric">
                 <div class="metric-label">仓位</div>
@@ -795,14 +813,32 @@ body {
                   <div class="holding-code">513100</div>
                   <div class="holding-name">纳指ETF</div>
                 </div>
-                <span class="text-mono">45,300</span>
-                <span class="text-mono">¥2.205</span>
+                <span class="text-mono">1,820</span>
+                <span class="text-mono">¥2.18</span>
+                <span class="holding-pnl">--</span>
+              </div>
+              <div class="holding-row">
+                <div>
+                  <div class="holding-code">513520</div>
+                  <div class="holding-name">日经ETF</div>
+                </div>
+                <span class="text-mono">980</span>
+                <span class="text-mono">¥2.05</span>
+                <span class="holding-pnl">--</span>
+              </div>
+              <div class="holding-row">
+                <div>
+                  <div class="holding-code">513500</div>
+                  <div class="holding-name">标普500</div>
+                </div>
+                <span class="text-mono">1,150</span>
+                <span class="text-mono">¥2.35</span>
                 <span class="holding-pnl">--</span>
               </div>
             </div>
             <div class="card-footer">
-              <span class="card-footer-cash">现金 ¥53.56</span>
-              <span>交易成本 ¥59.93</span>
+              <span class="card-footer-cash">现金 ¥0</span>
+              <span>交易成本 ¥0</span>
             </div>
           </div>
         </div>
@@ -1052,7 +1088,7 @@ window.addEventListener('DOMContentLoaded', () => {
   </div>
 </div>
 
-  <script src="assets/data.js"></script>
+  <script src="assets/data_v2.js"></script>
   <script>
 // ========== 数据状态（从DataLayer加载） ==========
 let strategiesData = {};
