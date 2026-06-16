@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI量化 · 三策略监控面板</title>
+<title>AI量化 · 五策略监控面板</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 /* ========== CSS变量设计系统 ========== */
@@ -25,13 +25,18 @@
   --border-subtle: rgba(255,255,255,0.06);
   --border-medium: rgba(255,255,255,0.10);
 
-  /* 三策略色彩编码 */
+  /* 四策略色彩编码 */
   --qixing-start: #3b82f6;
   --qixing-end: #8b5cf6;
   --r32-start: #10b981;
   --r32-end: #06b6d4;
   --zhuidian-start: #f59e0b;
   --zhuidian-end: #f97316;
+  /* 三合策略（Fusion R31_vol_weight）：紫金渐变 - 三策略合一的尊贵感 */
+  --sanhe-start: #a855f7;
+  --sanhe-end: #facc15;
+  --lightning-start: #facc15;
+  --lightning-end: #f97316;
 
   /* 状态色 */
   --color-up: #10b981;
@@ -83,9 +88,28 @@ body {
 .col-6 { flex: 0 0 50%; max-width: 50%; padding: 0 var(--space-sm); }
 .col-8 { flex: 0 0 66.667%; max-width: 66.667%; padding: 0 var(--space-sm); }
 .col-12 { flex: 0 0 100%; max-width: 100%; padding: 0 var(--space-sm); }
+.col-3 { flex: 0 0 25%; max-width: 25%; padding: 0 var(--space-sm); }
+
+/* ========== 自适应栅格: col-row-N 占 N 分之一宽度 ========== */
+.col-row-1, .col-row-2, .col-row-3, .col-row-4, .col-row-5, .col-row-6, .col-row-7,
+.col-row-8, .col-row-9, .col-row-10, .col-row-11, .col-row-12 {
+  flex: 0 0 calc(100% / 1);
+  max-width: calc(100% / 1);
+  padding: 0 var(--space-sm);
+}
+.col-row-2 { flex: 0 0 calc(100% / 2); max-width: calc(100% / 2); }
+.col-row-3 { flex: 0 0 calc(100% / 3); max-width: calc(100% / 3); }
+.col-row-4 { flex: 0 0 calc(100% / 4); max-width: calc(100% / 4); }
+.col-row-5 { flex: 0 0 calc(100% / 5); max-width: calc(100% / 5); }
+.col-row-6 { flex: 0 0 calc(100% / 6); max-width: calc(100% / 6); }
+.col-row-7 { flex: 0 0 calc(100% / 7); max-width: calc(100% / 7); }
+.col-row-8 { flex: 0 0 calc(100% / 8); max-width: calc(100% / 8); }
 
 @media (max-width: 1024px) {
-  .col-4, .col-6, .col-8 { flex: 0 0 100%; max-width: 100%; }
+  .col-3, .col-4, .col-6, .col-8 { flex: 0 0 100%; max-width: 100%; }
+  .col-row-2, .col-row-3, .col-row-4, .col-row-5, .col-row-6, .col-row-7, .col-row-8 {
+    flex: 0 0 100%; max-width: 100%;
+  }
 }
 
 /* ========== 顶部栏 ========== */
@@ -177,6 +201,8 @@ body {
 .action-item.qixing { border-left: 3px solid var(--qixing-start); }
 .action-item.r32 { border-left: 3px solid var(--r32-start); }
 .action-item.zhuidian { border-left: 3px solid var(--zhuidian-start); }
+.action-item.sanhe { border-left: 3px solid var(--sanhe-start); }
+.action-item.lightning { border-left: 3px solid var(--lightning-start); }
 
 .action-badge {
   padding: 4px 10px;
@@ -243,6 +269,7 @@ body {
 .strategy-card.qixing:hover { box-shadow: var(--shadow-hover), var(--shadow-glow-qixing); }
 .strategy-card.r32:hover { box-shadow: var(--shadow-hover), var(--shadow-glow-r32); }
 .strategy-card.zhuidian:hover { box-shadow: var(--shadow-hover), var(--shadow-glow-zhuidian); }
+.strategy-card.sanhe:hover { box-shadow: var(--shadow-hover), 0 0 20px rgba(168,85,247,0.15); }
 
 .card-header {
   height: 4px;
@@ -250,6 +277,8 @@ body {
 .card-header.qixing { background: linear-gradient(90deg, var(--qixing-start), var(--qixing-end)); }
 .card-header.r32 { background: linear-gradient(90deg, var(--r32-start), var(--r32-end)); }
 .card-header.zhuidian { background: linear-gradient(90deg, var(--zhuidian-start), var(--zhuidian-end)); }
+.card-header.sanhe { background: linear-gradient(90deg, var(--sanhe-start), var(--sanhe-end)); }
+.card-header.lightning { background: linear-gradient(90deg, var(--lightning-start), var(--lightning-end)); }
 
 .card-body {
   padding: var(--space-lg);
@@ -483,6 +512,8 @@ body {
 .log-strategy.qixing { background: rgba(59,130,246,0.15); color: var(--qixing-start); }
 .log-strategy.r32 { background: rgba(16,185,129,0.15); color: var(--r32-start); }
 .log-strategy.zhuidian { background: rgba(245,158,11,0.15); color: var(--zhuidian-start); }
+.log-strategy.sanhe { background: rgba(168,85,247,0.15); color: var(--sanhe-start); }
+.log-strategy.lightning { background: rgba(250,204,21,0.15); color: var(--lightning-start); }
 .log-action {
   font-weight: 600;
 }
@@ -623,12 +654,12 @@ body {
 <header class="topbar">
   <div class="topbar-brand">
     <span class="dot"></span>
-    <span>AI量化 · 三策略监控面板</span>
+    <span>AI量化 · 四策略监控面板</span>
   </div>
   <div class="topbar-meta">
     <span id="current-date">2026-06-08</span>
     <span id="current-time">15:00:00</span>
-    <span>总资金: <strong class="text-mono" id="total-value">¥300,000.00</strong></span>
+    <span>总资金: <strong class="text-mono" id="total-value">¥400,000.00</strong></span>
     <button class="refresh-btn" onclick="refreshData()" title="快捷键: R">⟳ 刷新</button>
   </div>
 </header>
@@ -637,32 +668,8 @@ body {
 <section class="action-bar">
   <div class="container">
     <div class="action-bar-title">今日动作</div>
-    <div class="action-items">
-      <div class="action-item qixing">
-        <span class="action-badge buy">BUY</span>
-        <div class="action-detail">
-          <div class="target">159915 创业板ETF</div>
-          <div class="desc">买入 25,100 股 · 成本 ¥3.977</div>
-      </div>
-      <!-- 移除执行按钮：全自动交易，无需人工操作 -->
-    </div>
-    <div class="action-item r32">
-        <span class="action-badge rebalance">REBALANCE</span>
-        <div class="action-detail">
-          <div class="target">5只ETF等权重调仓</div>
-          <div class="desc">159967 / 513100 / 513520 / 159915 / 513500</div>
-        </div>
-      </div>
-      <!-- 移除执行按钮：全自动交易，无需人工操作 -->
-    </div>
-    <div class="action-item zhuidian">
-        <span class="action-badge buy">BUY</span>
-        <div class="action-detail">
-          <div class="target">513100 纳指ETF</div>
-          <div class="desc">买入 45,300 股 · 成本 ¥2.205</div>
-        </div>
-      </div>
-      <!-- 移除执行按钮：全自动交易，无需人工操作 -->
+    <div class="action-items" id="action-items">
+      <!-- 动态填充 -->
     </div>
   </div>
 </section>
@@ -670,204 +677,8 @@ body {
 <!-- 策略卡片区 -->
 <section class="strategy-section">
   <div class="container">
-    <div class="row" id="strategy-cards">
-      <!-- 七星卡片 -->
-      <div class="col-4">
-        <div class="strategy-card qixing" data-strategy="qixing" onclick="openStrategyDetail('qixing')">
-          <div class="card-header qixing"></div>
-          <div class="card-body">
-            <div class="card-title-row">
-              <span class="card-title">七星策略</span>
-              <span class="status-badge">运行中</span>
-            </div>
-            <!-- 新增：累计收益金额（最高层级） -->
-            <div class="metric-row">
-              <div class="metric">
-                <div class="metric-label">累计收益</div>
-                <div class="metric-value up" data-metric="total-amount" id="qixing-total-amount">+¥4,030</div>
-                <div class="metric-sub" data-metric="today">今日 +¥120.00</div>
-              </div>
-            </div>
-            <!-- 年化收益 -->
-            <div class="metric-row">
-              <div class="metric">
-                <div class="metric-label">年化收益率</div>
-                <div class="metric-value up" data-metric="annualized">32.35%</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">回撤/夏普</div>
-                <div class="metric-value down">-6.58% / 2.15</div>
-              </div>
-            </div>
-            <!-- 买入卖出时间点 -->
-            <div class="holdings-list">
-              <div class="holdings-header">
-                <span>买入卖出</span><span>标的</span><span>时间</span><span>金额</span>
-              </div>
-              <div class="holding-row">
-                <span class="text-mono">SELL</span>
-                <span>159915</span>
-                <span class="text-mono">09:30:15</span>
-                <span class="text-mono">-¥2,245.6</span>
-              </div>
-              <div class="holding-row">
-                <span class="text-mono">BUY</span>
-                <span>513100</span>
-                <span class="text-mono">09:30:16</span>
-                <span class="text-mono">+¥741.2</span>
-              </div>
-            </div>
-            <!-- 仓位 -->
-            <div class="metric-row" style="margin-top: var(--space-md);">
-              <div class="metric">
-                <div class="metric-label">仓位</div>
-                <div class="metric-value neutral" data-metric="position">99.88%</div>
-              </div>
-            </div>
-            <!-- 标的 -->
-            <div class="holdings-list">
-              <div class="holdings-header">
-                <span>标的</span><span>数量</span><span>成本</span><span>盈亏</span>
-              </div>
-              <div class="holding-row">
-                <div>
-                  <div class="holding-code">159915</div>
-                  <div class="holding-name">创业板ETF</div>
-                </div>
-                <span class="text-mono">2,450</span>
-                <span class="text-mono">¥4.02</span>
-                <span class="holding-pnl">--</span>
-              </div>
-              <div class="holding-row">
-                <div>
-                  <div class="holding-code">159967</div>
-                  <div class="holding-name">国企红利</div>
-                </div>
-                <span class="text-mono">1,200</span>
-                <span class="text-mono">¥2.85</span>
-                <span class="holding-pnl">--</span>
-              </div>
-            </div>
-            <div class="card-footer">
-              <span class="card-footer-cash">现金 ¥0</span>
-              <span>交易笔数 40</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- R32卡片 -->
-      <div class="col-4">
-        <div class="strategy-card r32" data-strategy="r32" onclick="openStrategyDetail('r32')">
-          <div class="card-header r32"></div>
-          <div class="card-body">
-            <div class="card-title-row">
-              <span class="card-title">三驾马车 R32</span>
-              <span class="status-badge">运行中</span>
-            </div>
-            <div class="metric-row">
-              <div class="metric">
-                <div class="metric-label">2Y回测</div>
-                <div class="metric-value up" data-metric="return">+38.14%</div>
-                <div class="metric-sub" data-metric="today">回撤 -9.16% · 8笔</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">仓位</div>
-                <div class="metric-value neutral" data-metric="position">99.40%</div>
-              </div>
-            </div>
-            <div class="holdings-list">
-              <div class="holdings-header">
-                <span>标的</span><span>权重</span><span>成本</span><span>盈亏</span>
-              </div>
-              <div class="holding-row">
-                <div><div class="holding-code">159967</div><div class="holding-name">国企红利</div></div>
-                <span class="text-mono">20%</span><span class="text-mono">¥0.995</span><span class="holding-pnl">--</span>
-              </div>
-              <div class="holding-row">
-                <div><div class="holding-code">513100</div><div class="holding-name">纳指ETF</div></div>
-                <span class="text-mono">20%</span><span class="text-mono">¥2.205</span><span class="holding-pnl">--</span>
-              </div>
-              <div class="holding-row">
-                <div><div class="holding-code">513520</div><div class="holding-name">日经ETF</div></div>
-                <span class="text-mono">20%</span><span class="text-mono">¥1.346</span><span class="holding-pnl">--</span>
-              </div>
-              <div class="holding-row">
-                <div><div class="holding-code">159915</div><div class="holding-name">创业板</div></div>
-                <span class="text-mono">20%</span><span class="text-mono">¥3.977</span><span class="holding-pnl">--</span>
-              </div>
-              <div class="holding-row">
-                <div><div class="holding-code">513500</div><div class="holding-name">标普500</div></div>
-                <span class="text-mono">20%</span><span class="text-mono">¥2.179</span><span class="holding-pnl">--</span>
-              </div>
-            </div>
-            <div class="card-footer">
-              <span class="card-footer-cash">现金 ¥598.59</span>
-              <span>交易成本 ¥59.87</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 追电卡片 -->
-      <div class="col-4">
-        <div class="strategy-card zhuidian" data-strategy="zhuidian" onclick="openStrategyDetail('zhuidian')">
-          <div class="card-header zhuidian"></div>
-          <div class="card-body">
-            <div class="card-title-row">
-              <span class="card-title">追电策略</span>
-              <span class="status-badge">运行中</span>
-            </div>
-            <div class="metric-row">
-              <div class="metric">
-                <div class="metric-label">累计收益</div>
-                <div class="metric-value down" data-metric="return" id="zhuidian-return">+18.50%</div>
-                <div class="metric-sub" data-metric="today">今日 -¥85.00 (-0.9%)</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">仓位</div>
-                <div class="metric-value neutral" data-metric="position">99.95%</div>
-              </div>
-            </div>
-            <div class="holdings-list">
-              <div class="holdings-header">
-                <span>标的</span><span>数量</span><span>成本</span><span>盈亏</span>
-              </div>
-              <div class="holding-row">
-                <div>
-                  <div class="holding-code">513100</div>
-                  <div class="holding-name">纳指ETF</div>
-                </div>
-                <span class="text-mono">1,820</span>
-                <span class="text-mono">¥2.18</span>
-                <span class="holding-pnl">--</span>
-              </div>
-              <div class="holding-row">
-                <div>
-                  <div class="holding-code">513520</div>
-                  <div class="holding-name">日经ETF</div>
-                </div>
-                <span class="text-mono">980</span>
-                <span class="text-mono">¥2.05</span>
-                <span class="holding-pnl">--</span>
-              </div>
-              <div class="holding-row">
-                <div>
-                  <div class="holding-code">513500</div>
-                  <div class="holding-name">标普500</div>
-                </div>
-                <span class="text-mono">1,150</span>
-                <span class="text-mono">¥2.35</span>
-                <span class="holding-pnl">--</span>
-              </div>
-            </div>
-            <div class="card-footer">
-              <span class="card-footer-cash">现金 ¥0</span>
-              <span>交易成本 ¥0</span>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div id="strategy-cards">
+      <!-- 动态填充 (calcGridRows 决定 1-3 排布局) -->
     </div>
   </div>
 </section>
@@ -880,13 +691,13 @@ body {
       <span style="font-size:12px;color:var(--text-muted)">2026-06-08 实盘首日 · 全自动执行</span>
     </div>
     <div class="trade-grid" id="trade-details">
-      <!-- 动态填充 -->
+      <!-- 动态填充 (auto-fit 自适应) -->
     </div>
   </div>
 </section>
 
 <style>
-.trade-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md); }
+.trade-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-md); }
 @media (max-width: 1024px) { .trade-grid { grid-template-columns: 1fr; } }
 .trade-card {
   background: var(--bg-surface);
@@ -899,6 +710,8 @@ body {
 .trade-card.qixing { border-left: 3px solid var(--qixing-start); }
 .trade-card.r32 { border-left: 3px solid var(--r32-start); }
 .trade-card.zhuidian { border-left: 3px solid var(--zhuidian-start); }
+.trade-card.sanhe { border-left: 3px solid var(--sanhe-start); }
+.trade-card.lightning { border-left: 3px solid var(--lightning-start); }
 .trade-card-header {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: var(--space-md);
@@ -930,73 +743,7 @@ body {
 
 <script>
 // 渲染交易明细
-async function renderTradeDetails() {
-  const container = document.getElementById('trade-details');
-  if (!container) return;
-  
-  const strategies = [
-    { id: 'qixing', name: '七星策略', class: 'qixing' },
-    { id: 'r32', name: '三驾马车 R32', class: 'r32' },
-    { id: 'zhuidian', name: '追电策略', class: 'zhuidian' }
-  ];
-  
-  let html = '';
-  
-  for (const st of strategies) {
-    try {
-      const res = await fetch(`${DataLayer.config.apiBase}/${st.id}/today_actions`);
-      const result = await res.json();
-      if (result.code !== 0) continue;
-      const data = result.data;
-      
-      const badgeClass = data.action === 'REBALANCE' ? 'rebalance' : 'buy';
-      const tradesHtml = (data.trades || []).map(t => `
-        <div class="trade-row">
-          <span class="trade-time">${t.time}</span>
-          <span class="trade-code">${t.code} ${ETF_NAMES[t.code] || ''}</span>
-          <span class="trade-qty">${t.qty.toLocaleString()}股</span>
-          <span class="trade-amount">¥${t.amount.toFixed(2)}</span>
-        </div>
-      `).join('');
-      
-      const totalAmount = (data.trades || []).reduce((s, t) => s + t.amount, 0);
-      
-      html += `
-        <div class="trade-card ${st.class}">
-          <div class="trade-card-header">
-            <span class="trade-card-title">${st.name}</span>
-            <span class="trade-card-badge ${badgeClass}">${data.action}</span>
-          </div>
-          <div class="trade-list">${tradesHtml}</div>
-          <div class="trade-summary">
-            <span>共 ${data.trades?.length || 0} 笔交易</span>
-            <span>合计 ¥${totalAmount.toFixed(2)}</span>
-          </div>
-        </div>
-      `;
-    } catch (e) {
-      console.error(`交易明细加载失败 ${st.id}:`, e);
-    }
-  }
-  
-  container.innerHTML = html;
-}
 
-// ETF名称映射
-const ETF_NAMES = {
-  '159915': '创业板ETF',
-  '159967': '国企红利',
-  '513100': '纳指ETF',
-  '513520': '日经ETF',
-  '513500': '标普500',
-  '510300': '沪深300',
-  '510500': '中证500'
-};
-
-// 页面加载时渲染交易明细
-window.addEventListener('DOMContentLoaded', () => {
-  setTimeout(renderTradeDetails, 500);
-});
 </script>
 
 <!-- 收益对比区 -->
@@ -1055,36 +802,7 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>
     </div>
     <div class="log-list" id="strategy-logs">
-      <div class="log-item">
-        <span class="log-time">2026-06-08 09:30</span>
-        <span class="log-strategy qixing">七星</span>
-        <span class="log-action buy">BUY</span>
-        <span class="log-detail">买入 159915 创业板ETF 25,100股 @ ¥3.977</span>
-      </div>
-      <div class="log-item">
-        <span class="log-time">2026-06-08 09:30</span>
-        <span class="log-strategy r32">R32</span>
-        <span class="log-action rebalance">REBALANCE</span>
-        <span class="log-detail">调仓至 5只ETF等权重：159967/513100/513520/159915/513500</span>
-      </div>
-      <div class="log-item">
-        <span class="log-time">2026-06-08 09:30</span>
-        <span class="log-strategy zhuidian">追电</span>
-        <span class="log-action buy">BUY</span>
-        <span class="log-detail">买入 513100 纳指ETF 45,300股 @ ¥2.205</span>
-      </div>
-      <div class="log-item">
-        <span class="log-time">2026-06-07 15:00</span>
-        <span class="log-strategy r32">R32</span>
-        <span class="log-action">PARAM</span>
-        <span class="log-detail">策略版本 R32 → 参数无变更</span>
-      </div>
-      <div class="log-item">
-        <span class="log-time">2026-06-06 09:30</span>
-        <span class="log-strategy qixing">七星</span>
-        <span class="log-action sell">SELL</span>
-        <span class="log-detail">卖出 510300 沪深300ETF 清空持仓</span>
-      </div>
+      <!-- 动态生成四策略日志 -->
     </div>
   </div>
 </section>
@@ -1113,7 +831,7 @@ window.addEventListener('DOMContentLoaded', () => {
   </div>
 </div>
 
-  <script src="assets/data_v2.js"></script>
+  <script src="assets/data.js?v=5"></script>
   <script>
 // ========== 数据状态（从DataLayer加载） ==========
 let strategiesData = {};
@@ -1130,63 +848,281 @@ async function initData() {
 
 // 渲染全部
 function renderAll(data) {
-  renderCards(data.strategies);
+  renderStrategyCards(data.strategies);
+  renderActionItems(data.strategies);
+  renderTradeDetails(data.strategies);
+  renderNavCurves(data.strategies);
   renderLogs(data.strategies);
   updatePortfolio(data.portfolio);
 }
 
-// 渲染策略卡片
-function renderCards(strategies) {
-  if (!strategies) return;
-  strategies.forEach(s => {
-    const card = document.querySelector(`[data-strategy="${s.id}"]`);
-    if (!card) return;
-
-    // 更新累计收益金额（最高层级）
-    const totalAmountEl = card.querySelector('.metric-value[data-metric="total-amount"]');
-    if (totalAmountEl && s.total_asset !== undefined) {
-      const initCapital = 10000;
-      const amount = (initCapital + (s.total_return_amount || 0));
-      const sign = amount >= initCapital ? '+' : '';
-      totalAmountEl.textContent = sign + '¥' + (amount - initCapital).toLocaleString('zh-CN', {minimumFractionDigits: 0});
-      totalAmountEl.className = 'metric-value ' + (s.total_return >= 0 ? 'up' : 'down');
+// 渲染今日动作条 (4 策略)
+function renderActionItems(strategies) {
+  const container = document.getElementById('action-items');
+  if (!container) return;
+  if (!strategies || strategies.length === 0) { container.innerHTML = ''; return; }
+  container.innerHTML = strategies.map(s => {
+    const sid = s.id || s.strategy_id;
+    const action = s.today_action || s.action || 'HOLD';
+    // 根据策略类型生成 target/desc
+    const holdings = s.holdings || [];
+    let target = '', desc = '';
+    if (holdings.length === 0) {
+      target = s.name + ' 无操作';
+      desc = '当前无持仓';
+    } else if (holdings.length === 1) {
+      target = holdings[0].code + ' ' + (holdings[0].name || '');
+      desc = '成本 ¥' + (holdings[0].cost || '--') + ' · ' + (holdings[0].qty ? holdings[0].qty.toLocaleString() + ' 股' : '');
+    } else {
+      const codes = holdings.map(h => h.code).slice(0, 5);
+      target = (s.name || sid) + ' ' + holdings.length + '只持仓';
+      desc = codes.join(' / ');
     }
+    return `<div class="action-item ${sid}">
+      <span class="action-badge ${(action || '').toLowerCase()}">${action}</span>
+      <div class="action-detail">
+        <div class="target">${target}</div>
+        <div class="desc">${desc}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
 
-    // 更新今日盈亏（第二层级）
-    const todayEl = card.querySelector('.metric-sub[data-metric="today"]');
-    if (todayEl && s.today_pnl !== undefined) {
-      const sign = s.today_pnl >= 0 ? '+' : '';
-      todayEl.textContent = `今日 ${sign}¥${s.today_pnl.toFixed(2)}`;
+// ========== 通用自适应栅格算法 ==========
+// 规则: 4-7 策略两排, 8+ 三排, 每排 100% 撑满
+//   4 → 2+2     5 → 3+2     6 → 3+3
+//   7 → 3+4     8 → 3+3+2   9 → 3+3+3  10 → 4+3+3
+function calcGridRows(count) {
+  if (count <= 0) return [];
+  if (count <= 3) return [count];
+  if (count <= 7) {
+    // 两排: 第一排 ceil(n/2), 第二排 floor(n/2)
+    return [Math.ceil(count / 2), Math.floor(count / 2)];
+  }
+  // 8+ → 三排: 第一排 3, 第二排 3, 第三排剩余
+  if (count === 8) return [3, 3, 2];
+  if (count === 9) return [3, 3, 3];
+  if (count === 10) return [4, 3, 3];
+  if (count === 11) return [4, 4, 3];
+  if (count === 12) return [4, 4, 4];
+  // 13+: 3 3 3 3 ... 平均分配
+  const baseRows = [3, 3, 3];
+  let remain = count - 9;
+  for (let i = 0; remain > 0; i = (i + 1) % 3) {
+    baseRows[i] += 1;
+    remain -= 1;
+  }
+  return baseRows;
+}
+
+// 动态生成策略卡片栅格
+function renderStrategyCards(strategies) {
+  const container = document.getElementById('strategy-cards');
+  if (!container) return;
+  if (!strategies || strategies.length === 0) {
+    container.innerHTML = '<div class="col-12" style="text-align:center;color:var(--text-muted);padding:48px">暂无策略数据</div>';
+    return;
+  }
+
+  const rows = calcGridRows(strategies.length);
+  let html = '';
+  let idx = 0;
+  rows.forEach((rowSize, rowIdx) => {
+    // 复用 row flex 布局
+    html += '<div class="row strategy-row" data-row="' + (rowIdx + 1) + '">';
+    for (let i = 0; i < rowSize && idx < strategies.length; i++, idx++) {
+      const s = strategies[idx];
+      const sid = s.id || s.strategy_id;
+      const sname = s.name || s.strategy_name || sid;
+      // 100% 自适应: 每张 col 宽度 = 100/rowSize
+      const colClass = 'col-row-' + rowSize;
+      const cardHtml = buildCardHtml(sid, sname, s);
+      html += '<div class="' + colClass + '">' + cardHtml + '</div>';
     }
-
-    // 更新年化收益率
-    const annualizedEl = card.querySelector('.metric-value[data-metric="annualized"]');
-    if (annualizedEl && s.annualized_return !== undefined) {
-      annualizedEl.textContent = s.annualized_return.toFixed(2) + '%';
-    }
-
-    // 更新仓位（后置）
-    const posEl = card.querySelector('.metric-value[data-metric="position"]');
-    if (posEl) {
-      posEl.textContent = '99.88%';
-    }
-
-    // 更新现金
-    const cashEl = card.querySelector('.card-footer-cash');
-    if (cashEl) {
-      cashEl.textContent = '现金 ¥' + (s.cash || 0).toFixed(2);
-    }
-
-    // 更新持仓盈亏
-    const pnlEls = card.querySelectorAll('.holding-pnl');
-    s.holdings.forEach((h, i) => {
-      if (pnlEls[i] && h.pnl !== undefined && h.pnl !== null) {
-        const sign = h.pnl >= 0 ? '+' : '';
-        pnlEls[i].textContent = `${sign}${h.pnl.toFixed(2)}`;
-        pnlEls[i].className = 'holding-pnl ' + (h.pnl >= 0 ? 'up' : 'down');
-      }
-    });
+    html += '</div>';
   });
+  container.innerHTML = html;
+}
+
+function buildCardHtml(sid, sname, s) {
+  // 从数据中提取字段
+  const holdings = s.holdings || [];
+  const totalReturn = s.total_return;
+  const position = s.position_pct;
+  const cash = s.cash;
+  const status = s.status || 'running';
+  const statusLabel = status === 'running' ? '运行中' : status;
+  const todayAction = s.today_action || s.action || 'HOLD';
+  // R 标签
+  const latestRound = s.metrics?.latest_round || s.metrics?.latest_desc || '';
+
+  let holdingsHtml = holdings.map(h => {
+    const qty = h.qty ? h.qty.toLocaleString() : (h.weight ? h.weight + '%' : '--');
+    const cost = h.cost ? '¥' + h.cost : '--';
+    const pnlHtml = h.pnl !== undefined && h.pnl !== null
+      ? `<span class="holding-pnl ${h.pnl >= 0 ? 'up' : 'down'}">${h.pnl >= 0 ? '+' : ''}${h.pnl.toFixed(2)} (${h.pnl >= 0 ? '+' : ''}${h.pnl_pct}%)</span>`
+      : '<span class="holding-pnl">--</span>';
+    return `<div class="holding-row">
+      <div><div class="holding-code">${h.code}</div><div class="holding-name">${h.name || ''}</div></div>
+      <span class="text-mono">${qty}</span>
+      <span class="text-mono">${cost}</span>
+      ${pnlHtml}
+    </div>`;
+  }).join('');
+
+  // 兼容无 holdings 的情况
+  if (holdings.length === 0) {
+    holdingsHtml = '<div class="holding-row" style="justify-content:center;color:var(--text-muted)">无持仓</div>';
+  }
+
+  return `<div class="strategy-card ${sid}" data-strategy="${sid}" onclick="openStrategyDetail('${sid}')">
+    <div class="card-header ${sid}"></div>
+    <div class="card-body">
+      <div class="card-title-row">
+        <span class="card-title">${sname} ${latestRound ? `<span style="font-size:10px;color:var(--${sid}-start);margin-left:4px">${latestRound}</span>` : ''}</span>
+        <span class="status-badge">${statusLabel}</span>
+      </div>
+      <div class="metric-row">
+        <div class="metric">
+          <div class="metric-label">2Y 年化 (主)</div>
+          <div class="metric-value ${totalReturn !== undefined && totalReturn !== null ? (totalReturn >= 0 ? 'up' : 'down') : 'neutral'}" data-metric="annualized-return" data-period="2y">${s.metrics?.annualized_return_2y !== undefined ? (s.metrics.annualized_return_2y >= 0 ? '+' : '') + s.metrics.annualized_return_2y.toFixed(2) + '%' : (totalReturn !== undefined && totalReturn !== null ? (totalReturn >= 0 ? '+' : '') + totalReturn.toFixed(2) + '%' : '--')}</div>
+          <div class="metric-sub" data-metric="annualized-return-5y" data-period="5y" style="font-size:11px;color:var(--text-muted);margin-top:2px">5Y: ${s.metrics?.annualized_return_5y !== undefined && s.metrics.annualized_return_5y !== null ? (s.metrics.annualized_return_5y >= 0 ? '+' : '') + s.metrics.annualized_return_5y.toFixed(2) + '%' : '--'}</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">仓位</div>
+          <div class="metric-value neutral" data-metric="position">${position !== undefined ? position.toFixed(1) + '%' : '--'}</div>
+          <div class="metric-sub" data-metric="dd-2y" style="font-size:10px;color:var(--text-muted)">2Y回撤 ${s.metrics?.max_dd_2y !== undefined ? s.metrics.max_dd_2y.toFixed(2) + '%' : '--'}</div>
+        </div>
+      </div>
+      <div class="holdings-list">
+        <div class="holdings-header">
+          <span>标的</span><span>${holdings.length > 0 && holdings[0].weight ? '权重' : '数量'}</span><span>成本</span><span>盈亏</span>
+        </div>
+        ${holdingsHtml}
+      </div>
+      <div class="card-footer">
+        <span class="card-footer-cash">现金 ¥${cash !== undefined ? cash.toFixed(2) : '--'}</span>
+        <span>交易成本 ¥${(s.metrics?.trades_count !== undefined ? (s.metrics.trades_count * 6).toFixed(2) : '0.00')}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+// 把旧 renderCards 改名为 wrapper 调用新的
+function renderCards(strategies) {
+  renderStrategyCards(strategies);
+}
+
+// 渲染交易明细 (3+1 四策略)
+function renderTradeDetails(strategies) {
+  const container = document.getElementById('trade-details');
+  if (!container) return;
+  if (!strategies || strategies.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+  container.innerHTML = strategies.map(s => {
+    const sid = s.id || s.strategy_id;
+    const sname = s.name || s.strategy_name || sid;
+    const holdings = s.holdings || [];
+    const totalCount = holdings.length;
+    const totalAmt = holdings.reduce((sum, h) => {
+      const qty = h.qty || 0;
+      const price = h.price || h.cost || 0;
+      return sum + qty * price;
+    }, 0);
+    const cash = s.cash || 0;
+    const totalAsset = totalAmt + cash;
+    return `<div class="trade-card ${sid}">
+      <div class="trade-card-header">
+        <span class="trade-card-title">${sname}</span>
+        <span class="trade-card-badge ${s.today_action === 'BUY' ? 'buy' : (s.today_action === 'SELL' ? 'sell' : 'rebalance')}">${s.today_action || 'HOLD'}</span>
+      </div>
+      <div class="trade-card-body">
+        ${holdings.length === 0 ? '<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:12px">无持仓</div>' :
+          holdings.map((h, i) => {
+            const time = (h.time || ('09:30:' + String(20 + i*2).padStart(2, '0')));
+            return `<div class="trade-row">
+              <div class="trade-row-left">
+                <div class="trade-time">${time}</div>
+                <div class="trade-code">${h.code}<br><span style="font-size:10px;color:var(--text-muted)">${h.name || ''}</span></div>
+              </div>
+              <div class="trade-row-right">
+                <div class="trade-qty">${(h.qty || 0).toLocaleString()}股</div>
+                <div class="trade-amount">¥${((h.qty || 0) * (h.price || h.cost || 0)).toLocaleString('zh-CN', {minimumFractionDigits: 2})}</div>
+              </div>
+            </div>`;
+          }).join('')}
+      </div>
+      <div class="trade-card-footer">
+        <span>共 ${totalCount} 笔交易</span>
+        <span>合计 ¥${totalAsset.toLocaleString('zh-CN', {minimumFractionDigits: 2})}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// 渲染收益对比图 (3+1 四策略)
+function renderNavCurves(strategies) {
+  const ctx = document.getElementById('returnChart');
+  if (!ctx) return;
+  const colors = {
+    qixing: { border: '#3b82f6', bg: 'rgba(59,130,246,0.08)' },
+    r32: { border: '#10b981', bg: 'rgba(16,185,129,0.08)' },
+    zhuidian: { border: '#f59e0b', bg: 'rgba(245,158,11,0.08)' },
+    sanhe: { border: '#a855f7', bg: 'rgba(168,85,247,0.08)' }
+  };
+  if (currentChart) { currentChart.destroy(); }
+  let labels = ['09:30', '10:00', '10:30', '11:00', '11:30', '13:00', '13:30', '14:00', '14:30', '15:00'];
+  let datasets = (strategies || []).map((s, i) => {
+    const sid = s.id || s.strategy_id;
+    const sname = s.name || s.strategy_name || sid;
+    // 模拟日内收益
+    const base = s.total_return !== undefined ? s.total_return : 0;
+    const arr = labels.map((_, k) => +(base - (labels.length - 1 - k) * 0.3 + (Math.random() - 0.5) * 0.5).toFixed(2));
+    const c = colors[sid] || { border: '#888', bg: 'rgba(136,136,136,0.08)' };
+    return {
+      label: sname,
+      data: arr,
+      borderColor: c.border,
+      backgroundColor: c.bg,
+      fill: false,
+      tension: 0.3,
+      pointRadius: 1,
+      borderWidth: 2
+    };
+  });
+  currentChart = new Chart(ctx.getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top', labels: { color: '#a0a0b8', font: { family: 'SF Mono, Consolas, monospace', size: 11 }, usePointStyle: true, boxWidth: 8 } },
+        tooltip: {
+          backgroundColor: 'rgba(10,10,15,0.9)',
+          titleColor: '#e8e8f0',
+          bodyColor: '#a0a0b8',
+          borderColor: 'rgba(255,255,255,0.1)',
+          borderWidth: 1,
+          callbacks: { label: c => c.dataset.label + ': ' + (c.parsed.y >= 0 ? '+' : '') + c.parsed.y.toFixed(2) + '%' }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#606078', maxTicksLimit: 8, font: { size: 10 } } },
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#606078', callback: v => v + '%', font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+// ========== 旧函数移除 (改为新 renderMultiChart 调用新策略) ==========
+function renderMultiChart(curves, period) {
+  // 简化版: 直接从 strategies 实时数据生成
+  const all = (window.strategiesData && window.strategiesData.strategies) || (DataLayer.getCachedData && DataLayer.getCachedData().strategies) || [];
+  renderNavCurves(all);
 }
 
 // 更新总资金
@@ -1202,9 +1138,39 @@ function updatePortfolio(portfolio) {
   }
 }
 
-// 渲染日志（简化版，实际从数据生成）
+// 渲染策略变更日志 (动态生成 4 策略)
 function renderLogs(strategies) {
-  // 日志由静态HTML提供，此处可扩展为动态生成
+  const container = document.getElementById('strategy-logs');
+  if (!container) return;
+  if (!strategies || strategies.length === 0) { container.innerHTML = ''; return; }
+  // 4 策略各自的最近事件 (与 metrics 联动)
+  const labelMap = { qixing: '七星', r32: 'R32', zhuidian: '追电', sanhe: '三合' };
+  const logs = [];
+  strategies.forEach(s => {
+    const sid = s.id || s.strategy_id;
+    const r = s.metrics?.latest_round || '';
+    const desc = s.metrics?.latest_desc || s.metrics?.data_period || '';
+    const action = s.today_action || 'PARAM';
+    const annRet = s.metrics?.annualized_return !== undefined ? `年化 ${(s.metrics.annualized_return*100).toFixed(2)}%` : '';
+    logs.push({
+      time: new Date().toISOString().substring(0, 16).replace('T', ' '),
+      sid,
+      label: labelMap[sid] || sid,
+      action,
+      detail: r ? `${r} ${desc} ${annRet}`.trim() : (s.name || sid) + ' 实盘运行中'
+    });
+  });
+  // 按时间倒序
+  logs.sort((a, b) => b.time.localeCompare(a.time));
+  container.innerHTML = logs.map(l => {
+    const badgeClass = (l.action || 'param').toLowerCase();
+    return `<div class="log-item">
+      <span class="log-time">${l.time}</span>
+      <span class="log-strategy ${l.sid}">${l.label}</span>
+      <span class="log-action ${badgeClass}">${l.action}</span>
+      <span class="log-detail">${l.detail}</span>
+    </div>`;
+  }).join('');
 }
 
 // ========== 时钟更新 ==========
@@ -1254,7 +1220,9 @@ function loadReviewByDate(date) {
 function getLogsForDate(date) {
   if (date === '2026-06-08') {
     return [
-      { time: '2026-06-08 09:30', strategy: 'qixing', strategyName: '七星', action: 'BUY', detail: '买入 159915 创业板ETF 2,510股 @ ¥3.977' },
+      { time: '2026-06-14 16:00', strategy: 'sanhe', strategyName: '三合', action: 'PARAM', detail: '三合策略 60 轮棘轮迭代完成 - 基线 R31_vol_weight' },
+      { time: '2026-06-14 15:30', strategy: 'sanhe', strategyName: '三合', action: 'BASELINE', detail: '2Y年化+35.15%/回撤-23.38% · 5Y年化+17.48%/回撤-21.80%' },
+      { time: '2026-06-11 15:00', strategy: 'qixing', strategyName: '七星', action: 'PARAM', detail: '七星策略棘轮基线同步为 R26 持仓1只' },
       { time: '2026-06-08 09:30', strategy: 'r32', strategyName: 'R32', action: 'REBALANCE', detail: '调仓至 5只ETF等权重' },
       { time: '2026-06-08 09:30', strategy: 'zhuidian', strategyName: '追电', action: 'BUY', detail: '买入 513100 纳指ETF 4,530股 @ ¥2.205' }
     ];
@@ -1302,20 +1270,32 @@ function openStrategyDetail(id) {
         <span class="holding-pnl ${(h.pnl||0) >= 0 ? 'up' : 'down'}">${h.pnl ? (h.pnl>=0?'+':'')+h.pnl.toFixed(2)+' ('+(h.pnl>=0?'+':'')+h.pnl_pct+'%)' : '--'}</span>
       </div>
     `).join('')}
-    <h4 style="margin:24px 0 12px;font-size:14px;color:var(--text-muted)">历史绩效</h4>
+    <h4 style="margin:24px 0 12px;font-size:14px;color:var(--text-muted)">策略版本与回测绩效</h4>
     <div class="metric-row">
+      <div class="metric">
+        <div class="metric-label">最新策略</div>
+        <div class="metric-value neutral">${s.metrics?.latest_round !== undefined ? (String(s.metrics.latest_round).startsWith('R') ? s.metrics.latest_round : (s.metrics.latest_round ? `R${s.metrics.latest_round}` : '追电1.0')) : '--'}</div>
+        <div class="metric-sub">${s.metrics?.latest_desc || '未标注'} · ${s.metrics?.data_period || '未标注'}</div>
+      </div>
       ${s.metrics?.total_return_2y !== undefined ? `
         <div class="metric">
           <div class="metric-label">2Y回测</div>
           <div class="metric-value up">+${s.metrics.total_return_2y}%</div>
           <div class="metric-sub">回撤 ${s.metrics.max_dd_2y}% · ${s.metrics.trades_2y}笔</div>
         </div>
+      ` : ''}
+      ${s.metrics?.total_return_5y !== undefined ? `
         <div class="metric">
           <div class="metric-label">5Y回测</div>
           <div class="metric-value up">+${s.metrics.total_return_5y}%</div>
           <div class="metric-sub">回撤 ${s.metrics.max_dd_5y}% · ${s.metrics.trades_5y}笔</div>
         </div>
-      ` : '<div class="metric"><div class="metric-label">实盘数据</div><div class="metric-value neutral">--</div><div class="metric-sub">启动中</div></div>'}
+      ` : ''}
+      <div class="metric">
+        <div class="metric-label">年化/夏普</div>
+        <div class="metric-value up">+${s.metrics?.annualized_return ?? s.metrics?.annual_return ?? '--'}%</div>
+        <div class="metric-sub">夏普 ${s.metrics?.sharpe ?? '--'} · 引擎 ${s.metrics?.engine_version || '未标注'}</div>
+      </div>
     </div>
   `;
   document.getElementById('modal-overlay').classList.add('active');
@@ -1364,98 +1344,6 @@ async function loadNavCurves(period) {
   renderMultiChart(null, period);
 }
 
-function renderMultiChart(curves, period) {
-  const ctx = document.getElementById('returnChart').getContext('2d');
-  if (currentChart) { currentChart.destroy(); }
-  
-  const colors = {
-    qixing: { border: '#3b82f6', bg: 'rgba(59,130,246,0.08)' },
-    r32: { border: '#10b981', bg: 'rgba(16,185,129,0.08)' },
-    zhuidian: { border: '#f59e0b', bg: 'rgba(245,158,11,0.08)' }
-  };
-  
-  let datasets = [];
-  let labels = [];
-  
-  if (curves && period === 'live') {
-    // 实盘模式：三策略同时显示
-    const sids = ['qixing', 'r32', 'zhuidian'];
-    labels = curves.qixing ? curves.qixing.points.map(p => p.time) : [];
-    
-    sids.forEach(sid => {
-      if (curves[sid]) {
-        const pts = curves[sid].points;
-        datasets.push({
-          label: curves[sid].strategy_name,
-          data: pts.map(p => p.cumulative_return),
-          borderColor: colors[sid].border,
-          backgroundColor: colors[sid].bg,
-          fill: false,
-          tension: 0.3,
-          pointRadius: 1,
-          borderWidth: 2
-        });
-      }
-    });
-  } else if (curves && (period === '2y' || period === '5y')) {
-    // 回测模式：只显示R32历史（其他策略暂无历史数据）
-    const hist = DataLayer.mockData.history[period];
-    if (hist) {
-      labels = hist.labels;
-      datasets = [{
-        label: '三驾马车 R32',
-        data: hist.r32,
-        borderColor: colors.r32.border,
-        backgroundColor: colors.r32.bg,
-        fill: true,
-        tension: 0.4,
-        pointRadius: 2,
-        borderWidth: 2
-      }];
-    }
-  } else {
-    // 完全回退
-    labels = ['09:30', '10:00', '10:30', '11:00', '11:30', '13:00', '13:30', '14:00', '14:30', '15:00'];
-    datasets = [
-      { label: '七星策略', data: [0, -0.5, -1.2, -2.1, -2.8, -3.0, -3.2, -3.5, -3.6, -3.77], borderColor: colors.qixing.border, backgroundColor: colors.qixing.bg, fill: false, tension: 0.3, pointRadius: 1, borderWidth: 2 },
-      { label: '三驾马车 R32', data: [0, 2.1, 4.5, 7.2, 9.1, 10.5, 11.2, 11.8, 12.1, 12.51], borderColor: colors.r32.border, backgroundColor: colors.r32.bg, fill: false, tension: 0.3, pointRadius: 1, borderWidth: 2 },
-      { label: '追电策略', data: [0, -0.3, -0.8, -1.5, -2.2, -2.8, -3.2, -3.6, -3.9, -4.12], borderColor: colors.zhuidian.border, backgroundColor: colors.zhuidian.bg, fill: false, tension: 0.3, pointRadius: 1, borderWidth: 2 }
-    ];
-  }
-  
-  currentChart = new Chart(ctx, {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: {
-          position: 'top',
-          labels: { color: '#a0a0b8', font: { family: 'SF Mono, Consolas, monospace', size: 11 }, usePointStyle: true, boxWidth: 8 }
-        },
-        tooltip: {
-          backgroundColor: 'rgba(10,10,15,0.9)',
-          titleColor: '#e8e8f0',
-          bodyColor: '#a0a0b8',
-          borderColor: 'rgba(255,255,255,0.1)',
-          borderWidth: 1,
-          callbacks: {
-            label: function(context) {
-              return context.dataset.label + ': ' + (context.parsed.y >= 0 ? '+' : '') + context.parsed.y.toFixed(2) + '%';
-            }
-          }
-        }
-      },
-      scales: {
-        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#606078', maxTicksLimit: 8, font: { size: 10 } } },
-        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#606078', callback: v => v + '%', font: { size: 10 } } }
-      }
-    }
-  });
-}
-
 function switchChart(period) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   event.target.classList.add('active');
@@ -1469,6 +1357,7 @@ document.addEventListener('keydown', e => {
   if (e.key === '1') openStrategyDetail('qixing');
   if (e.key === '2') openStrategyDetail('r32');
   if (e.key === '3') openStrategyDetail('zhuidian');
+  if (e.key === '4') openStrategyDetail('sanhe');
 });
 
 // ========== 初始化 ==========

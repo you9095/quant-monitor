@@ -19,5 +19,19 @@
     "initial_capital": 10000,
     "description": "跨境ETF动量轮动",
     "version": "1.0"
+  },
+  "sanhe": {
+    "name": "三合策略",
+    "color": "#a855f7",
+    "initial_capital": 10000,
+    "description": "三策略融合+波动率倒数加权",
+    "version": "R25_vol_weight"
+  },
+  "lightning": {
+    "name": "闪电策略",
+    "color": "#facc15",
+    "initial_capital": 10000,
+    "description": "3日动量+4只跨境+止盈止损",
+    "version": "R4_m3"
   }
 }

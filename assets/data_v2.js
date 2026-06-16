@@ -28,7 +28,8 @@ const DataLayer = {
     this.strategyConfig = [
       { strategy_id: 'qixing', strategy_name: '七星策略', color: '#3b82f6' },
       { strategy_id: 'r32', strategy_name: '三驾马车R32', color: '#10b981' },
-      { strategy_id: 'zhuidian', strategy_name: '追电策略', color: '#f59e0b' }
+      { strategy_id: 'zhuidian', strategy_name: '追电策略', color: '#f59e0b' },
+      { strategy_id: 'sanhe', strategy_name: '三合策略', color: '#a855f7' }
     ];
     return this.strategyConfig;
   },
@@ -83,10 +84,10 @@ const DataLayer = {
       holdings: (s.holdings || []).map(p => ({
         code: p.code,
         name: p.name,
-        qty: p.quantity,
+        qty: p.qty || p.quantity,
         weight: p.weight ? p.weight.toFixed(0) : null,
-        cost: p.cost_price,
-        price: p.current_price,
+        cost: p.cost || p.cost_price,
+        price: p.price || p.current_price,
         pnl: p.pnl,
         pnl_pct: p.pnl_pct
       })),
@@ -96,7 +97,19 @@ const DataLayer = {
         max_drawdown: s.max_drawdown,
         annual_volatility: s.annual_volatility,
         trades_count: s.trades_count || 0,
-        win_rate: s.win_rate
+        win_rate: s.win_rate,
+        total_return_2y: s.metrics?.total_return_2y,
+        max_dd_2y: s.metrics?.max_dd_2y,
+        trades_2y: s.metrics?.trades_2y,
+        total_return_5y: s.metrics?.total_return_5y,
+        max_dd_5y: s.metrics?.max_dd_5y,
+        trades_5y: s.metrics?.trades_5y,
+        annualized_return: s.metrics?.annualized_return,
+        calmar: s.metrics?.calmar_ratio,
+        latest_round: s.metrics?.latest_round,
+        latest_desc: s.metrics?.latest_desc,
+        data_period: s.metrics?.data_period,
+        engine_version: s.metrics?.engine_version
       }
     }));
 
@@ -118,7 +131,8 @@ const DataLayer = {
     const configs = this.strategyConfig || [
       { strategy_id: 'qixing', strategy_name: '七星策略', color: '#3b82f6' },
       { strategy_id: 'r32', strategy_name: '三驾马车R32', color: '#10b981' },
-      { strategy_id: 'zhuidian', strategy_name: '追电策略', color: '#f59e0b' }
+      { strategy_id: 'zhuidian', strategy_name: '追电策略', color: '#f59e0b' },
+      { strategy_id: 'sanhe', strategy_name: '三合策略', color: '#a855f7' }
     ];
 
     const strategies = configs.map(cfg => ({
