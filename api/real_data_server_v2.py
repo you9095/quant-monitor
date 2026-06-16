@@ -128,12 +128,17 @@ def get_dashboard_overview():
                 asset += pnl
         
         total_asset += asset
+        init_cap = cfg.get('initial_capital', 10000)
+        tr = signal.get('total_return', 0) if signal else 0
+        ann_return = signal.get('annualized_return', 0) if signal else 0
         strategies_data.append({
             'strategy_id': sid,
             'strategy_name': cfg.get('name', sid),
             'status': 'running' if signal else 'waiting',
             'total_asset': round(asset, 2),
-            'total_return': signal.get('total_return', 0) if signal else 0,
+            'total_return': tr,
+            'total_return_amount': round(init_cap * tr / 100, 2),
+            'annualized_return': ann_return,
             'today_pnl': signal.get('today_pnl', 0) if signal else 0,
             'today_return': signal.get('today_return', 0) if signal else 0,
             'position_ratio': 1.0,

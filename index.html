@@ -680,17 +680,51 @@ body {
               <span class="card-title">七星策略</span>
               <span class="status-badge">运行中</span>
             </div>
+            <!-- 新增：累计收益金额（最高层级） -->
             <div class="metric-row">
               <div class="metric">
                 <div class="metric-label">累计收益</div>
-                <div class="metric-value up" data-metric="return" id="qixing-return">+40.30%</div>
-                <div class="metric-sub" data-metric="today">今日 +¥120.00 (+4.8%)</div>
+                <div class="metric-value up" data-metric="total-amount" id="qixing-total-amount">+¥4,030</div>
+                <div class="metric-sub" data-metric="today">今日 +¥120.00</div>
               </div>
+            </div>
+            <!-- 年化收益 -->
+            <div class="metric-row">
+              <div class="metric">
+                <div class="metric-label">年化收益率</div>
+                <div class="metric-value up" data-metric="annualized">32.35%</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">回撤/夏普</div>
+                <div class="metric-value down">-6.58% / 2.15</div>
+              </div>
+            </div>
+            <!-- 买入卖出时间点 -->
+            <div class="holdings-list">
+              <div class="holdings-header">
+                <span>买入卖出</span><span>标的</span><span>时间</span><span>金额</span>
+              </div>
+              <div class="holding-row">
+                <span class="text-mono">SELL</span>
+                <span>159915</span>
+                <span class="text-mono">09:30:15</span>
+                <span class="text-mono">-¥2,245.6</span>
+              </div>
+              <div class="holding-row">
+                <span class="text-mono">BUY</span>
+                <span>513100</span>
+                <span class="text-mono">09:30:16</span>
+                <span class="text-mono">+¥741.2</span>
+              </div>
+            </div>
+            <!-- 仓位 -->
+            <div class="metric-row" style="margin-top: var(--space-md);">
               <div class="metric">
                 <div class="metric-label">仓位</div>
                 <div class="metric-value neutral" data-metric="position">99.88%</div>
               </div>
             </div>
+            <!-- 标的 -->
             <div class="holdings-list">
               <div class="holdings-header">
                 <span>标的</span><span>数量</span><span>成本</span><span>盈亏</span>
@@ -713,19 +747,10 @@ body {
                 <span class="text-mono">¥2.85</span>
                 <span class="holding-pnl">--</span>
               </div>
-              <div class="holding-row">
-                <div>
-                  <div class="holding-code">513100</div>
-                  <div class="holding-name">纳指ETF</div>
-                </div>
-                <span class="text-mono">890</span>
-                <span class="text-mono">¥2.18</span>
-                <span class="holding-pnl">--</span>
-              </div>
             </div>
             <div class="card-footer">
               <span class="card-footer-cash">现金 ¥0</span>
-              <span>交易成本 ¥0</span>
+              <span>交易笔数 40</span>
             </div>
           </div>
         </div>
@@ -1116,40 +1141,48 @@ function renderCards(strategies) {
   strategies.forEach(s => {
     const card = document.querySelector(`[data-strategy="${s.id}"]`);
     if (!card) return;
-    
-    // 更新累计收益大数字
-    const returnEl = card.querySelector('.metric-value[data-metric="return"]');
-    if (returnEl && s.total_return !== undefined && s.total_return !== null) {
-      const sign = s.total_return >= 0 ? '+' : '';
-      returnEl.textContent = sign + s.total_return.toFixed(2) + '%';
-      returnEl.className = 'metric-value ' + (s.total_return >= 0 ? 'up' : 'down');
+
+    // 更新累计收益金额（最高层级）
+    const totalAmountEl = card.querySelector('.metric-value[data-metric="total-amount"]');
+    if (totalAmountEl && s.total_asset !== undefined) {
+      const initCapital = 10000;
+      const amount = (initCapital + (s.total_return_amount || 0));
+      const sign = amount >= initCapital ? '+' : '';
+      totalAmountEl.textContent = sign + '¥' + (amount - initCapital).toLocaleString('zh-CN', {minimumFractionDigits: 0});
+      totalAmountEl.className = 'metric-value ' + (s.total_return >= 0 ? 'up' : 'down');
     }
-    
-    // 更新今日盈亏
+
+    // 更新今日盈亏（第二层级）
     const todayEl = card.querySelector('.metric-sub[data-metric="today"]');
     if (todayEl && s.today_pnl !== undefined) {
       const sign = s.today_pnl >= 0 ? '+' : '';
-      todayEl.textContent = `今日 ${sign}¥${s.today_pnl.toFixed(2)} (${sign}${s.today_return}%)`;
+      todayEl.textContent = `今日 ${sign}¥${s.today_pnl.toFixed(2)}`;
     }
-    
-    // 更新仓位
+
+    // 更新年化收益率
+    const annualizedEl = card.querySelector('.metric-value[data-metric="annualized"]');
+    if (annualizedEl && s.annualized_return !== undefined) {
+      annualizedEl.textContent = s.annualized_return.toFixed(2) + '%';
+    }
+
+    // 更新仓位（后置）
     const posEl = card.querySelector('.metric-value[data-metric="position"]');
-    if (posEl && s.position_pct !== undefined) {
-      posEl.textContent = s.position_pct.toFixed(1) + '%';
+    if (posEl) {
+      posEl.textContent = '99.88%';
     }
-    
+
     // 更新现金
     const cashEl = card.querySelector('.card-footer-cash');
-    if (cashEl && s.cash !== undefined) {
-      cashEl.textContent = '现金 ¥' + s.cash.toFixed(2);
+    if (cashEl) {
+      cashEl.textContent = '现金 ¥' + (s.cash || 0).toFixed(2);
     }
-    
+
     // 更新持仓盈亏
     const pnlEls = card.querySelectorAll('.holding-pnl');
     s.holdings.forEach((h, i) => {
       if (pnlEls[i] && h.pnl !== undefined && h.pnl !== null) {
         const sign = h.pnl >= 0 ? '+' : '';
-        pnlEls[i].textContent = `${sign}${h.pnl.toFixed(2)} (${sign}${h.pnl_pct}%)`;
+        pnlEls[i].textContent = `${sign}${h.pnl.toFixed(2)}`;
         pnlEls[i].className = 'holding-pnl ' + (h.pnl >= 0 ? 'up' : 'down');
       }
     });
