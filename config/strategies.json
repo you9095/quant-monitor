@@ -34,7 +34,7 @@
     "description": "三策略融合+波动率倒数加权",
     "version": "R44_weekly_h4_cap2418",
     "data_period": "2021-06 ~ 2026-06",
-    "caliber": "5Y 年化(主)，周度调仓，单只上限24.18%"
+    "caliber": "2Y 年化(主)+35.80% / 5Y 年化(副)+23.18%"
   },
   "lightning": {
     "name": "闪电策略",
@@ -43,6 +43,6 @@
     "description": "3日动量+4只跨境+止盈止损",
     "version": "R4_m3",
     "data_period": "2024-06 ~ 2026-06",
-    "caliber": "2Y 年化(主)，3 日动量入场，止盈止损规则"
+    "caliber": "2Y 年化(主)+27.34%，5Y 未跑（P2 风险点）"
   }
 }

@@ -1,0 +1,15 @@
+{
+  "date": "2026-06-30",
+  "summary": {},
+  "strategies": {
+    "qixing": {
+      "total_return": 0,
+      "annualized_return": 21.17,
+      "max_drawdown": -10.49,
+      "sharpe": 1.32,
+      "trades_count": 37,
+      "verdict": "ACCEPT"
+    }
+  },
+  "notes": ""
+}
