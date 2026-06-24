@@ -1,0 +1,17 @@
+{
+  "_placeholder": true,
+  "_comment": "5Y 回测 — 仅作参考展示，不作为棘轮迭代基线（用户 2026-06-20 强约束）",
+  "strategy": "zhuidian",
+  "strategy_name": "追电",
+  "version": "1.0",
+  "data_period": "5Y (2021-06 ~ 2026-06)",
+  "caliber": "5Y 年化(参考)，含交易费",
+  "baseline_metrics": {
+    "annual": 22.0,
+    "max_dd": -25.0,
+    "sharpe": 1.2,
+    "note": "5Y 估算（待真实迭代）"
+  },
+  "usage": "DISPLAY_ONLY — 不进入 ACCEPT/ROLLBACK 判定",
+  "generated_at": "2026-06-20"
+}

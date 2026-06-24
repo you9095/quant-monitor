@@ -1,0 +1,16 @@
+{
+  "_comment": "告警阈值配置。修改后下次健康检查生效，无需重启服务（5分钟内）。",
+  "signal_stale_hours": 24,
+  "auto_sync_threshold_hours": 72,
+  "auto_sync_search_dirs": [
+    "/Users/junze/ratchet_results",
+    "/Users/junze/qixing_strategy",
+    "/Users/junze/三策略监控面板_项目档案",
+    "/Users/junze/qixing_backtest",
+    "/Users/junze/zhuidian_results"
+  ],
+  "drawdown_threshold": -0.10,
+  "price_cache_empty": true,
+  "cooldown_minutes": 5,
+  "disk_usage_threshold": 0.90
+}

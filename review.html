@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>盘后复盘 · 三策略监控</title>
+<title>盘后复盘 · 五策略监控</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 :root {
@@ -196,8 +196,8 @@ body { font-family: var(--font-sans); background: var(--bg-base); color: var(--t
 
 <script>
 const API_BASE = 'http://localhost:8000/api/v1';
-const STRATEGY_COLORS = { qixing: '#3b82f6', r32: '#10b981', zhuidian: '#f59e0b' };
-const STRATEGY_NAMES = { qixing: '七星策略', r32: '三驾马车 R32', zhuidian: '追电策略' };
+const STRATEGY_COLORS = { qixing: '#3b82f6', r32: '#10b981', zhuidian: '#f59e0b', sanhe: '#a855f7', lightning: '#facc15' };
+const STRATEGY_NAMES = { qixing: '七星策略', r32: '三驾马车', zhuidian: '追电策略', sanhe: '三合策略 (Fusion)', lightning: '闪电策略 (Lightning)' };
 
 let reviewData = null;
 

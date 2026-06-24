@@ -1,0 +1,20 @@
+{
+  "_placeholder": true,
+  "_comment": "2Y 回测 — 棘轮迭代基线唯一标准（用户 2026-06-20 强约束）",
+  "strategy": "r32",
+  "strategy_name": "三驾马车",
+  "version": "R32",
+  "data_period": "2024-06 ~ 2026-06",
+  "caliber": "2Y 年化(主)，含交易费，硬约束回撤 ≤ -10%",
+  "baseline_metrics": {
+    "annual": 38.14,
+    "max_dd": -9.16,
+    "sharpe": 1.8,
+    "win_rate": 0.62
+  },
+  "hard_constraints": {
+    "max_drawdown_max": -20.0,
+    "sharpe_min": 0.8
+  },
+  "generated_at": "2026-06-20"
+}

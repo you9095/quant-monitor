@@ -1,0 +1,20 @@
+{
+  "_placeholder": true,
+  "strategy": "r32",
+  "strategy_name": "三驾马车",
+  "version": "R35_biweekly",
+  "data_period": "2024-06 ~ 2026-06",
+  "verdict": "ACCEPT",
+  "verdict_basis": "2Y 基线 (用户 2026-06-20 强约束)",
+  "metrics_2y": {
+    "annual": 38.14,
+    "max_dd": -9.16,
+    "sharpe": 1.8,
+    "win_rate": 0.62
+  },
+  "constraints_pass": {
+    "max_drawdown": true,
+    "sharpe": true
+  },
+  "generated_at": "2026-06-20"
+}

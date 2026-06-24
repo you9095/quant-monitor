@@ -1,0 +1,20 @@
+{
+  "_placeholder": true,
+  "_comment": "2Y 回测 — 棘轮迭代基线唯一标准（用户 2026-06-20 强约束）",
+  "strategy": "zhuidian",
+  "strategy_name": "追电",
+  "version": "1.0",
+  "data_period": "2024-06 ~ 2026-06",
+  "caliber": "2Y 年化(主)，加权线性回归动量 + R² 加权",
+  "baseline_metrics": {
+    "annual": 32.65,
+    "max_dd": -21.15,
+    "sharpe": 1.5,
+    "win_rate": 0.58
+  },
+  "hard_constraints": {
+    "max_drawdown_max": -20.0,
+    "sharpe_min": 0.8
+  },
+  "generated_at": "2026-06-20"
+}

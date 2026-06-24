@@ -1,0 +1,4 @@
+# 注释：gunicorn 用于生产环境，Flask dev server 已足够开发调试。
+# 部署到 Docker 时才需要 gunicorn（见 Dockerfile）。
+flask>=3.0
+gunicorn>=21.2 ; sys_platform != "darwin" or environment == "production"

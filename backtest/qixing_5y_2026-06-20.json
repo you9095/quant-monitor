@@ -1,0 +1,17 @@
+{
+  "_placeholder": true,
+  "_comment": "5Y 回测 — 仅作参考展示，不作为棘轮迭代基线（用户 2026-06-20 强约束）",
+  "strategy": "qixing",
+  "strategy_name": "七星",
+  "version": "R120",
+  "data_period": "5Y (2021-06 ~ 2026-06)",
+  "caliber": "5Y 年化(参考)，含交易费",
+  "baseline_metrics": {
+    "annual": 25.0,
+    "max_dd": -10.0,
+    "sharpe": 1.7,
+    "note": "5Y 估算（待真实迭代）"
+  },
+  "usage": "DISPLAY_ONLY — 不进入 ACCEPT/ROLLBACK 判定",
+  "generated_at": "2026-06-20"
+}

@@ -1,0 +1,26 @@
+{
+  "_placeholder": true,
+  "_comment": "P3 部署前的占位文件，2026-06-20 由 A3c 自动生成。P3 真实跑起来后会被覆盖。",
+  "strategy": "r32",
+  "strategy_name": "三驾马车",
+  "version": "R35_biweekly",
+  "ratchet_round": "R0",
+  "generated_at": "2026-06-20",
+  "data_period": "2024-06 ~ 2026-06",
+  "verdict": "ACCEPT",
+  "metrics": {
+    "2y": {
+      "annual_return": 38.14,
+      "max_drawdown": -9.16,
+      "sharpe": 1.8,
+      "win_rate": 0.62
+    },
+    "5y": {
+      "annual_return": 19.6,
+      "max_drawdown": -3.0,
+      "sharpe": 1.5,
+      "note": "5Y 真实基线（hermes-quant-agent v9 R32）"
+    }
+  },
+  "baseline_source": "strategies.json + 历史会话基线"
+}

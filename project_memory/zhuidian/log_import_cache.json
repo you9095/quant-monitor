@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "project_id": "quant_strategy_zhuidian",
+    "imported_at": 1781345398,
+    "imported_by": "manual_full_search_20260613",
+    "remark": "追电/追星命名映射后全盘搜索并补全隔离记忆"
+  },
+  "import_batches": [
+    {
+      "batch_id": "zhuidian_manual_import_20260613",
+      "imported_at": 1781345398,
+      "memory_count": 12,
+      "source_paths": [
+        "/Users/junze/.hermes/skills/finance/zhuidian-momentum-rotation/SKILL.md",
+        "/Users/junze/.hermes/skills/finance/zhuidian-momentum-rotation/references/replication_notes.md",
+        "/Users/junze/.hermes/work_logs/zhuidian/backtest_2026-06-08.md",
+        "/Users/junze/.hermes/work_logs/zhuidian/optimization_plan_2026-06-08.md",
+        "/Users/junze/zhuidian_backtest_5y/metrics_5y.json",
+        "/Users/junze/zhuidian_backtest_5y/trades_5y.csv",
+        "/Users/junze/zhuidian_backtest_5y/equity_curve_5y.csv",
+        "/Users/junze/.hermes/work_logs/monday_trading/复盘_2026-06-08.md",
+        "/Users/junze/.hermes/work_logs/monday_trading/trade_2026-06-08.json",
+        "/Users/junze/三策略监控面板_项目档案/02_苏晏清_结构化层/三策略实盘数据层开发方案_AI量化公司_v1.0_2026-06-08.md",
+        "/Users/junze/三策略监控面板_项目档案/02_苏晏清_结构化层/三策略监控面板_实盘核心数据指标清单_v1.0_2026-06-08.md",
+        "/Users/junze/quant-monitor-local/config/strategies.json",
+        "/Users/junze/三策略监控面板_项目档案/工作日志_2026-06-09.md",
+        "/Users/junze/quant-monitor-local/review/2026-06-08.json",
+        "/Users/junze/quant-monitor-local/review/2026-06-12.json",
+        "/Users/junze/三策略监控面板_项目档案/工作日志_2026-06-12.md"
+      ]
+    }
+  ]
+}

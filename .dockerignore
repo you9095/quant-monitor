@@ -1,0 +1,15 @@
+.gitignore
+.git
+__pycache__
+*.pyc
+*.pyo
+*.log
+.DS_Store
+venv/
+node_modules/
+api/venv/
+.env
+.env.local
+metrics/
+review/
+logs/

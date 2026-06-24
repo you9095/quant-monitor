@@ -1,0 +1,143 @@
+{
+  "meta": {
+    "memory_schema_version": "1.0",
+    "create_timestamp": 1781345398,
+    "last_update_timestamp": 1781345398,
+    "project_id": "quant_strategy_zhuidian",
+    "remark": "追电策略专属记忆库；用户口语“追星量化策略”按项目内统一名称“追电ETF动量轮动策略 / zhuidian”处理"
+  },
+  "memory_list": [
+    {
+      "mem_id": "zhuidian_20260613_001",
+      "mem_type": "strategy_identity",
+      "title": "追电策略 — 命名、边界与复刻原则",
+      "content": "项目内统一名称：追电动量轮动策略，策略ID为zhuidian。\n用户口语“追星量化策略”应映射到追电/zhuidian，不另建混杂策略。\n复刻策略：养家大哥“追电ETF动量轮动”。\n策略边界：独立策略，不与棘轮迭代、七星策略、其他策略融合；不作为棘轮R版本，不参与棘轮KPI评估。\n复刻原则：忠实原文，不修改参数、算法、调仓频率和止损阈值。\n来源：/Users/junze/.hermes/skills/finance/zhuidian-momentum-rotation/SKILL.md；/Users/junze/.hermes/skills/finance/zhuidian-momentum-rotation/references/replication_notes.md",
+      "tags": ["追电", "追星", "命名映射", "策略边界", "复刻原则"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/.hermes/skills/finance/zhuidian-momentum-rotation/references/replication_notes.md"
+    },
+    {
+      "mem_id": "zhuidian_20260613_002",
+      "mem_type": "strategy_logic",
+      "title": "追电策略 — 核心算法与交易规则",
+      "content": "ETF池：11只原文ETF，原始11只。\n动量算法：加权线性回归动量，权重linspace 1→2。\n过滤：R²拟合优度过滤，score ∈ (0, 4.8]过滤。\n持仓：g.max_hold=1，持仓1只。\n调仓：每日9:30调仓。\n止损：固定-10%止损。\n风险：集中持仓、固定止损、每日调仓、无止盈机制、ETF池较小；均按原文不改。\n来源：/Users/junze/.hermes/skills/finance/zhuidian-momentum-rotation/SKILL.md；/Users/junze/.hermes/skills/finance/zhuidian-momentum-rotation/references/replication_notes.md",
+      "tags": ["追电", "11ETF", "线性回归", "R²", "每日调仓", "-10%止损"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/.hermes/skills/finance/zhuidian-momentum-rotation/SKILL.md"
+    },
+    {
+      "mem_id": "zhuidian_20260613_003",
+      "mem_type": "backtest_5y",
+      "title": "追电策略 — 5Y回测核心指标",
+      "content": "日期：2026-06-08。\n数据期：2021-06-07至2026-06-05，1210个交易日，日历年4.8年。\n初始资金：¥100,000；终值：¥1,330,018.02。\n累计收益：+1230.02%；年化收益：71.42%；最大回撤：-17.66%；夏普：1.82。\n胜率：55.94%；盈亏比：2.31；总交易：286笔，其中卖出143笔、盈利80笔、亏损63笔。\n来源：/Users/junze/.hermes/work_logs/zhuidian/backtest_2026-06-08.md；/Users/junze/zhuidian_backtest_5y/metrics_5y.json",
+      "tags": ["追电", "5Y回测", "1230.02%", "夏普1.82", "286笔"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/zhuidian_backtest_5y/metrics_5y.json"
+    },
+    {
+      "mem_id": "zhuidian_20260613_004",
+      "mem_type": "backtest_files",
+      "title": "追电策略 — 5Y回测文件与数据形态",
+      "content": "回测目录：/Users/junze/zhuidian_backtest_5y/。\n文件：zhuidian_5y_report.html、metrics_5y.json、trades_5y.csv、equity_curve_5y.csv。\n交易记录CSV字段：date, action, code, shares, price, amount, commission, cash_after, reason, pnl, pnl_pct, holding_days。\n净值曲线CSV字段：date, total_value, cash, signal, target, score。\n净值曲线共1211行，含表头，覆盖2021-06-07至2026-06-05。\n来源：/Users/junze/zhuidian_backtest_5y/trades_5y.csv；/Users/junze/zhuidian_backtest_5y/equity_curve_5y.csv",
+      "tags": ["追电", "回测文件", "交易记录", "净值曲线"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/zhuidian_backtest_5y/trades_5y.csv"
+    },
+    {
+      "mem_id": "zhuidian_20260613_005",
+      "mem_type": "optimization_plan",
+      "title": "追电策略 — 5Y回测优化讨论与未实施状态",
+      "content": "优化方案日期：2026-06-08。\n讨论认为5Y回测表现极强，但存在数据缺失、交易成本低估、集中持仓、过拟合、止盈缺失等风险。\n3个ETF本地数据缺失：511090、159525、159628；因此回测实际仅用8/11只ETF。\n交易成本问题：每日调仓143次，总交易金额1.29亿，佣金1.29万，滑点约14%。\n优化方向：持仓1只扩到2-3只；每日调仓改每周/双周；增加移动止盈或固定止盈；补充ETF池；增加市场环境过滤；多因子融合。\n状态：优化方案是讨论稿，未作为已实施策略版本。\n来源：/Users/junze/.hermes/work_logs/zhuidian/optimization_plan_2026-06-08.md",
+      "tags": ["追电", "优化方案", "8/11ETF", "集中持仓", "未实施"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/.hermes/work_logs/zhuidian/optimization_plan_2026-06-08.md"
+    },
+    {
+      "mem_id": "zhuidian_20260613_006",
+      "mem_type": "paper_trade",
+      "title": "追电策略 — 2026-06-08周一模拟实盘成交",
+      "content": "日期：2026-06-08，周一模拟实盘。\n信号：BUY。\n目标：513100纳指ETF；原因：动量最强10.98%，R²=0.88。\n成交：买入45,300股 × ¥2.205 = ¥99,886.50。\n滑点成本：¥49.94；佣金：¥9.99；总成本：¥99,946.44；现金剩余：¥53.56。\n策略状态：满仓买入纳指ETF，动量评分最高且趋势稳定。\n来源：/Users/junze/.hermes/work_logs/monday_trading/复盘_2026-06-08.md；/Users/junze/.hermes/work_logs/monday_trading/trade_2026-06-08.json",
+      "tags": ["追电", "模拟实盘", "513100", "2026-06-08"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/.hermes/work_logs/monday_trading/trade_2026-06-08.json"
+    },
+    {
+      "mem_id": "zhuidian_20260613_007",
+      "mem_type": "risk_review",
+      "title": "追电策略 — 周一复盘风险检查",
+      "content": "跨策略对比：七星和追电均为单票满仓，分散度低；追电目标ETF为513100纳指ETF；追电现金使用99.95%。\n集中度风险：七星和追电均单票满仓，若单日跌停损失-10%。\n跨境风险：三驾马车和追电持有纳指/日经，受汇率和海外市场影响。\n回撤准备：追电止损-10%；513100纳指ETF关注-10%止损位¥1.985。\n来源：/Users/junze/.hermes/work_logs/monday_trading/复盘_2026-06-08.md",
+      "tags": ["追电", "风险检查", "集中度", "跨境风险", "止损"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/.hermes/work_logs/monday_trading/复盘_2026-06-08.md"
+    },
+    {
+      "mem_id": "zhuidian_20260613_008",
+      "mem_type": "data_gap",
+      "title": "追电策略 — 实盘数据缺口GAP-02",
+      "content": "数据层方案日期：2026-06-08。\nGAP-02：追电策略无独立实盘记录，仅周一复盘文字提及买513100。\n影响指标：追电净值曲线、追电收益率、追电持仓。\n严重程度：P0-阻断。\n补录方案：建立zhuidian_position持仓表、zhuidian_trade交易表，补录至少最近3个月历史数据，并基于补录数据计算追电历史净值序列。\n来源：/Users/junze/三策略监控面板_项目档案/02_苏晏清_结构化层/三策略实盘数据层开发方案_AI量化公司_v1.0_2026-06-08.md",
+      "tags": ["追电", "数据缺口", "GAP-02", "实盘记录", "P0"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/三策略监控面板_项目档案/02_苏晏清_结构化层/三策略实盘数据层开发方案_AI量化公司_v1.0_2026-06-08.md"
+    },
+    {
+      "mem_id": "zhuidian_20260613_009",
+      "mem_type": "metric_standard",
+      "title": "追电策略 — 监控面板核心指标口径",
+      "content": "指标清单日期：2026-06-08。\n追电已有回测值：夏普1.82，最大回撤-17.66%，胜率55.94%，盈亏比2.31。\n追电实盘缺口：无2Y回测，无实盘数据；需独立资金账户、每日收盘快照、绩效计算模块和行情API接入。\n面板映射：顶部栏展示总资金/累计收益率/今日盈亏；策略卡片展示收益率/仓位/现金/持仓明细；收益对比区展示三线收益、夏普、最大回撤；风险监控区展示当前回撤/集中度/止损距离。\n来源：/Users/junze/三策略监控面板_项目档案/02_苏晏清_结构化层/三策略监控面板_实盘核心数据指标清单_v1.0_2026-06-08.md",
+      "tags": ["追电", "指标口径", "夏普", "回撤", "监控面板"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/三策略监控面板_项目档案/02_苏晏清_结构化层/三策略监控面板_实盘核心数据指标清单_v1.0_2026-06-08.md"
+    },
+    {
+      "mem_id": "zhuidian_20260613_010",
+      "mem_type": "monitor_config",
+      "title": "追电策略 — 监控面板配置与V2动态数据",
+      "content": "config/strategies.json配置：策略ID zhuidian，名称追电策略，颜色#f59e0b，初始资金10000，描述跨境ETF动量轮动，版本1.0。\nV2后端：real_data_server_v2.py动态加载策略配置和signals/*.json，支持腾讯财经API qt.gtimg.cn，代码格式sz/sh前缀。\nV2三策略虚拟资产：七星¥9801.71，R32¥11506.72，追电¥9782.56；总资金¥31090.99，总收益+3.64%。\n部署地址：https://you9095.github.io/quant-monitor/。\n来源：/Users/junze/quant-monitor-local/config/strategies.json；/Users/junze/三策略监控面板_项目档案/工作日志_2026-06-09.md",
+      "tags": ["追电", "监控面板", "strategies.json", "V2", "513100"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/quant-monitor-local/config/strategies.json"
+    },
+    {
+      "mem_id": "zhuidian_20260613_011",
+      "mem_type": "monitor_review_snapshot",
+      "title": "追电策略 — 监控面板复盘快照",
+      "content": "2026-06-08复盘：zhuidian为worst_strategy，总收益-4.12%，今日盈亏-¥412.23，今日收益-4.12%，交易1笔，持仓1只；备注为纳指ETF回调，单日回撤可控。\n2026-06-12复盘：zhuidian仍为worst_strategy，总收益18.5%，今日盈亏-¥85，今日收益-0.9%，交易35笔，持仓3只，最大回撤-3.2%，夏普1.45；备注为跨境ETF动量轮动策略运行中。\n这些是监控面板review快照，不等同于追电5Y回测口径。\n来源：/Users/junze/quant-monitor-local/review/2026-06-08.json；/Users/junze/quant-monitor-local/review/2026-06-12.json",
+      "tags": ["追电", "监控面板", "复盘快照", "2026-06-08", "2026-06-12"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/quant-monitor-local/review/2026-06-08.json"
+    },
+    {
+      "mem_id": "zhuidian_20260613_012",
+      "mem_type": "log工作日志",
+      "title": "追电策略 — 三策略监控面板项目状态异常风险",
+      "content": "日期：2026-06-12。\n七星R120完成棘轮迭代后，用户要求将最新策略结果同步到三策略监控面板。\n风险：面板中只有三驾马车R32看起来正常运行，七星与追电累计收益为空且长期显示“实盘启动中”。\n追电处理口径：检查zhuidian配置、signals/{date}.json、后端接口、前端状态映射和最新策略结果文件是否一致。\n来源：/Users/junze/三策略监控面板_项目档案/工作日志_2026-06-12.md",
+      "tags": ["追电", "监控面板", "状态异常", "实盘启动中"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/三策略监控面板_项目档案/工作日志_2026-06-12.md"
+    }
+  ]
+}

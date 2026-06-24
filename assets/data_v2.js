@@ -5,7 +5,7 @@ const DataLayer = {
   config: {
     pollInterval: 30000,
     pricePollInterval: 5000,
-    apiBase: 'http://localhost:8000/api/v1',
+    apiBase: '/api/v1',
     useMock: false
   },
 
@@ -109,7 +109,11 @@ const DataLayer = {
         latest_round: s.metrics?.latest_round,
         latest_desc: s.metrics?.latest_desc,
         data_period: s.metrics?.data_period,
-        engine_version: s.metrics?.engine_version
+        engine_version: s.metrics?.engine_version,
+        // 三层标签（v2.0 路线图 P0-4）
+        version_tag: s.version_tag || s.metrics?.latest_round || '未标注',
+        caliber: s.caliber || '未标注',
+        signal_date: s.signal_date || null
       }
     }));
 

@@ -1,0 +1,20 @@
+{
+  "_placeholder": true,
+  "_comment": "2Y 回测 — 棘轮迭代基线唯一标准（用户 2026-06-20 强约束）",
+  "strategy": "sanhe",
+  "strategy_name": "三合",
+  "version": "R25_vol_weight",
+  "data_period": "2024-06 ~ 2026-06",
+  "caliber": "2Y 年化(主)，波动率倒数加权仓位",
+  "baseline_metrics": {
+    "annual": 25.0,
+    "max_dd": -12.0,
+    "sharpe": 1.4,
+    "win_rate": 0.55
+  },
+  "hard_constraints": {
+    "max_drawdown_max": -20.0,
+    "sharpe_min": 0.8
+  },
+  "generated_at": "2026-06-20"
+}

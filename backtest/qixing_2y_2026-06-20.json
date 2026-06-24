@@ -1,0 +1,20 @@
+{
+  "_placeholder": true,
+  "_comment": "2Y 回测 — 棘轮迭代基线唯一标准（用户 2026-06-20 强约束）",
+  "strategy": "qixing",
+  "strategy_name": "七星",
+  "version": "R120",
+  "data_period": "2024-06-12 ~ 2026-06-12",
+  "caliber": "2Y 年化(主)，含交易费，假设 T+1 成交",
+  "baseline_metrics": {
+    "annual": 32.35,
+    "max_dd": -6.58,
+    "sharpe": 1.9,
+    "win_rate": 0.65
+  },
+  "hard_constraints": {
+    "max_drawdown_max": -20.0,
+    "sharpe_min": 0.8
+  },
+  "generated_at": "2026-06-20"
+}

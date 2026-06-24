@@ -1,0 +1,20 @@
+{
+  "_placeholder": true,
+  "_comment": "2Y 回测 — 棘轮迭代基线唯一标准（用户 2026-06-20 强约束）",
+  "strategy": "lightning",
+  "strategy_name": "闪电",
+  "version": "R4_m3",
+  "data_period": "2024-06 ~ 2026-06",
+  "caliber": "2Y 年化(主)，3 日动量入场，止盈止损规则",
+  "baseline_metrics": {
+    "annual": 28.0,
+    "max_dd": -10.0,
+    "sharpe": 1.6,
+    "win_rate": 0.6
+  },
+  "hard_constraints": {
+    "max_drawdown_max": -20.0,
+    "sharpe_min": 0.8
+  },
+  "generated_at": "2026-06-20"
+}

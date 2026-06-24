@@ -6,7 +6,7 @@ const DataLayer = {
   config: {
     pollInterval: 30000,      // 30秒轮询
     pricePollInterval: 5000,  // 5秒行情轮询
-    apiBase: 'http://localhost:8000/api/v1',  // Mock API基地址
+    apiBase: '/api/v1',  // API基地址（Docker/任意端口通用）
     useMock: false            // 使用真实API（Mock服务器）
   },
 
@@ -52,40 +52,58 @@ const DataLayer = {
         id: 'qixing',
         name: '七星策略',
         status: 'running',
-        today_action: 'BUY',
-        target: '159915',
-        position_pct: 99.88,
-        cash: 117.40,
+        today_action: 'REBALANCE',
+        target: '159915,513100',
+        position_pct: 99.9,
+        cash: 120.50,
         holdings: [
-          { code: '159915', name: '创业板ETF', qty: 25100, cost: 3.977, price: 3.985, pnl: 200.80, pnl_pct: 0.20 }
+          { code: '159915', name: '创业板ETF', qty: 1500, cost: 4.02, price: 4.03, pnl: 150.00, pnl_pct: 0.25 },
+          { code: '513100', name: '纳指ETF', qty: 800, cost: 2.18, price: 2.20, pnl: 160.00, pnl_pct: 0.92 }
         ],
-        metrics: { total_return: null, sharpe: null, max_drawdown: null, trades_count: 1, win_rate: null }
+        metrics: {
+          total_return_2y: -1.76,
+          max_dd_2y: -4.20,
+          trades_2y: 213,
+          total_return_5y: null,
+          max_dd_5y: null,
+          trades_5y: null,
+          annualized_return_2y: -0.93,
+          annualized_return_5y: null,
+          sharpe_2y: -0.28,
+          sharpe_5y: null,
+          latest_round: 'R125_holdings_2',
+          latest_desc: '双持仓策略 回撤-4.20% (全5轮最小)'
+        }
       },
       {
         id: 'r32',
-        name: '三驾马车 R32',
+        name: '三驾马车',
         status: 'running',
         today_action: 'REBALANCE',
         target: null,
-        position_pct: 99.40,
-        cash: 598.59,
+        position_pct: 100.0,
+        cash: 0,
         holdings: [
-          { code: '159967', name: '国企红利', weight: 20, cost: 0.995, price: 1.002, pnl: 70.35, pnl_pct: 0.70 },
-          { code: '513100', name: '纳指ETF', weight: 20, cost: 2.205, price: 2.218, pnl: 117.60, pnl_pct: 0.59 },
-          { code: '513520', name: '日经ETF', weight: 20, cost: 1.346, price: 1.338, pnl: -59.20, pnl_pct: -0.59 },
-          { code: '159915', name: '创业板', weight: 20, cost: 3.977, price: 3.985, pnl: 40.16, pnl_pct: 0.20 },
-          { code: '513500', name: '标普500', weight: 20, cost: 2.179, price: 2.191, pnl: 54.48, pnl_pct: 0.55 }
+          { code: '159967', name: '国企红利', weight: 16.67, cost: 0.995, price: 1.00, pnl: 100.00, pnl_pct: 0.67 },
+          { code: '513100', name: '纳指ETF', weight: 16.67, cost: 2.205, price: 2.22, pnl: 180.00, pnl_pct: 0.68 },
+          { code: '513520', name: '日经ETF', weight: 16.67, cost: 1.346, price: 1.35, pnl: 120.00, pnl_pct: 0.93 },
+          { code: '159915', name: '创业板', weight: 16.67, cost: 3.977, price: 3.99, pnl: 130.00, pnl_pct: 0.33 },
+          { code: '513500', name: '标普500', weight: 16.67, cost: 2.179, price: 2.19, pnl: 140.00, pnl_pct: 0.50 },
+          { code: '518880', name: '黄金ETF', weight: 16.67, cost: 4.620, price: 4.66, pnl: 80.00, pnl_pct: 0.87 }
         ],
         metrics: {
-          total_return_2y: 38.14,
-          max_dd_2y: -9.16,
-          trades_2y: 8,
-          total_return_5y: 19.60,
-          max_dd_5y: -39.71,
-          trades_5y: 73,
-          annualized_return_2y: 19.05,
-          annualized_return_5y: 19.60,
-          sharpe: 1.42
+          total_return_2y: 114.08,
+          max_dd_2y: -22.26,
+          trades_2y: 29,
+          total_return_5y: 158.64,
+          max_dd_5y: -25.48,
+          trades_5y: 648,
+          annualized_return_2y: 17.16,
+          annualized_return_5y: 23.72,
+          sharpe_2y: 1.15,
+          sharpe_5y: 1.19,
+          latest_round: 'R35_rebal_15',
+          latest_desc: '半月调仓 2Y年化17.16% 5Y年化23.72%'
         }
       },
       {
@@ -123,31 +141,27 @@ const DataLayer = {
         status: 'running',
         today_action: 'REBALANCE',
         target: null,
-        position_pct: 98.40,
-        cash: 161.46,
+        position_pct: 100.0,
+        cash: 0,
         holdings: [
-          { code: '513100', name: '纳指ETF', weight: 20, cost: 2.205, price: 2.218, pnl: 11.7, pnl_pct: 0.59 },
-          { code: '518880', name: '黄金ETF', weight: 20, cost: 4.620, price: 4.658, pnl: 15.96, pnl_pct: 0.82 },
-          { code: '159985', name: '豆粕ETF', weight: 20, cost: 1.040, price: 1.052, pnl: 22.8, pnl_pct: 1.15 },
-          { code: '511010', name: '国债ETF', weight: 20, cost: 1.378, price: 1.381, pnl: 4.29, pnl_pct: 0.22 },
-          { code: '512890', name: '红利低波ETF', weight: 20, cost: 1.185, price: 1.198, pnl: 21.56, pnl_pct: 1.10 }
+          { code: '513100', name: '纳指ETF', weight: 24.18, cost: 2.205, price: 2.22, pnl: 180.00, pnl_pct: 0.68 },
+          { code: '518880', name: '黄金ETF', weight: 24.18, cost: 4.620, price: 4.66, pnl: 220.00, pnl_pct: 0.87 },
+          { code: '159985', name: '豆粕ETF', weight: 24.18, cost: 1.040, price: 1.05, pnl: 95.00, pnl_pct: 0.96 },
+          { code: '511010', name: '国债ETF', weight: 24.18, cost: 1.378, price: 1.38, pnl: 55.00, pnl_pct: 0.14 }
         ],
         metrics: {
-          total_return_2y: 83.0,
-          max_dd_2y: -23.38,
-          trades_2y: 40,
-          total_return_5y: 105.31,
-          max_dd_5y: -21.80,
-          trades_5y: 693,
-          annualized_return_2y: 35.15,
-          annualized_return_5y: 17.48,
-          sharpe_2y: 1.50,
-          sharpe_5y: 0.97,
-          calmar_2y: 1.50,
-          calmar_5y: 0.80,
-          sharpe: 1.50,
-          latest_round: 'R25_vol_weight',
-          latest_desc: '三策略融合+波动率倒数加权'
+          total_return_2y: 127.74,
+          max_dd_2y: -22.26,
+          trades_2y: 648,
+          total_return_5y: 153.59,
+          max_dd_5y: -24.96,
+          trades_5y: 648,
+          annualized_return_2y: 20.25,
+          annualized_return_5y: 23.18,
+          sharpe_2y: 1.22,
+          sharpe_5y: 1.20,
+          latest_round: 'R44_weekly_h4_cap2418',
+          latest_desc: '周度调仓 5Y年化23.18% 回撤-24.96%'
         }
       },
       {
@@ -159,10 +173,10 @@ const DataLayer = {
         position_pct: 100.0,
         cash: 0,
         holdings: [
-          { code: '513100', name: '纳指ETF', weight: 25, cost: 2.205, price: 2.218, pnl: 5.85, pnl_pct: 0.59 },
-          { code: '513520', name: '日经ETF', weight: 25, cost: 1.346, price: 1.358, pnl: 8.76, pnl_pct: 0.89 },
-          { code: '513030', name: '德国ETF', weight: 25, cost: 1.440, price: 1.452, pnl: 16.68, pnl_pct: 0.83 },
-          { code: '513130', name: '恒生科技ETF', weight: 25, cost: 0.404, price: 0.412, pnl: 39.6, pnl_pct: 1.98 }
+          { code: '513100', name: '纳指ETF', weight: 25, cost: 2.205, price: 2.22, pnl: 180.00, pnl_pct: 0.68 },
+          { code: '513520', name: '日经ETF', weight: 25, cost: 1.346, price: 1.35, pnl: 95.00, pnl_pct: 0.93 },
+          { code: '513030', name: '德国ETF', weight: 25, cost: 1.440, price: 1.45, pnl: 110.00, pnl_pct: 0.71 },
+          { code: '513130', name: '恒生科技ETF', weight: 25, cost: 0.404, price: 0.412, pnl: 160.00, pnl_pct: 1.98 }
         ],
         metrics: {
           total_return_2y: 74.06,
@@ -174,10 +188,10 @@ const DataLayer = {
           annualized_return_2y: 27.34,
           annualized_return_5y: null,
           sharpe_2y: 1.20,
+          sharpe_5y: null,
           calmar_2y: 1.94,
-          sharpe: 1.20,
           latest_round: 'R4_m3',
-          latest_desc: '3日动量+4只跨境+止盈止损'
+          latest_desc: '3日动量+4跨境+止盈止损'
         }
       }
     ],
@@ -197,8 +211,8 @@ const DataLayer = {
       },
       '5y': {
         labels: ['2021-06','2021-09','2021-12','2022-03','2022-06','2022-09','2022-12','2023-03','2023-06','2023-09','2023-12','2024-03','2024-06','2024-09','2024-12','2025-03','2025-06','2025-09','2025-12','2026-03','2026-06'],
-        r32: [0, 5.2, 8.5, 2.1, -5.8, -12.3, -8.5, -2.1, 3.5, 8.2, 12.5, 15.8, 18.2, 15.5, 12.0, 8.5, 15.2, 18.5, 10.2, 15.8, 19.60],
-        sanhe: [0, 8, 15, 5, -3, -10, -5, 5, 12, 18, 25, 35, 50, 45, 55, 65, 75, 85, 92, 100, 105.31],
+        r32: [0, 2, 5, 12, 18, 25, 38, 45, 52, 65, 78, 92, 105, 118, 125, 132, 138, 145, 152, 158, 114.08],
+        sanhe: [0, 3, 8, 12, 10, 5, -2, 0, 8, 15, 25, 35, 50, 62, 75, 90, 105, 120, 135, 148, 153.59],
         zhuidian: [0, 10, 25, 15, 5, -8, -5, 10, 20, 35, 50, 70, 95, 130, 170, 200, 225, 240, 248, 252, 256.18]
       }
     }
@@ -271,7 +285,12 @@ const DataLayer = {
         max_drawdown: s.max_drawdown,
         annual_volatility: s.annual_volatility,
         trades_count: s.trades_count || 0,
-        win_rate: s.win_rate
+        win_rate: s.win_rate,
+        // 三层标签（v2.0 路线图 P0-4）
+        version_tag: s.version_tag || null,
+        data_period: s.data_period || null,
+        caliber: s.caliber || null,
+        signal_date: s.signal_date || null
       }
     }));
 

@@ -1,0 +1,79 @@
+{
+  "strategy": "qixing",
+  "round_range": "R121-R125",
+  "data_period": "2Y (2024-06-07 ~ 2026-06-05)",
+  "engine_version": "qixing_2y_engine",
+  "date_run": "2026-06-14",
+  "baseline": {
+    "name": "R120_2Y (实跑)",
+    "total_return_pct": -9.8,
+    "annualized_return_pct": -5.28,
+    "max_drawdown_pct": -12.12,
+    "sharpe_ratio": -0.78,
+    "calmar_ratio": -0.44,
+    "total_trades": 144
+  },
+  "results": [
+    {
+      "round": "R121",
+      "description": "breadth=0.30 放松宽度",
+      "total_return_pct": -6.16,
+      "annualized_return_pct": -3.29,
+      "max_drawdown_pct": -10.53,
+      "total_trades": 140,
+      "sharpe_ratio": -0.39,
+      "calmar_ratio": -0.31,
+      "verdict": "ACCEPT",
+      "reason": "年化 -3.29% >= 基线 -5.28% 且回撤 -10.53% <= -12.12%"
+    },
+    {
+      "round": "R122",
+      "description": "breadth=0.40 收紧宽度",
+      "total_return_pct": -3.14,
+      "annualized_return_pct": -1.66,
+      "max_drawdown_pct": -5.03,
+      "total_trades": 144,
+      "sharpe_ratio": -0.51,
+      "calmar_ratio": -0.33,
+      "verdict": "ACCEPT",
+      "reason": "年化 -1.66% >= 基线 -5.28% 且回撤 -5.03% <= -12.12%"
+    },
+    {
+      "round": "R123",
+      "description": "lookback=25 (更长动量)",
+      "total_return_pct": -3.77,
+      "annualized_return_pct": -2.0,
+      "max_drawdown_pct": -12.34,
+      "total_trades": 138,
+      "sharpe_ratio": -0.25,
+      "calmar_ratio": -0.16,
+      "verdict": "ROLLBACK",
+      "reason": "年化 -2.0% < 基线 -5.28% 或回撤 -12.34% > -12.12%"
+    },
+    {
+      "round": "R124",
+      "description": "rebalance_freq=daily (每日调仓)",
+      "total_return_pct": -1.74,
+      "annualized_return_pct": -0.92,
+      "max_drawdown_pct": -8.77,
+      "total_trades": 397,
+      "sharpe_ratio": -0.1,
+      "calmar_ratio": -0.1,
+      "verdict": "ACCEPT",
+      "reason": "年化 -0.92% >= 基线 -5.28% 且回撤 -8.77% <= -12.12%"
+    },
+    {
+      "round": "R125",
+      "description": "holdings=2 (双持仓)",
+      "total_return_pct": -1.76,
+      "annualized_return_pct": -0.93,
+      "max_drawdown_pct": -4.2,
+      "total_trades": 213,
+      "sharpe_ratio": -0.28,
+      "calmar_ratio": -0.22,
+      "verdict": "ACCEPT",
+      "reason": "年化 -0.93% >= 基线 -5.28% 且回撤 -4.2% <= -12.12%"
+    }
+  ],
+  "accept_count": 4
+}

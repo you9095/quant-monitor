@@ -1,0 +1,38 @@
+{
+  "meta": {
+    "project_id": "quant_strategy_qixing",
+    "imported_at": 1781345398,
+    "imported_by": "manual_full_search_20260613",
+    "remark": "七星策略全盘搜索后补全隔离记忆"
+  },
+  "import_batches": [
+    {
+      "batch_id": "qixing_manual_import_20260613",
+      "imported_at": 1781345398,
+      "memory_count": 15,
+      "source_paths": [
+        "/Users/junze/三策略监控面板_项目档案/工作日志_2026-06-08.md",
+        "/Users/junze/三策略监控面板_项目档案/工作日志_2026-06-09.md",
+        "/Users/junze/三策略监控面板_项目档案/工作日志_2026-06-11.md",
+        "/Users/junze/三策略监控面板_项目档案/工作日志_2026-06-12.md",
+        "/Users/junze/.hermes/work_logs/qixing/STRATEGY_EXPLAINED.md",
+        "/Users/junze/.hermes/work_logs/qixing/qixing_2y_iteration_2026-06-10.md",
+        "/Users/junze/.hermes/work_logs/qixing/qixing_2026-06-10.md",
+        "/Users/junze/qixing_strategy/qixing_diagnosis_report.md",
+        "/Users/junze/qixing_strategy/qixing_round3_report_2026-06-11.md",
+        "/Users/junze/qixing_strategy/qixing_round3_discussion_2026-06-11.md",
+        "/Users/junze/qixing_strategy/qixing_mid_report_20260612.md",
+        "/Users/junze/qixing_strategy/qixing_final_report_20260612.md",
+        "/Users/junze/qixing_strategy/qixing_round4_results.json",
+        "/Users/junze/.hermes/work_logs/qixing/backtest_2026-06-08.md",
+        "/Users/junze/.hermes/work_logs/qixing/backtest_2026-06-06.md",
+        "/Users/junze/.hermes/work_logs/qixing/backtest_2026-06-10.md",
+        "/Users/junze/.hermes/work_logs/qixing/qixing_2026-06-08.json",
+        "/Users/junze/.hermes/work_logs/qixing/qixing_2026-06-09.json",
+        "/Users/junze/.hermes/work_logs/qixing/qixing_2026-06-10.json",
+        "/Users/junze/.hermes/work_logs/qixing/qixing_2026-06-11.json",
+        "/Users/junze/.hermes/work_logs/qixing/qixing_2026-06-12.json"
+      ]
+    }
+  ]
+}

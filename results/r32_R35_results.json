@@ -1,0 +1,79 @@
+{
+  "strategy": "r32",
+  "round_range": "R33-R37",
+  "data_period": "2Y",
+  "engine_version": "ratchet_v8_R32",
+  "date_run": "2026-06-14",
+  "baseline": {
+    "name": "R32_sector_rotation",
+    "total_return_pct": 35.2,
+    "annualized_return_pct": 6.48,
+    "max_drawdown_pct": 20.9,
+    "total_trades": 28,
+    "win_rate_pct": 64.29,
+    "sharpe_ratio": 0.52
+  },
+  "results": [
+    {
+      "round": "R33",
+      "description": "breadth_th=60 行业宽度阈值提高",
+      "total_return_pct": 35.13,
+      "annualized_return_pct": 6.47,
+      "max_drawdown_pct": 20.89,
+      "total_trades": 21,
+      "win_rate_pct": 66.67,
+      "sharpe_ratio": 0.56,
+      "verdict": "ROLLBACK",
+      "reason": "硬约束触发: 收益↓(35.20%→35.13%)"
+    },
+    {
+      "round": "R34",
+      "description": "lookback=30 30 日更长动量",
+      "total_return_pct": 35.2,
+      "annualized_return_pct": 6.48,
+      "max_drawdown_pct": 20.9,
+      "total_trades": 28,
+      "win_rate_pct": 64.29,
+      "sharpe_ratio": 0.52,
+      "verdict": "ACCEPT",
+      "reason": "收益↑+回撤≤-30%: 35.20%→35.20%, 回撤20.90%"
+    },
+    {
+      "round": "R35",
+      "description": "rebal=15 半月调仓",
+      "total_return_pct": 114.08,
+      "annualized_return_pct": 17.16,
+      "max_drawdown_pct": 22.26,
+      "total_trades": 29,
+      "win_rate_pct": 75.86,
+      "sharpe_ratio": 1.15,
+      "verdict": "ACCEPT",
+      "reason": "收益↑+回撤≤-30%: 35.20%→114.08%, 回撤22.26%"
+    },
+    {
+      "round": "R36",
+      "description": "sl=5% 更紧止损",
+      "total_return_pct": 28.8,
+      "annualized_return_pct": 5.41,
+      "max_drawdown_pct": 20.9,
+      "total_trades": 28,
+      "win_rate_pct": 64.29,
+      "sharpe_ratio": 0.45,
+      "verdict": "ROLLBACK",
+      "reason": "硬约束触发: 收益↓(35.20%→28.80%)"
+    },
+    {
+      "round": "R37",
+      "description": "sl=15% 更宽止损",
+      "total_return_pct": 44.85,
+      "annualized_return_pct": 8.02,
+      "max_drawdown_pct": 17.72,
+      "total_trades": 28,
+      "win_rate_pct": 64.29,
+      "sharpe_ratio": 0.62,
+      "verdict": "ACCEPT",
+      "reason": "收益↑+回撤≤-30%: 35.20%→44.85%, 回撤17.72%"
+    }
+  ],
+  "accept_count": 3
+}

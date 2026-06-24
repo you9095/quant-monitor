@@ -1,0 +1,23 @@
+{
+  "_placeholder": true,
+  "strategy": "zhuidian",
+  "strategy_name": "追电",
+  "version": "R17_score_max_38 (2Y) / R39_bear_filter (5Y) — 帕累托边界已尽",
+  "data_period": "2024-06 ~ 2026-06",
+  "verdict": "ACCEPT",
+  "verdict_basis": "2Y 基线 (用户 2026-06-20 强约束)",
+  "metrics_2y": {
+    "annual_return": 103.18,
+    "max_drawdown": -16.76,
+    "sharpe": 2.35,
+    "win_rate": 0.5556,
+    "note": "R17_score_max_38 真实 2Y 基线（追电 2026-06-14 棘轮报告）"
+  },
+  "constraints_pass": {
+    "max_drawdown": false,
+    "sharpe": true
+  },
+  "generated_at": "2026-06-20",
+  "_fixed_at": "2026-06-21",
+  "_fix_note": "2Y 数字从 5Y 重测改为 R17 真实 2Y 基线（之前误用 5Y 重测数字）"
+}

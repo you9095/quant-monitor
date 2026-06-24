@@ -1,0 +1,17 @@
+{
+  "_placeholder": true,
+  "_comment": "5Y 回测 — 仅作参考展示，不作为棘轮迭代基线（用户 2026-06-20 强约束）",
+  "strategy": "r32",
+  "strategy_name": "三驾马车",
+  "version": "R32",
+  "data_period": "5Y (2021-06 ~ 2026-06)",
+  "caliber": "5Y 年化(参考)，含交易费",
+  "baseline_metrics": {
+    "annual": 19.6,
+    "max_dd": -3.0,
+    "sharpe": 1.5,
+    "note": "5Y 真实基线（hermes-quant-agent v9 R32）"
+  },
+  "usage": "DISPLAY_ONLY — 不进入 ACCEPT/ROLLBACK 判定",
+  "generated_at": "2026-06-20"
+}

@@ -1,37 +1,48 @@
 {
+  "_comment": "策略配置 + 三层标签（version / data_period / caliber）。v2.0 (2026-06-24) 同步最新棘轮基线",
   "qixing": {
     "name": "七星策略",
     "color": "#3b82f6",
     "initial_capital": 10000,
     "description": "创业板动量策略",
-    "version": "R120"
+    "version": "R125_holdings_2",
+    "data_period": "2024-06-12 ~ 2026-06-12",
+    "caliber": "2Y 年化(主)，含交易费，双持仓"
   },
   "r32": {
-    "name": "三驾马车R32",
+    "name": "三驾马车",
     "color": "#10b981",
     "initial_capital": 10000,
     "description": "行业轮动棘轮策略",
-    "version": "R32"
+    "version": "R35_rebal_15",
+    "data_period": "2024-06 ~ 2026-06",
+    "caliber": "2Y 年化(主)，半月调仓，含交易费，硬约束回撤 ≤ -20%"
   },
   "zhuidian": {
     "name": "追电策略",
     "color": "#f59e0b",
     "initial_capital": 10000,
     "description": "跨境ETF动量轮动",
-    "version": "1.0"
+    "version": "R17_score_max_38 (2Y) / R39_bear_filter (5Y)",
+    "data_period": "2024-06 ~ 2026-06",
+    "caliber": "2Y 年化(主)，加权线性回归动量 + R² 加权"
   },
   "sanhe": {
     "name": "三合策略",
     "color": "#a855f7",
     "initial_capital": 10000,
     "description": "三策略融合+波动率倒数加权",
-    "version": "R25_vol_weight"
+    "version": "R44_weekly_h4_cap2418",
+    "data_period": "2021-06 ~ 2026-06",
+    "caliber": "5Y 年化(主)，周度调仓，单只上限24.18%"
   },
   "lightning": {
     "name": "闪电策略",
     "color": "#facc15",
     "initial_capital": 10000,
     "description": "3日动量+4只跨境+止盈止损",
-    "version": "R4_m3"
+    "version": "R4_m3",
+    "data_period": "2024-06 ~ 2026-06",
+    "caliber": "2Y 年化(主)，3 日动量入场，止盈止损规则"
   }
 }

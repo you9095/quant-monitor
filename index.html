@@ -310,6 +310,35 @@ body {
   background: currentColor;
 }
 
+/* 三层标签：version / data_period / caliber（v2.0 路线图 P0-4） */
+.three-layer-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 var(--space-md) 0;
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px dashed rgba(255,255,255,0.08);
+}
+.tlt-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text-muted);
+  letter-spacing: 0.2px;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tlt-version { border-color: rgba(59,130,246,0.3); color: #93c5fd; }
+.tlt-period  { border-color: rgba(16,185,129,0.3); color: #6ee7b7; }
+.tlt-caliber { border-color: rgba(245,158,11,0.3); color: #fcd34d; }
+
 /* 大数字区 */
 .metric-row {
   display: flex;
@@ -654,7 +683,7 @@ body {
 <header class="topbar">
   <div class="topbar-brand">
     <span class="dot"></span>
-    <span>AI量化 · 四策略监控面板</span>
+    <span>AI量化 · 五策略监控面板</span>
   </div>
   <div class="topbar-meta">
     <span id="current-date">2026-06-08</span>
@@ -831,7 +860,7 @@ body {
   </div>
 </div>
 
-  <script src="assets/data.js?v=5"></script>
+  <script src="assets/data.js?v=6"></script>
   <script>
 // ========== 数据状态（从DataLayer加载） ==========
 let strategiesData = {};
@@ -951,7 +980,7 @@ function buildCardHtml(sid, sname, s) {
   const position = s.position_pct;
   const cash = s.cash;
   const status = s.status || 'running';
-  const statusLabel = status === 'running' ? '运行中' : status;
+  const statusLabel = status === 'placeholder' ? '占位' : status === 'running' ? '运行中' : status;
   const todayAction = s.today_action || s.action || 'HOLD';
   // R 标签
   const latestRound = s.metrics?.latest_round || s.metrics?.latest_desc || '';
@@ -981,6 +1010,11 @@ function buildCardHtml(sid, sname, s) {
       <div class="card-title-row">
         <span class="card-title">${sname} ${latestRound ? `<span style="font-size:10px;color:var(--${sid}-start);margin-left:4px">${latestRound}</span>` : ''}</span>
         <span class="status-badge">${statusLabel}</span>
+      </div>
+      <div class="three-layer-tags" data-source="${s.metrics?.signal_date || ''}">
+        <span class="tlt-tag tlt-version" title="策略版本号（棘轮迭代轮次）">📦 ${s.metrics?.version_tag || latestRound || '未标注'}</span>
+        <span class="tlt-tag tlt-period" title="回测数据期">📅 ${s.metrics?.data_period || '未指定'}</span>
+        <span class="tlt-tag tlt-caliber" title="指标计算口径">⚙️ ${s.metrics?.caliber || '未指定'}</span>
       </div>
       <div class="metric-row">
         <div class="metric">

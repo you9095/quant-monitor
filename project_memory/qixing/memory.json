@@ -1,0 +1,176 @@
+{
+  "meta": {
+    "memory_schema_version": "1.0",
+    "create_timestamp": 1781345398,
+    "last_update_timestamp": 1781345398,
+    "project_id": "quant_strategy_qixing",
+    "remark": "七星策略专属记忆库，已按全盘搜索结果补全"
+  },
+  "memory_list": [
+    {
+      "mem_id": "qixing_20260613_001",
+      "mem_type": "log工作日志",
+      "title": "七星策略 — 三策略监控面板项目启动日志",
+      "content": "日期：2026-06-08。\n项目：AI量化公司三策略综合监控可视化面板。\n用户要求：展示七星、三驾马车、追电三类策略的现状、买卖、收益、夏普等核心数据。\n团队结论：面板定位为作战指挥台，采用暗色主题、三策略色彩编码、12列栅格、纯HTML/CSS/JS + Chart.js、30秒轮询。\n七星初始硬编码信号：BUY 159915，2510股。\n来源：/Users/junze/三策略监控面板_项目档案/工作日志_2026-06-08.md",
+      "tags": ["七星", "监控面板", "工作日志", "AI量化公司"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/三策略监控面板_项目档案/工作日志_2026-06-08.md"
+    },
+    {
+      "mem_id": "qixing_20260613_002",
+      "mem_type": "log工作日志",
+      "title": "七星策略 — 三策略监控面板V2完成记录",
+      "content": "日期：2026-06-09。\n后端从V1硬编码三策略升级为real_data_server_v2.py动态配置驱动。\n新增config/strategies.json与signals/*.json每日信号文件格式。\n接入腾讯财经API qt.gtimg.cn，代码格式为sz/sh前缀。\n三策略虚拟资产：七星¥9801.71、R32¥11506.72、追电¥9782.56；总资金¥31090.99，总收益+3.64%。\n部署地址：https://you9095.github.io/quant-monitor/。\n来源：/Users/junze/三策略监控面板_项目档案/工作日志_2026-06-09.md",
+      "tags": ["七星", "监控面板", "V2", "工作日志"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/三策略监控面板_项目档案/工作日志_2026-06-09.md"
+    },
+    {
+      "mem_id": "qixing_20260613_003",
+      "mem_type": "log工作日志",
+      "title": "七星策略 — 监控面板技能边界与最新策略同步口径",
+      "content": "日期：2026-06-11。\n面板边界：只监控、不执行、不下单；数据层未就绪时允许Mock API并行开发。\n任一策略完成棘轮迭代后必须第一时间同步到监控面板。\n最新策略验收口径：前端展示、后端/API数据源、最新策略结果文件三者必须一致。\n数据源顺序：最新策略结果文件/报告 → metrics/{strategy_id}.json → signals/{strategy_id}_{date}.json → config/strategies.json → 前端展示。\n来源：/Users/junze/三策略监控面板_项目档案/工作日志_2026-06-11.md",
+      "tags": ["七星", "监控面板", "最新策略", "验收口径"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/三策略监控面板_项目档案/工作日志_2026-06-11.md"
+    },
+    {
+      "mem_id": "qixing_20260613_004",
+      "mem_type": "log工作日志",
+      "title": "七星策略 — R120结果与面板异常风险",
+      "content": "日期：2026-06-12。\n七星R120完成棘轮迭代，最终基线：年化32.35%、回撤-6.58%、夏普2.15、Calmar4.92、40笔交易。\n用户要求将七星R120结果同步到三策略监控面板。\n风险：面板中只有三驾马车R32看起来正常运行，七星与追电累计收益为空且长期显示实盘启动中。\n后续必须检查信号文件、后端接口、前端状态映射。\n来源：/Users/junze/三策略监控面板_项目档案/工作日志_2026-06-12.md",
+      "tags": ["七星", "R120", "监控面板", "状态异常"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/三策略监控面板_项目档案/工作日志_2026-06-12.md"
+    },
+    {
+      "mem_id": "qixing_20260613_005",
+      "mem_type": "strategy_logic",
+      "title": "七星策略 — 1.7.2修复后核心算法与防御模式",
+      "content": "策略类型：趋势跟踪 + 动量轮动 + 择时。\nETF池：37只有效ETF，原始39只剔除无效品种。\n评分：25日年化收益 × R²，使用加权最小二乘。\n市场环境过滤：crash时不选股，直接全仓511880银华日利；normal/ideal时选动量最强ETF。\n仓位：动量模式集中持仓，默认1只；防御模式100%持有511880。\n自动执行：每天10:00与14:15运行，非交易日自动跳过，结构化日志写入~/.hermes/work_logs/qixing/。\n来源：/Users/junze/.hermes/work_logs/qixing/STRATEGY_EXPLAINED.md",
+      "tags": ["七星", "策略逻辑", "511880", "R²", "市场宽度"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/.hermes/work_logs/qixing/STRATEGY_EXPLAINED.md"
+    },
+    {
+      "mem_id": "qixing_20260613_006",
+      "mem_type": "ratchet_iteration",
+      "title": "七星策略 — 2Y第一轮R0-R10失败记录",
+      "content": "日期：2026-06-10。\n数据期：2024-06-01至2026-06-01，302个交易日。\nR0-R10共10轮全部FAIL，均未通过-30%回撤硬约束。\n关键范围：年化26.72%至52.10%，但最大回撤-67.69%至-90.06%。\n结论：当时七星策略在2Y数据期下回撤控制机制失效，收益高但风险不可接受。\n交付物：/Users/junze/qixing_strategy/qixing_2y_detailed.json；/Users/junze/qixing_strategy/qixing_2y_detailed.py。\n来源：/Users/junze/.hermes/work_logs/qixing/qixing_2y_iteration_2026-06-10.md",
+      "tags": ["七星", "棘轮", "R0-R10", "2Y", "失败记录"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/.hermes/work_logs/qixing/qixing_2y_iteration_2026-06-10.md"
+    },
+    {
+      "mem_id": "qixing_20260613_007",
+      "mem_type": "work_log",
+      "title": "七星策略 — 2026-06-10第二轮R11基线与第三轮方案",
+      "content": "第一轮R0-R10修复引擎bug后基线R10 = +23.79% / -6.86%。\n第二轮R11-R25仅R11周度调仓ACCEPT，历史口径基线R11 = +26.63% / -6.72% / 夏普1.86 / Calmar3.96 / 37笔。\n深度诊断结论：周度调仓是唯一有效优化方向；波动率过滤、ATR止损、止盈、趋势确认全部有害。\n第三轮R26-R35方案：持仓1只、动量25日、关闭R²加权、理想环境加仓、宽度0.32、成交量过滤、指数权重、移动止损、持仓1只+周度组合、宽度0.38。\n来源：/Users/junze/.hermes/work_logs/qixing/qixing_2026-06-10.md",
+      "tags": ["七星", "R11", "周度调仓", "第三轮方案"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/.hermes/work_logs/qixing/qixing_2026-06-10.md"
+    },
+    {
+      "mem_id": "qixing_20260613_008",
+      "mem_type": "diagnosis_report",
+      "title": "七星策略 — 深度诊断报告摘要",
+      "content": "数据期：2024-06-01至2026-06-01，302个交易日。\n历史口径R11：年化+26.63%、回撤-6.72%、夏普1.86、Calmar3.96、37笔。\n诊断结论：周度调仓有效；波动率过滤、ATR止损、止盈、趋势确认、持仓数增加等组合均有害。\n第三轮计划R26-R35已写入/Users/junze/qixing_strategy/qixing_diagnosis_report.md。\n规则更新：任何新引擎必须先跑基线验证回撤计算正确性。\n来源：/Users/junze/qixing_strategy/qixing_diagnosis_report.md",
+      "tags": ["七星", "深度诊断", "R11", "R26-R35"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/qixing_strategy/qixing_diagnosis_report.md"
+    },
+    {
+      "mem_id": "qixing_20260613_009",
+      "mem_type": "ratchet_iteration",
+      "title": "七星策略 — 第三轮R26-R35结果与口径提醒",
+      "content": "第三轮R26-R35已完成。\nR26持仓1只ACCEPT：年化+51.92%、回撤-12.37%、夏普1.85、96笔。\nR27-R35全部ROLLBACK。\n口径提醒：历史文档R11为+26.63%/-6.72%/夏普1.86；第三轮执行口径R11为+28.90%/-6.72%/夏普1.92，根因是前序补丁曾改变买入预算。\n已恢复qixing_round2_engine.py以复现历史R11 +26.63%，第三轮按当前可执行代码口径单独落盘。\n来源：/Users/junze/qixing_strategy/qixing_round3_report_2026-06-11.md；/Users/junze/qixing_strategy/qixing_round3_discussion_2026-06-11.md",
+      "tags": ["七星", "R26", "第三轮", "口径提醒"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/qixing_strategy/qixing_round3_report_2026-06-11.md"
+    },
+    {
+      "mem_id": "qixing_20260613_010",
+      "mem_type": "ratchet_iteration",
+      "title": "七星策略 — 第四轮R12-R51中期结果",
+      "content": "日期：2026-06-12。\n完成R12-R51，正在运行R52-R101。\n中期基线R48：年化30.02%、回撤-6.62%、夏普2.01、Calmar4.54、40笔。\n已ACCEPT节点：R11、R12、R23、R32、R33、R34、R42、R43、R48。\n关键洞察：宽度参数0.28-0.31为最优区间；周度调仓优于其他频率；持仓2只+防御模式+R²加权效果稳定。\n来源：/Users/junze/qixing_strategy/qixing_mid_report_20260612.md",
+      "tags": ["七星", "R48", "第四轮", "中期结果"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/qixing_strategy/qixing_mid_report_20260612.md"
+    },
+    {
+      "mem_id": "qixing_20260613_011",
+      "mem_type": "ratchet_iteration",
+      "title": "七星策略 — 2Y最终R120基线与最优参数",
+      "content": "最终报告日期：2026-06-12。\n数据期：2024-06-01至2026-06-01，302个交易日。\n初始基线R11：年化26.63%、回撤-6.72%、夏普1.86、37笔。\n最终基线R120：年化32.35%、回撤-6.58%、夏普2.15、Calmar4.92、40笔。\n棘轮三要素：数据期2024-06-01至2026-06-01；引擎版本2.0；计算口径为周度调仓+持仓2只+防御模式+硬约束回撤≤-30%。\n最优参数：breadth_threshold 0.238-0.253，etf_lookback_days 20，holdings_count 2，use_defensive True，rebalance_freq weekly。\n来源：/Users/junze/qixing_strategy/qixing_final_report_20260612.md",
+      "tags": ["七星", "R120", "最终基线", "棘轮三要素"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/qixing_strategy/qixing_final_report_20260612.md"
+    },
+    {
+      "mem_id": "qixing_20260613_012",
+      "mem_type": "result_json",
+      "title": "七星策略 — Round4结果JSON关键ACCEPT节点",
+      "content": "qixing_round4_results.json记录Round4完整迭代结果。\n关键ACCEPT节点：R12=27.78%/-6.72%/夏普1.94/39笔；R23=28.78%/-6.63%/夏普2.00/39笔；R48=30.02%/-6.62%/夏普2.01/Calmar4.54/40笔；R52-R56=32.35%/-6.58%/夏普2.15/Calmar4.92/40笔；R103-R120稳定在32.35%/-6.58%/夏普2.15/Calmar4.92/40笔。\n最终稳定宽度区间：0.238-0.253。\n来源：/Users/junze/qixing_strategy/qixing_round4_results.json",
+      "tags": ["七星", "Round4", "ACCEPT", "R120"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/qixing_strategy/qixing_round4_results.json"
+    },
+    {
+      "mem_id": "qixing_20260613_013",
+      "mem_type": "backtest_5y",
+      "title": "七星策略 — 5Y完整牛熊回测结果",
+      "content": "日期：2026-06-08。\n数据期：2021-06-07至2026-06-05，1211个交易日。\n终值：¥93,409.64；累计收益-6.59%；年化-1.36%；最大回撤-63.51%；夏普0.04；胜率86.67%；盈亏比0.11；交易23次。\n环境分布：Crash 373天、Ideal 408天、Normal 430天。\n结论：完整牛熊周期下七星策略长期表现失败，回撤远超-30%硬约束。\n来源：/Users/junze/.hermes/work_logs/qixing/backtest_2026-06-08.md",
+      "tags": ["七星", "5Y", "回测", "完整牛熊"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/.hermes/work_logs/qixing/backtest_2026-06-08.md"
+    },
+    {
+      "mem_id": "qixing_20260613_014",
+      "mem_type": "backtest_short",
+      "title": "七星策略 — 短周期回测结果",
+      "content": "日期：2026-06-06与2026-06-10。\n数据期：2025-12-05至2026-06-05，119个交易日。\n终值：¥113,860.14；累计收益13.86%；年化29.76%；最大回撤-15.52%；夏普1.05；胜率100%；交易13次。\n环境分布：Crash 33天、Ideal 48天、Normal 38天。\n说明：短周期表现明显好于5Y完整周期，不能代表完整牛熊稳定性。\n来源：/Users/junze/.hermes/work_logs/qixing/backtest_2026-06-06.md；/Users/junze/.hermes/work_logs/qixing/backtest_2026-06-10.md",
+      "tags": ["七星", "短周期", "回测", "119交易日"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/.hermes/work_logs/qixing/backtest_2026-06-06.md"
+    },
+    {
+      "mem_id": "qixing_20260613_015",
+      "mem_type": "daily_signals",
+      "title": "七星策略 — 2026-06-08至2026-06-12每日结构化信号",
+      "content": "2026-06-08：10:00 crash，宽度0.121，DEFENSIVE，511880，100%；14:15 normal，宽度0.5，仍DEFENSIVE，511880，100%。\n2026-06-09：上午/下午均为normal，宽度0.5，DEFENSIVE，511880，100%。\n2026-06-10：10:00 crash，宽度0.111，DEFENSIVE，511880，100%；14:15 normal，宽度0.5，仍DEFENSIVE，511880，100%。\n2026-06-11：上午/下午均为crash，宽度0.0/0.067，DEFENSIVE，511880，100%。\n2026-06-12：10:00 normal，宽度0.5，DEFENSIVE，511880，100%；14:15 crash，宽度0.182，DEFENSIVE，511880，100%。\n来源：/Users/junze/.hermes/work_logs/qixing/qixing_2026-06-08.json；qixing_2026-06-09.json；qixing_2026-06-10.json；qixing_2026-06-11.json；qixing_2026-06-12.json",
+      "tags": ["七星", "每日信号", "511880", "结构化日志"],
+      "create_ts": 1781345398,
+      "update_ts": 1781345398,
+      "status": "valid",
+      "source": "/Users/junze/.hermes/work_logs/qixing/qixing_2026-06-08.json"
+    }
+  ]
+}

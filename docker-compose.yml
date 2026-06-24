@@ -1,0 +1,25 @@
+services:
+  quant-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quant-monitor
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      - PORT=${PORT:-8000}
+      - TZ=Asia/Shanghai
+    volumes:
+      # 运行时数据：宿主机持久化，重建容器不丢失
+      - ./config:/app/config
+      - ./signals:/app/signals
+      - ./metrics:/app/metrics
+      - ./review:/app/review
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

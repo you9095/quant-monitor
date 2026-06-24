@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>P3 量化策略监控项目 - 7 天循环状态</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; background: #0e1116; color: #e0e0e0; margin: 0; padding: 20px; }
+  h1 { color: #58a6ff; border-bottom: 2px solid #30363d; padding-bottom: 10px; }
+  h2 { color: #7ee787; margin-top: 30px; }
+  .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; }
+  .card-title { font-size: 18px; font-weight: bold; color: #58a6ff; margin-bottom: 8px; }
+  .metric { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed #21262d; }
+  .metric-label { color: #8b949e; }
+  .metric-value { font-family: monospace; color: #7ee787; font-weight: bold; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-right: 4px; }
+  .tag-m3 { background: #1f6feb; color: white; }
+  .tag-or { background: #238636; color: white; }
+  .tag-na { background: #6e7681; color: white; }
+  .tag-kimi { background: #d29922; color: white; }
+  .timeline { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; margin: 20px 0; }
+  .timeline-item { padding: 8px; margin: 4px 0; border-left: 3px solid #58a6ff; padding-left: 12px; }
+  .next { color: #ffa657; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<h1>📊 AI 量化公司董事会 - P3 7 天自动化循环状态</h1>
+<p><strong>部署时间:</strong> 2026-06-21 09:04:52 | <strong>v1.0</strong> | <strong>状态:</strong> <span style="color:#7ee787">✓ 系统就绪</span></p>
+
+<h2>🎯 5 策略当前基线 (2Y 主指标)</h2>
+<div class="status-grid">
+
+  <div class="card">
+    <div class="card-title">三驾马车 <span style="font-size:14px;color:#8b949e">(r32)</span></div>
+    <div class="metric"><span class="metric-label">版本</span><span class="metric-value">R32</span></div>
+    <div class="metric"><span class="metric-label">年化收益</span><span class="metric-value" style="color:#7ee787">38.14%</span></div>
+    <div class="metric"><span class="metric-label">最大回撤</span><span class="metric-value" style="color:#ffa657">-9.16%</span></div>
+    <div class="metric"><span class="metric-label">夏普比率</span><span class="metric-value">1.8</span></div>
+    <div class="metric"><span class="metric-label">数据期</span><span class="metric-value" style="font-size:11px">2024-06 ~ 2026-06</span></div>
+    <div class="metric"><span class="metric-label">verdict (占位)</span><span class="metric-value" style="color:#7ee787">ACCEPT</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">追电 <span style="font-size:14px;color:#8b949e">(zhuidian)</span></div>
+    <div class="metric"><span class="metric-label">版本</span><span class="metric-value">1.0</span></div>
+    <div class="metric"><span class="metric-label">年化收益</span><span class="metric-value" style="color:#7ee787">32.65%</span></div>
+    <div class="metric"><span class="metric-label">最大回撤</span><span class="metric-value" style="color:#ffa657">-21.15%</span></div>
+    <div class="metric"><span class="metric-label">夏普比率</span><span class="metric-value">1.5</span></div>
+    <div class="metric"><span class="metric-label">数据期</span><span class="metric-value" style="font-size:11px">2024-06 ~ 2026-06</span></div>
+    <div class="metric"><span class="metric-label">verdict (占位)</span><span class="metric-value" style="color:#7ee787">ACCEPT</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">七星 <span style="font-size:14px;color:#8b949e">(qixing)</span></div>
+    <div class="metric"><span class="metric-label">版本</span><span class="metric-value">R120</span></div>
+    <div class="metric"><span class="metric-label">年化收益</span><span class="metric-value" style="color:#7ee787">32.35%</span></div>
+    <div class="metric"><span class="metric-label">最大回撤</span><span class="metric-value" style="color:#ffa657">-6.58%</span></div>
+    <div class="metric"><span class="metric-label">夏普比率</span><span class="metric-value">1.9</span></div>
+    <div class="metric"><span class="metric-label">数据期</span><span class="metric-value" style="font-size:11px">2024-06-12 ~ 2026-06-12</span></div>
+    <div class="metric"><span class="metric-label">verdict (占位)</span><span class="metric-value" style="color:#7ee787">ACCEPT</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">三合 <span style="font-size:14px;color:#8b949e">(sanhe)</span></div>
+    <div class="metric"><span class="metric-label">版本</span><span class="metric-value">R25_vol_weight</span></div>
+    <div class="metric"><span class="metric-label">年化收益</span><span class="metric-value" style="color:#7ee787">25.0%</span></div>
+    <div class="metric"><span class="metric-label">最大回撤</span><span class="metric-value" style="color:#ffa657">-12.0%</span></div>
+    <div class="metric"><span class="metric-label">夏普比率</span><span class="metric-value">1.4</span></div>
+    <div class="metric"><span class="metric-label">数据期</span><span class="metric-value" style="font-size:11px">2024-06 ~ 2026-06</span></div>
+    <div class="metric"><span class="metric-label">verdict (占位)</span><span class="metric-value" style="color:#7ee787">ACCEPT</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">闪电 <span style="font-size:14px;color:#8b949e">(lightning)</span></div>
+    <div class="metric"><span class="metric-label">版本</span><span class="metric-value">R4_m3</span></div>
+    <div class="metric"><span class="metric-label">年化收益</span><span class="metric-value" style="color:#7ee787">28.0%</span></div>
+    <div class="metric"><span class="metric-label">最大回撤</span><span class="metric-value" style="color:#ffa657">-10.0%</span></div>
+    <div class="metric"><span class="metric-label">夏普比率</span><span class="metric-value">1.6</span></div>
+    <div class="metric"><span class="metric-label">数据期</span><span class="metric-value" style="font-size:11px">2024-06 ~ 2026-06</span></div>
+    <div class="metric"><span class="metric-label">verdict (占位)</span><span class="metric-value" style="color:#7ee787">ACCEPT</span></div>
+  </div>
+
+</div>
+
+<h2>⏰ 下次触发</h2>
+<div class="timeline">
+
+  <div class="timeline-item next">
+    <span class="tag tag-na">None</span>
+    <strong>2026-06-21 09:30:00</strong> → Obsidian笔记系统推进提醒
+  </div>
+
+  <div class="timeline-item ">
+    <span class="tag tag-m3">MiniMax-M3</span>
+    <strong>2026-06-21 10:00:00</strong> → 周末复盘-周日10:00-后2策略
+  </div>
+
+  <div class="timeline-item ">
+    <span class="tag tag-na">None</span>
+    <strong>2026-06-21 17:00:00</strong> → tool-limit-resume-watchdog
+  </div>
+
+  <div class="timeline-item ">
+    <span class="tag tag-m3">MiniMax-M3</span>
+    <strong>2026-06-22 10:00:00</strong> → qixing-morning-10am
+  </div>
+
+  <div class="timeline-item ">
+    <span class="tag tag-na">kimi-k2-turbo-preview</span>
+    <strong>2026-06-22 14:00:00</strong> → A股模拟交易-每日14:00执行
+  </div>
+
+</div>
+
+<h2>📋 7 天循环时间表</h2>
+<div class="timeline">
+  <div class="timeline-item"><span class="tag tag-m3">M3</span><strong>周一 18:00</strong> 三驾马车董事会 → 19:00 三驾马车执行 (OpenRouter)</div>
+  <div class="timeline-item"><span class="tag tag-m3">M3</span><strong>周二 18:00</strong> 追电董事会 → 19:00 追电执行 (OpenRouter)</div>
+  <div class="timeline-item"><span class="tag tag-m3">M3</span><strong>周三 18:00</strong> 七星董事会 → 19:00 七星执行 (OpenRouter)</div>
+  <div class="timeline-item"><span class="tag tag-m3">M3</span><strong>周四 18:00</strong> 三合董事会 → 19:00 三合执行 (OpenRouter)</div>
+  <div class="timeline-item"><span class="tag tag-m3">M3</span><strong>周五 18:00</strong> 闪电董事会 → 19:00 闪电执行 (OpenRouter)</div>
+  <div class="timeline-item"><span class="tag tag-m3">M3</span><strong>周六 10:00</strong> 周末复盘 (前 3 策略)</div>
+  <div class="timeline-item"><span class="tag tag-m3">M3</span><strong>周日 10:00</strong> 周末复盘 (后 2 策略)</div>
+</div>
+
+<h2>📦 交付物清单</h2>
+<div class="timeline">
+  <div class="timeline-item"><strong>3 个 skill:</strong> ai-quant-company-board (v1.3), ai-quant-company-board-workflow (v1.0), ai-quant-company-meeting</div>
+  <div class="timeline-item"><strong>19 个 cron:</strong> 7 个 M3 (董事会+复盘) + 5 个 OpenRouter (执行) + 7 辅助</div>
+  <div class="timeline-item"><strong>40 个 placeholder:</strong> results×10 + backtest×10 + knowledge×10 + work_logs×5 + memory×5</div>
+  <div class="timeline-item"><strong>2 个 references:</strong> inheritance-map.md + ai-quant-company-vs-ai-team.md</div>
+</div>
+
+<h2>🚨 关键约束</h2>
+<div class="timeline">
+  <div class="timeline-item">✓ <strong>AI 量化公司 ≠ AI 团队</strong> — 董事会绝不用陆/苏/江/顾/袁</div>
+  <div class="timeline-item">✓ <strong>5Y 仅参考</strong> — 不作棘轮迭代基线</div>
+  <div class="timeline-item">✓ <strong>2Y 回撤 ≤ -20%</strong> — 硬约束（仅 2Y，<strong>无 Sharpe 阈值</strong>）</div>
+  <div class="timeline-item">✓ <strong>飞书简版</strong> — 一句话 + verdict + 关键数字</div>
+  <div class="timeline-item">✓ <strong>禁止简称</strong> — "r32" → "三驾马车"</div>
+</div>
+
+<p style="margin-top: 40px; padding: 20px; background: #161b22; border-radius: 8px; color: #8b949e; font-size: 13px;">
+  📂 本页面是 P3 部署的预览 demo，路径: <code>~/quant-monitor-local/P3_STATUS.html</code>。<br>
+  真实数据由 cron 触发后自动填充 placeholder 文件（标记 <code>_placeholder: true</code>）。<br>
+  第一次自动触发: 2026-06-21 (今天) 10:00 — 周末复盘-周日10:00-后2策略。
+</p>
+
+</body>
+</html>

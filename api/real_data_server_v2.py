@@ -5,9 +5,16 @@
 """
 import json
 import os
+import sys
+import threading
+import time
 from datetime import datetime
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from pathlib import Path
+
+# 让 alerts.py 可被导入
+sys.path.insert(0, str(Path(__file__).parent))
+import alerts as alert_module
 
 app = Flask(__name__)
 
@@ -35,10 +42,12 @@ ETF_NAMES = {
 }
 
 def load_strategies():
-    """加载策略配置"""
+    """加载策略配置（自动跳过 _comment 字段）"""
     try:
         with open(CONFIG_FILE, 'r') as f:
-            return json.load(f)
+            raw = json.load(f)
+        # 过滤掉以 _ 开头的元数据字段
+        return {k: v for k, v in raw.items() if not k.startswith('_')}
     except Exception:
         return {
             'qixing': {'name': '七星策略', 'color': '#3b82f6', 'initial_capital': 10000},
@@ -131,10 +140,19 @@ def get_dashboard_overview():
         init_cap = cfg.get('initial_capital', 10000)
         tr = signal.get('total_return', 0) if signal else 0
         ann_return = signal.get('annualized_return', 0) if signal else 0
+        # 三层标签：version + data_period + caliber
+        # 优先用 signal 文件里的，否则从 strategies.json 配置读取
+        version_tag = (signal.get('version') if signal else None) or cfg.get('version', 'latest')
+        data_period = (signal.get('data_period') if signal else None) or cfg.get('data_period', '未指定')
+        caliber = (signal.get('caliber') if signal else None) or cfg.get('caliber', '未指定')
+        # 占位标记：signal 文件含 _placeholder 时显式提示
+        is_placeholder = bool(signal and signal.get('_placeholder'))
+        status_label = 'placeholder' if is_placeholder else ('running' if signal else 'waiting')
         strategies_data.append({
             'strategy_id': sid,
             'strategy_name': cfg.get('name', sid),
-            'status': 'running' if signal else 'waiting',
+            'status': status_label,
+            'is_placeholder': is_placeholder,
             'total_asset': round(asset, 2),
             'total_return': tr,
             'total_return_amount': round(init_cap * tr / 100, 2),
@@ -146,7 +164,12 @@ def get_dashboard_overview():
             'holdings': holdings,
             'sharpe_ratio': signal.get('sharpe', 0) if signal else 0,
             'max_drawdown': signal.get('max_drawdown', 0) if signal else 0,
-            'trades_count': signal.get('trades', 0) if signal else 0
+            'trades_count': signal.get('trades', 0) if signal else 0,
+            # 三层标签
+            'version_tag': version_tag,
+            'data_period': data_period,
+            'caliber': caliber,
+            'signal_date': signal.get('date') if signal else None,
         })
     
     return jsonify({
@@ -241,9 +264,78 @@ def get_status(sid):
 def health():
     return jsonify({'code': 0, 'message': 'healthy', 'data': {'status': 'ok'}})
 
+# 托管前端静态文件（Docker 单端口部署）
+from flask import send_from_directory
+
+@app.route('/')
+def index():
+    return send_from_directory(BASE_DIR, 'index.html')
+
+@app.route('/review')
+def review():
+    return send_from_directory(BASE_DIR, 'review.html')
+
+@app.route('/<path:filename>')
+def static_files(filename):
+    return send_from_directory(BASE_DIR, filename)
+
+@app.route('/api/v1/alerts/check', methods=['GET', 'POST'])
+def alerts_check():
+    """运行健康检查，返回检查结果"""
+    results = alert_module.run_health_check()
+    return jsonify({'code': 0, 'message': 'success', 'data': results})
+
+@app.route('/api/v1/alerts/trigger', methods=['POST'])
+def alerts_trigger():
+    """手动触发告警（POST body: {title, message, alert_type, force}）"""
+    body = request.get_json() or {}
+    title = body.get('title', 'manual_alert')
+    message = body.get('message', '')
+    alert_type = body.get('alert_type', 'warn')
+    force = body.get('force', True)
+    result = alert_module.alert(title, message, alert_type=alert_type, force=force)
+    return jsonify({'code': 0 if result['sent'] else 1, 'message': result['reason'], 'data': result})
+
+@app.route('/api/v1/alerts/history')
+def alerts_history():
+    """查询告警历史"""
+    lines = []
+    if alert_module.ALERT_LOG.exists():
+        with open(alert_module.ALERT_LOG) as f:
+            lines = f.readlines()[-50:]  # 最近 50 条
+    history = []
+    for line in lines:
+        try:
+            history.append(json.loads(line))
+        except Exception:
+            continue
+    return jsonify({'code': 0, 'message': 'success', 'data': {'history': history, 'total': len(history)}})
+
+# ====== 后台告警定时任务 ======
+def _alert_scheduler():
+    """每 5 分钟跑一次健康检查（独立线程）"""
+    while True:
+        try:
+            alert_module.run_health_check()
+        except Exception as e:
+            print(f'[scheduler] check failed: {e}', file=sys.stderr)
+        time.sleep(300)  # 5 分钟
+
+_scheduler_started = False
+def start_alert_scheduler():
+    global _scheduler_started
+    if _scheduler_started:
+        return
+    t = threading.Thread(target=_alert_scheduler, daemon=True)
+    t.start()
+    _scheduler_started = True
+    print('[scheduler] alert health check started (interval 5min)')
+
 if __name__ == '__main__':
     SIGNALS_DIR.mkdir(exist_ok=True)
-    print('Starting server on http://0.0.0.0:8000')
+    port = int(os.environ.get('PORT', 8000))
+    print(f'Starting server on http://0.0.0.0:{port}')
     print(f'Strategies: {list(load_strategies().keys())}')
     print(f'Signals dir: {SIGNALS_DIR}')
-    app.run(host='0.0.0.0', port=8000, debug=False)
+    start_alert_scheduler()
+    app.run(host='0.0.0.0', port=port, debug=False)

@@ -1,0 +1,17 @@
+{
+  "r32_manual_import_20260613": {
+    "imported_at": 1781345398,
+    "sources": [
+      "/Users/junze/三策略监控面板_项目档案/工作日志_2026-06-08.md",
+      "/Users/junze/三策略监控面板_项目档案/工作日志_2026-06-09.md",
+      "/Users/junze/三策略监控面板_项目档案/02_苏晏清_结构化层/三策略实盘数据层开发方案_AI量化公司_v1.0_2026-06-08.md",
+      "/Users/junze/三策略监控面板_项目档案/02_苏晏清_结构化层/三策略监控面板_实盘核心数据指标清单_v1.0_2026-06-08.md",
+      "/Users/junze/三策略监控面板_项目档案/02_苏晏清_结构化层/任务包清单_苏晏清_v1.0_2026-06-08.md",
+      "/Users/junze/.hermes/work_logs/ratchet/ratchet_deep_review_2026-06-08.md",
+      "/Users/junze/.hermes/work_logs/hermes_quant/sim_trade_2026-06-05.md",
+      "/Users/junze/.hermes/work_logs/hermes_quant/sim_trade_2026-04-22.md",
+      "/Users/junze/.hermes/work_logs/monday_trading/复盘_2026-06-08.md"
+    ],
+    "note": "三驾马车R32工作日志全量补充导入，覆盖项目日志、数据缺口、指标口径、棘轮复盘、模拟交易、周一REBALANCE。"
+  }
+}
