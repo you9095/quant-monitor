@@ -1020,11 +1020,11 @@ function buildCardHtml(sid, sname, s) {
         <div class="metric">
           <div class="metric-label">2Y 年化 (主)</div>
           <div class="metric-value ${totalReturn !== undefined && totalReturn !== null ? (totalReturn >= 0 ? 'up' : 'down') : 'neutral'}" data-metric="annualized-return" data-period="2y">${s.metrics?.annualized_return_2y !== undefined ? (s.metrics.annualized_return_2y >= 0 ? '+' : '') + s.metrics.annualized_return_2y.toFixed(2) + '%' : (totalReturn !== undefined && totalReturn !== null ? (totalReturn >= 0 ? '+' : '') + totalReturn.toFixed(2) + '%' : '--')}</div>
-          <div class="metric-sub" data-metric="annualized-return-5y" data-period="5y" style="font-size:11px;color:var(--text-muted);margin-top:2px">5Y: ${s.metrics?.annualized_return_5y !== undefined && s.metrics.annualized_return_5y !== null ? (s.metrics.annualized_return_5y >= 0 ? '+' : '') + s.metrics.annualized_return_5y.toFixed(2) + '%' : '--'}</div>
+          <div class="metric-profit ${s.metrics?.total_return_amount >= 0 ? 'up' : 'down'}" style="font-size:16px;font-weight:600;margin-top:4px" data-metric="profit-amount">¥${(s.metrics?.total_return_amount || 0).toLocaleString('zh-CN', {style:'currency', currency:'CNY', minimumFractionDigits:2}).replace('¥', '')}</div>
         </div>
         <div class="metric">
           <div class="metric-label">仓位</div>
-          <div class="metric-value neutral" data-metric="position">${position !== undefined ? position.toFixed(1) + '%' : '--'}</div>
+          <div class="metric-value neutral" style="font-size:13px;color:var(--text-muted)" data-metric="position">${position !== undefined ? position.toFixed(1) + '%' : '--'}</div>
           <div class="metric-sub" data-metric="dd-2y" style="font-size:10px;color:var(--text-muted)">2Y回撤 ${s.metrics?.max_dd_2y !== undefined ? s.metrics.max_dd_2y.toFixed(2) + '%' : '--'}</div>
         </div>
       </div>

@@ -104,7 +104,7 @@ def get_strategies():
 @app.route('/api/v1/dashboard/overview')
 def get_dashboard_overview():
     strategies_config = load_strategies()
-    fetch_realtime_prices()
+    # fetch_realtime_prices()  # 暂时禁用腾讯行情，由信号文件价格驱动
     
     strategies_data = []
     total_asset = 0
@@ -116,14 +116,18 @@ def get_dashboard_overview():
         
         if signal:
             positions = signal.get('positions', [])
+            # 计算总投入并按本金缩放
+            total_invest = sum(pos.get('qty', 0) * pos.get('cost', 0) for pos in positions)
+            scale_factor = min(cfg.get('initial_capital', 10000) / total_invest, 1.0) if total_invest > 0 else 0
+            
             for pos in positions:
                 code = pos.get('code', '')
                 price = PRICE_CACHE.get(code, pos.get('cost', 0))
-                qty = pos.get('qty', 0)
+                qty = int(pos.get('qty', 0) * scale_factor / 100 * 100)  # 缩放后整百股
                 cost = pos.get('cost', 0)
                 current_value = qty * price
                 pnl = current_value - qty * cost
-                pnl_pct = (pnl / (qty * cost) * 100) if cost > 0 else 0
+                pnl_pct = (pnl / (qty * cost) * 100) if cost > 0 and qty > 0 else 0
                 holdings.append({
                     'code': code,
                     'name': pos.get('name', ETF_NAMES.get(code, '')),
@@ -132,9 +136,14 @@ def get_dashboard_overview():
                     'current_price': price,
                     'pnl': round(pnl, 2),
                     'pnl_pct': round(pnl_pct, 2),
-                    'weight': round(current_value / (total_asset + asset) * 100, 2) if total_asset > 0 else 50
+                    'weight': 0  # 待计算
                 })
                 asset += pnl
+        
+        # 最终权重计算
+        total_holding_value = sum(h['quantity'] * h['current_price'] for h in holdings)
+        for h in holdings:
+            h['weight'] = round(h['quantity'] * h['current_price'] / (total_holding_value + cfg.get('initial_capital', 10000)) * 100, 2) if total_holding_value > 0 else 0
         
         total_asset += asset
         init_cap = cfg.get('initial_capital', 10000)
@@ -160,7 +169,7 @@ def get_dashboard_overview():
             'today_pnl': signal.get('today_pnl', 0) if signal else 0,
             'today_return': signal.get('today_return', 0) if signal else 0,
             'position_ratio': 1.0,
-            'cash': cfg.get('initial_capital', 10000) - sum(h['quantity'] * h['cost_price'] for h in holdings),
+            'cash': max(0, cfg.get('initial_capital', 10000) - sum(h['quantity'] * h['cost_price'] for h in holdings)),
             'holdings': holdings,
             'sharpe_ratio': signal.get('sharpe', 0) if signal else 0,
             'max_drawdown': signal.get('max_drawdown', 0) if signal else 0,

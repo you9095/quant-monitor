@@ -1,0 +1,963 @@
+{
+  "strategy_name": "闪电",
+  "parameters": {
+    "m_days": 3,
+    "max_hold": 1,
+    "stop_loss": -0.07,
+    "take_profit": 0.05,
+    "rebal_freq": 1,
+    "r2_threshold": 0.5,
+    "weight_max": 2.0,
+    "etf_pool": [
+      "513100",
+      "513520",
+      "513030",
+      "513130"
+    ],
+    "baseline_2y": {
+      "annualized": 0.2734,
+      "max_drawdown": -0.1406,
+      "sharpe": 1.2,
+      "calmar": 1.94
+    }
+  },
+  "rounds": [
+    {
+      "round_id": 1,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.2934,
+      "max_drawdown": -0.1125,
+      "sharpe": 1.1526,
+      "calmar": 1.8715,
+      "is_baseline": false
+    },
+    {
+      "round_id": 2,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.2033,
+      "max_drawdown": -0.1279,
+      "sharpe": 1.1845,
+      "calmar": 1.9246,
+      "is_baseline": false
+    },
+    {
+      "round_id": 3,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.308,
+      "max_drawdown": -0.1207,
+      "sharpe": 1.2026,
+      "calmar": 2.0162,
+      "is_baseline": false
+    },
+    {
+      "round_id": 4,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ACCEPT",
+      "annualized": 0.3245,
+      "max_drawdown": -0.1279,
+      "sharpe": 1.3134,
+      "calmar": 1.9817,
+      "is_baseline": true,
+      "version": "v1.4",
+      "equivalent_r13": {
+        "status": "NUMERICALLY_EQUIVALENT",
+        "note": "数值等价自R4_m3，无新基线"
+      },
+      "equivalent_r16": {
+        "status": "NUMERICALLY_EQUIVALENT",
+        "note": "数值等价自R4_m3，无新基线"
+      },
+      "equivalent_r17": {
+        "status": "NUMERICALLY_EQUIVALENT",
+        "note": "数值等价自R4_m3，无新基线"
+      },
+      "equivalent_r18": {
+        "status": "NUMERICALLY_EQUIVALENT",
+        "note": "数值等价自R4_m3，无新基线"
+      },
+      "equivalent_r22": {
+        "status": "NUMERICALLY_EQUIVALENT",
+        "note": "数值等价自R4_m3，无新基线"
+      },
+      "equivalent_r24": {
+        "status": "NUMERICALLY_EQUIVALENT",
+        "note": "数值等价自R4_m3，无新基线"
+      },
+      "equivalent_r4": {
+        "status": "NUMERICALLY_EQUIVALENT",
+        "note": "数值等价自R4_m3，无新基线"
+      }
+    },
+    {
+      "round_id": 5,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.288,
+      "max_drawdown": -0.1183,
+      "sharpe": 1.3005,
+      "calmar": 1.9378,
+      "is_baseline": false
+    },
+    {
+      "round_id": 6,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.2898,
+      "max_drawdown": -0.1356,
+      "sharpe": 1.09,
+      "calmar": 1.8639,
+      "is_baseline": false
+    },
+    {
+      "round_id": 7,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.2588,
+      "max_drawdown": -0.1248,
+      "sharpe": 1.2536,
+      "calmar": 2.0327,
+      "is_baseline": false
+    },
+    {
+      "round_id": 8,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.3879,
+      "max_drawdown": -0.1369,
+      "sharpe": 1.2074,
+      "calmar": 1.8881,
+      "is_baseline": false
+    },
+    {
+      "round_id": 9,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.2201,
+      "max_drawdown": -0.1264,
+      "sharpe": 1.1121,
+      "calmar": 1.8706,
+      "is_baseline": false
+    },
+    {
+      "round_id": 10,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.2304,
+      "max_drawdown": -0.1303,
+      "sharpe": 1.2597,
+      "calmar": 1.9397,
+      "is_baseline": false
+    },
+    {
+      "round_id": 11,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.1811,
+      "max_drawdown": -0.1255,
+      "sharpe": 1.254,
+      "calmar": 1.9245,
+      "is_baseline": false
+    },
+    {
+      "round_id": 12,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.2639,
+      "max_drawdown": -0.1199,
+      "sharpe": 1.2081,
+      "calmar": 1.8458,
+      "is_baseline": false
+    },
+    {
+      "round_id": 13,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.2639,
+      "max_drawdown": -0.1357,
+      "sharpe": 1.3118,
+      "calmar": 2.0317,
+      "is_baseline": false
+    },
+    {
+      "round_id": 14,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.3125,
+      "max_drawdown": -0.137,
+      "sharpe": 1.0819,
+      "calmar": 1.9031,
+      "is_baseline": false
+    },
+    {
+      "round_id": 15,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.2615,
+      "max_drawdown": -0.114,
+      "sharpe": 1.1668,
+      "calmar": 1.8964,
+      "is_baseline": false
+    },
+    {
+      "round_id": 16,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.246,
+      "max_drawdown": -0.128,
+      "sharpe": 1.0909,
+      "calmar": 1.913,
+      "is_baseline": false
+    },
+    {
+      "round_id": 17,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.2548,
+      "max_drawdown": -0.1179,
+      "sharpe": 1.0963,
+      "calmar": 1.9957,
+      "is_baseline": false
+    },
+    {
+      "round_id": 18,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.2906,
+      "max_drawdown": -0.1372,
+      "sharpe": 1.1236,
+      "calmar": 2.0083,
+      "is_baseline": false
+    },
+    {
+      "round_id": 19,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.2593,
+      "max_drawdown": -0.1194,
+      "sharpe": 1.1132,
+      "calmar": 1.9073,
+      "is_baseline": false
+    },
+    {
+      "round_id": 20,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.3393,
+      "max_drawdown": -0.1375,
+      "sharpe": 1.2758,
+      "calmar": 1.85,
+      "is_baseline": false
+    },
+    {
+      "round_id": 21,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.2004,
+      "max_drawdown": -0.1328,
+      "sharpe": 1.0852,
+      "calmar": 1.8829,
+      "is_baseline": false
+    },
+    {
+      "round_id": 22,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.2393,
+      "max_drawdown": -0.1243,
+      "sharpe": 1.2862,
+      "calmar": 1.8762,
+      "is_baseline": false
+    },
+    {
+      "round_id": 23,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.3368,
+      "max_drawdown": -0.134,
+      "sharpe": 1.1478,
+      "calmar": 1.8859,
+      "is_baseline": false
+    },
+    {
+      "round_id": 24,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.356,
+      "max_drawdown": -0.1406,
+      "sharpe": 1.1328,
+      "calmar": 1.913,
+      "is_baseline": false
+    },
+    {
+      "round_id": 25,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.3268,
+      "max_drawdown": -0.1203,
+      "sharpe": 1.1246,
+      "calmar": 1.9228,
+      "is_baseline": false
+    },
+    {
+      "round_id": 26,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.2548,
+      "max_drawdown": -0.1341,
+      "sharpe": 1.2694,
+      "calmar": 2.0119,
+      "is_baseline": false
+    },
+    {
+      "round_id": 27,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.307,
+      "max_drawdown": -0.1332,
+      "sharpe": 1.2883,
+      "calmar": 1.9174,
+      "is_baseline": false
+    },
+    {
+      "round_id": 28,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.3076,
+      "max_drawdown": -0.116,
+      "sharpe": 1.1754,
+      "calmar": 1.9946,
+      "is_baseline": false
+    },
+    {
+      "round_id": 29,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.2795,
+      "max_drawdown": -0.1145,
+      "sharpe": 1.2632,
+      "calmar": 1.9308,
+      "is_baseline": false
+    },
+    {
+      "round_id": 30,
+      "parameters": {
+        "m_days": 3,
+        "max_hold": 1,
+        "stop_loss": -0.07,
+        "take_profit": 0.05,
+        "rebal_freq": 1,
+        "r2_threshold": 0.5,
+        "weight_max": 2.0,
+        "etf_pool": [
+          "513100",
+          "513520",
+          "513030",
+          "513130"
+        ],
+        "baseline_2y": {
+          "annualized": 0.2734,
+          "max_drawdown": -0.1406,
+          "sharpe": 1.2,
+          "calmar": 1.94
+        }
+      },
+      "status": "ROLLBACK",
+      "annualized": 0.2719,
+      "max_drawdown": -0.1311,
+      "sharpe": 1.1193,
+      "calmar": 2.0297,
+      "is_baseline": false
+    }
+  ],
+  "baseline_round": "R4_m3",
+  "final_metrics": {
+    "annualized": 0.2734,
+    "max_drawdown": -0.1406,
+    "sharpe": 1.2,
+    "calmar": 1.94
+  },
+  "acceptance_rate": 0.03333333333333333
+}

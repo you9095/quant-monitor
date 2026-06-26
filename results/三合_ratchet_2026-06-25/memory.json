@@ -1,0 +1,199 @@
+{
+  "strategy": "sanhe",
+  "round_range": "R45-R49",
+  "data_period": "2Y (2024-06-11 ~ 2026-06-05)",
+  "baseline_before": {
+    "annualized_return_pct": 25.0,
+    "max_drawdown_pct": -12.0,
+    "sharpe": 1.2,
+    "win_rate": 0.65,
+    "calmar_ratio": 2.08,
+    "round": "R44"
+  },
+  "results": [
+    {
+      "round": 45,
+      "strategy_name": "sanhe",
+      "annualized_return_pct": 32.78,
+      "max_drawdown_pct": -14.65,
+      "sharpe": 1.9,
+      "win_rate": 0.6986,
+      "calmar_ratio": 2.24,
+      "num_trades": 79,
+      "winning_trades": 55,
+      "losing_trades": 24,
+      "parameters": {
+        "momentum_params": {
+          "lookback": [
+            20,
+            30,
+            35
+          ],
+          "weights": [
+            1.0,
+            1.2
+          ]
+        },
+        "volatility_weighting": true,
+        "risk_control": false
+      },
+      "timestamp": "2026-06-25 03:05:18",
+      "verdict": "ACCEPT"
+    },
+    {
+      "round": 46,
+      "strategy_name": "sanhe",
+      "annualized_return_pct": 31.44,
+      "max_drawdown_pct": -14.24,
+      "sharpe": 1.86,
+      "win_rate": 0.7719,
+      "calmar_ratio": 2.21,
+      "num_trades": 49,
+      "winning_trades": 37,
+      "losing_trades": 12,
+      "parameters": {
+        "momentum_params": {
+          "lookback": [
+            25,
+            30,
+            40
+          ],
+          "weights": [
+            1.2,
+            1.5
+          ]
+        },
+        "volatility_weighting": true,
+        "risk_control": true
+      },
+      "timestamp": "2026-06-25 03:05:18",
+      "verdict": "ACCEPT"
+    },
+    {
+      "round": 47,
+      "strategy_name": "sanhe",
+      "annualized_return_pct": 26.73,
+      "max_drawdown_pct": -16.52,
+      "sharpe": 1.32,
+      "win_rate": 0.7842,
+      "calmar_ratio": 1.62,
+      "num_trades": 43,
+      "winning_trades": 33,
+      "losing_trades": 10,
+      "parameters": {
+        "momentum_params": {
+          "lookback": [
+            20,
+            30,
+            35
+          ],
+          "weights": [
+            1.0,
+            1.5
+          ]
+        },
+        "volatility_weighting": false,
+        "risk_control": true
+      },
+      "timestamp": "2026-06-25 03:05:18",
+      "verdict": "ACCEPT"
+    },
+    {
+      "round": 48,
+      "strategy_name": "sanhe",
+      "annualized_return_pct": 32.71,
+      "max_drawdown_pct": -10.56,
+      "sharpe": 2.62,
+      "win_rate": 0.7145,
+      "calmar_ratio": 3.1,
+      "num_trades": 57,
+      "winning_trades": 40,
+      "losing_trades": 17,
+      "parameters": {
+        "momentum_params": {
+          "lookback": [
+            25,
+            35,
+            45
+          ],
+          "weights": [
+            1.2,
+            1.8
+          ]
+        },
+        "volatility_weighting": true,
+        "risk_control": true
+      },
+      "timestamp": "2026-06-25 03:05:18",
+      "verdict": "ACCEPT"
+    },
+    {
+      "round": 49,
+      "strategy_name": "sanhe",
+      "annualized_return_pct": 29.15,
+      "max_drawdown_pct": -17.69,
+      "sharpe": 1.37,
+      "win_rate": 0.7042,
+      "calmar_ratio": 1.65,
+      "num_trades": 63,
+      "winning_trades": 44,
+      "losing_trades": 19,
+      "parameters": {
+        "momentum_params": {
+          "lookback": [
+            30,
+            35,
+            40
+          ],
+          "weights": [
+            1.5,
+            2.0
+          ]
+        },
+        "volatility_weighting": true,
+        "risk_control": true
+      },
+      "timestamp": "2026-06-25 03:05:18",
+      "verdict": "ACCEPT"
+    }
+  ],
+  "baseline_after": {
+    "round": 49,
+    "strategy_name": "sanhe",
+    "annualized_return_pct": 29.15,
+    "max_drawdown_pct": -17.69,
+    "sharpe": 1.37,
+    "win_rate": 0.7042,
+    "calmar_ratio": 1.65,
+    "num_trades": 63,
+    "winning_trades": 44,
+    "losing_trades": 19,
+    "parameters": {
+      "momentum_params": {
+        "lookback": [
+          30,
+          35,
+          40
+        ],
+        "weights": [
+          1.5,
+          2.0
+        ]
+      },
+      "volatility_weighting": true,
+      "risk_control": true
+    },
+    "timestamp": "2026-06-25 03:05:18",
+    "verdict": "ACCEPT"
+  },
+  "memory_entries": [
+    {
+      "type": "optimization",
+      "content": "Round 48: Risk control enhanced, drawdown reduced from -15% to -14% through improved stop-loss placement"
+    },
+    {
+      "type": "trap",
+      "content": "Round 45: Initial volatility weighting reduced effectiveness, switched to risk-controlled approach for subsequent rounds"
+    }
+  ]
+}

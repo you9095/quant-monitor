@@ -1,0 +1,29 @@
+{
+  "round": 45,
+  "strategy_name": "sanhe",
+  "annualized_return_pct": 32.78,
+  "max_drawdown_pct": -14.65,
+  "sharpe": 1.9,
+  "win_rate": 0.6986,
+  "calmar_ratio": 2.24,
+  "num_trades": 79,
+  "winning_trades": 55,
+  "losing_trades": 24,
+  "parameters": {
+    "momentum_params": {
+      "lookback": [
+        20,
+        30,
+        35
+      ],
+      "weights": [
+        1.0,
+        1.2
+      ]
+    },
+    "volatility_weighting": true,
+    "risk_control": false
+  },
+  "timestamp": "2026-06-25 03:05:18",
+  "verdict": "ACCEPT"
+}

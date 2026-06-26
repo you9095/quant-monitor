@@ -1,0 +1,14 @@
+{
+  "date": "2026-06-17",
+  "summary": {},
+  "strategies": {
+    "sanhe_5y": {
+      "total_return": 153.59,
+      "annualized_return": 23.18,
+      "max_drawdown": -24.96,
+      "sharpe": 1.2,
+      "trades_count": 648
+    }
+  },
+  "notes": "三合 5Y 棘轮优化完成，R41-R45 4/6 ACCEPT，R44 成为新基线"
+}

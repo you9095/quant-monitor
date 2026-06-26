@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-06-25 03:05:18",
+  "strategy": "sanhe",
+  "rounds_executed": 5,
+  "rounds_accepted": 5,
+  "final_baseline": {
+    "round": 49,
+    "strategy_name": "sanhe",
+    "annualized_return_pct": 29.15,
+    "max_drawdown_pct": -17.69,
+    "sharpe": 1.37,
+    "win_rate": 0.7042,
+    "calmar_ratio": 1.65,
+    "num_trades": 63,
+    "winning_trades": 44,
+    "losing_trades": 19,
+    "parameters": {
+      "momentum_params": {
+        "lookback": [
+          30,
+          35,
+          40
+        ],
+        "weights": [
+          1.5,
+          2.0
+        ]
+      },
+      "volatility_weighting": true,
+      "risk_control": true
+    },
+    "timestamp": "2026-06-25 03:05:18",
+    "verdict": "ACCEPT"
+  },
+  "hard_constraint_satisfied": true,
+  "optimization_focus": "Momentum parameters, volatility weighting, and risk control"
+}
