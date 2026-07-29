@@ -1,6 +1,11 @@
 // ========== 三策略监控面板 · 数据层 V2.0 ==========
 // 动态策略支持：策略数量由后端配置决定，前端自适应渲染
 
+// 格式化函数：today_pnl 显示，null/undefined 显示"无数据"
+function fmtPnl(v) { return v == null ? '无数据' : (v >= 0 ? '+' : '') + '¥' + Number(v).toFixed(2); }
+function fmtReturn(v) { return v == null ? '无数据' : (v >= 0 ? '+' : '') + Number(v).toFixed(2) + '%'; }
+function pnlClass(v) { return v == null ? 'nodata' : (v >= 0 ? 'up' : 'down'); }
+
 const DataLayer = {
   config: {
     pollInterval: 30000,
@@ -70,7 +75,21 @@ const DataLayer = {
   },
 
   transformApiData(apiData) {
-    const strategies = apiData.strategies.map(s => ({
+    // 信号日期落后超过 MAX_STALE_DAYS 的策略视为"未运行"，跳过渲染
+    const MAX_STALE_DAYS = 5;
+    function isStrategyActive(s) {
+      const sid = s.strategy_id || s.id;
+      const sigDate = s.signal_date || (s.metrics && s.metrics.signal_date) || '';
+      if (!sigDate) return false;
+      const now = new Date();
+      const sig = new Date(sigDate + 'T00:00:00');
+      return Math.floor((now - sig) / (1000 * 60 * 60 * 24)) <= MAX_STALE_DAYS;
+    }
+    function activeStrategies(strategies) {
+      return (strategies || []).filter(isStrategyActive);
+    }
+
+    const strategies = activeStrategies(apiData.strategies).map(s => ({
       id: s.strategy_id,
       name: s.strategy_name,
       status: s.status,
@@ -132,33 +151,14 @@ const DataLayer = {
 
   // 动态生成Mock数据（根据策略配置数量）
   getMockData() {
-    const configs = this.strategyConfig || [
-      { strategy_id: 'qixing', strategy_name: '七星策略', color: '#3b82f6' },
-      { strategy_id: 'r32', strategy_name: '三驾马车R32', color: '#10b981' },
-      { strategy_id: 'zhuidian', strategy_name: '追电策略', color: '#f59e0b' },
-      { strategy_id: 'sanhe', strategy_name: '三合策略', color: '#a855f7' }
-    ];
-
-    const strategies = configs.map(cfg => ({
-      id: cfg.strategy_id,
-      name: cfg.strategy_name,
-      status: 'running',
-      today_action: 'HOLD',
-      position_pct: 0,
-      cash: 10000,
-      total_asset: 10000,
-      total_return: 0,
-      today_pnl: 0,
-      today_return: 0,
-      holdings: [],
-      metrics: { total_return: 0, trades_count: 0 }
-    }));
-
+    // 2026-06-30: 禁止 Mock fallback 返回 0 值
+    // 必须调用 API，否则返回空提示用户检查后端
+    console.warn('Mock data requested - API should be available');
     return {
-      strategies,
+      strategies: [],
       portfolio: {
-        total_value: strategies.reduce((s, x) => s + x.total_asset, 0),
-        total_return: 0,
+        total_value: 0,
+        total_return: null,
         last_update: new Date().toISOString()
       }
     };

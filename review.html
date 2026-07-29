@@ -13,6 +13,7 @@
   --border-medium: rgba(255,255,255,0.10);
   --qixing: #3b82f6; --r32: #10b981; --zhuidian: #f59e0b;
   --color-up: #10b981; --color-down: #ef4444;
+  --color-nodata: #606078;
   --font-mono: "SF Mono", "Consolas", "Monaco", monospace;
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
   --radius-sm: 6px; --radius-md: 10px; --radius-lg: 16px;
@@ -49,6 +50,7 @@ body { font-family: var(--font-sans); background: var(--bg-base); color: var(--t
 .summary-card .value { font-family: var(--font-mono); font-size: 28px; font-weight: 700; }
 .summary-card .value.up { color: var(--color-up); }
 .summary-card .value.down { color: var(--color-down); }
+.summary-card .value.nodata { color: var(--color-nodata); font-style: italic; }
 .summary-card .sub { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
 
 /* 策略复盘 */
@@ -69,6 +71,7 @@ body { font-family: var(--font-sans); background: var(--bg-base); color: var(--t
 .review-header .pnl { font-family: var(--font-mono); font-size: 18px; font-weight: 700; }
 .review-header .pnl.up { color: var(--color-up); }
 .review-header .pnl.down { color: var(--color-down); }
+.review-header .pnl.nodata { color: var(--color-nodata); font-style: italic; }
 .review-body { padding: 20px; display: none; }
 .review-body.open { display: block; }
 .review-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -81,6 +84,7 @@ body { font-family: var(--font-sans); background: var(--bg-base); color: var(--t
 .review-row .val { font-family: var(--font-mono); }
 .review-row .val.up { color: var(--color-up); }
 .review-row .val.down { color: var(--color-down); }
+.review-row .val.nodata { color: var(--color-nodata); font-style: italic; }
 
 /* 交易记录 */
 .trade-table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -129,11 +133,104 @@ body { font-family: var(--font-sans); background: var(--bg-base); color: var(--t
 
 <div class="date-bar">
   <div class="container">
-    <select id="date-select" onchange="loadReview(this.value)">
-      <option value="2026-06-08">2026-06-08 (今日)</option>
-    </select>
+    <div class="review-tabs" id="review-tabs">
+      <button class="review-tab active" data-type="daily" onclick="switchReviewType('daily')">📅 日复盘</button>
+      <button class="review-tab" data-type="weekly" onclick="switchReviewType('weekly')">📊 周报</button>
+      <button class="review-tab" data-type="monthly" onclick="switchReviewType('monthly')">🗓️ 月报</button>
+      <button class="review-tab" data-type="chart" onclick="switchReviewType('chart')">📈 月度对比</button>
+      <button class="review-tab" data-type="flow" onclick="switchReviewType('flow')">⚙️ 执行流程</button>
+    </div>
+    <div class="review-controls" id="review-controls">
+      <select id="date-select" onchange="loadReview(this.value)" style="margin-right:8px">
+        <option value="">加载中...</option>
+      </select>
+      <input type="date" id="start-date" style="margin-right:4px" onchange="onRangeChange()">
+      <span style="color:var(--text-muted);margin:0 4px">~</span>
+      <input type="date" id="end-date" style="margin-right:8px" onchange="onRangeChange()">
+      <button class="btn-secondary" onclick="loadRangeView()">范围查询</button>
+    </div>
+    <div style="margin-top:8px;font-size:12px;color:var(--text-muted)" id="review-meta"></div>
   </div>
 </div>
+
+<style>
+.review-tabs {
+  display: inline-flex;
+  gap: 4px;
+  margin-right: 16px;
+}
+.review-tab {
+  background: transparent;
+  border: 1px solid var(--border-medium);
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-sans);
+}
+.review-tab:hover { background: var(--bg-hover); color: var(--text-primary); }
+.review-tab.active {
+  background: var(--bg-surface);
+  border-color: var(--r32-end);
+  color: var(--text-primary);
+}
+.review-controls {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 8px;
+}
+.review-controls select, .review-controls input[type=date] {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  color: var(--text-primary);
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 12px;
+}
+.range-result {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  margin: 12px 0;
+}
+.range-result .range-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.range-item {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 8px;
+}
+.range-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.range-item-date {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--r32-end);
+  font-weight: 600;
+}
+.range-item-type {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.08);
+  color: var(--text-muted);
+}
+</style>
 
 <!-- 汇总区 -->
 <section class="summary-section">
@@ -195,24 +292,504 @@ body { font-family: var(--font-sans); background: var(--bg-base); color: var(--t
 </section>
 
 <script>
-const API_BASE = 'http://localhost:8000/api/v1';
+const API_BASE = '/api/v1';
+
+// 格式化函数：today_pnl 显示，null/undefined 显示"无数据"
+function fmtPnl(v) { return v == null ? '无数据' : (v >= 0 ? '+' : '') + '¥' + Number(v).toFixed(2); }
+function fmtReturn(v) { return v == null ? '无数据' : (v >= 0 ? '+' : '') + Number(v).toFixed(2) + '%'; }
+function pnlClass(v) { return v == null ? 'nodata' : (v >= 0 ? 'up' : 'down'); }
+
 const STRATEGY_COLORS = { qixing: '#3b82f6', r32: '#10b981', zhuidian: '#f59e0b', sanhe: '#a855f7', lightning: '#facc15' };
 const STRATEGY_NAMES = { qixing: '七星策略', r32: '三驾马车', zhuidian: '追电策略', sanhe: '三合策略 (Fusion)', lightning: '闪电策略 (Lightning)' };
 
 let reviewData = null;
+let availableDates = [];
+let currentDate = null;
+
+// ========== P2-3 (2026-06-27): 三 tab 切换 + 范围查询 ==========
+let currentReviewType = 'daily';
+let currentRange = [];  // 范围查询结果
+
+async function switchReviewType(type) {
+  currentReviewType = type;
+  // 切换 tab 状态
+  document.querySelectorAll('.review-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.type === type);
+  });
+  // 隐藏/显示 controls
+  const controls = document.getElementById('review-controls');
+  if (controls) controls.style.display = type === 'chart' ? 'none' : 'inline-flex';
+
+  if (type === 'chart') {
+    await renderMonthlyChart();
+  } else if (type === 'flow') {
+    await renderExecutionFlow();
+  } else {
+    await loadDateList();
+  }
+}
+
+async function loadDateList() {
+  const sel = document.getElementById('date-select');
+  const meta = document.getElementById('review-meta');
+  try {
+    const res = await fetch(`${API_BASE}/review/dates`);
+    const result = await res.json();
+    if (result.code === 0) {
+      availableDates = result.data.dates || [];
+      // 加载当前 type 的所有可用日期（需要再调 range 拿具体 type）
+      const typeRes = await fetch(`${API_BASE}/review/range?type=${currentReviewType}`);
+      const typeResult = await typeRes.json();
+      const typeDates = (typeResult.data.reviews || []).map(r => r.date);
+
+      sel.innerHTML = typeDates.map(d =>
+        `<option value="${d}">${d}${d === typeResult.data[typeResult.data.length === 0 ? 'latest' : 'latest'] || ''}</option>`
+      ).join('');
+
+      if (typeDates.length > 0) {
+        sel.value = typeDates[typeDates.length - 1];
+        const meta2 = document.getElementById('review-meta');
+        if (meta2) meta2.textContent = `${currentReviewType === 'daily' ? '日' : currentReviewType === 'weekly' ? '周' : '月'}报共 ${typeDates.length} 份（全部 ${availableDates.length} 个日期）`;
+        await loadReview(typeDates[typeDates.length - 1]);
+      } else {
+        const meta2 = document.getElementById('review-meta');
+        if (meta2) meta2.textContent = `${currentReviewType} 类型暂无复盘`;
+      }
+    }
+  } catch (e) {
+    console.error('日期列表加载失败:', e);
+    sel.innerHTML = '<option value="">加载失败</option>';
+  }
+}
+
+function onRangeChange() {
+  // 当 start/end 输入变化时，自动填到 sel
+  const start = document.getElementById('start-date').value;
+  const end = document.getElementById('end-date').value;
+  if (start && end) {
+    const meta = document.getElementById('review-meta');
+    if (meta) meta.textContent = `已选范围 ${start} ~ ${end}，点"范围查询"加载`;
+  }
+}
+
+async function loadRangeView() {
+  const start = document.getElementById('start-date').value;
+  const end = document.getElementById('end-date').value;
+  const strategyReviews = document.getElementById('strategy-reviews');
+  const meta = document.getElementById('review-meta');
+
+  if (!start || !end) {
+    alert('请选择起始和结束日期');
+    return;
+  }
+  if (start > end) {
+    alert('起始日期不能晚于结束日期');
+    return;
+  }
+
+  meta.textContent = `查询中... ${start} ~ ${end}`;
+  try {
+    const res = await fetch(`${API_BASE}/review/range?type=${currentReviewType}&start=${start}&end=${end}`);
+    const result = await res.json();
+    if (result.code !== 0) {
+      meta.textContent = `查询失败: ${result.message}`;
+      return;
+    }
+    currentRange = result.data.reviews;
+    meta.textContent = `${result.data.count} 份${currentReviewType === 'daily' ? '日' : currentReviewType === 'weekly' ? '周' : '月'}报 (${start} ~ ${end})`;
+
+    if (currentRange.length === 0) {
+      strategyReviews.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">📭</div>
+          <p>该范围内无${currentReviewType}复盘数据</p>
+        </div>`;
+      return;
+    }
+
+    // 渲染范围结果（每个复盘一张卡）
+    renderRangeResults(currentRange);
+  } catch (e) {
+    meta.textContent = `网络错误: ${e.message}`;
+  }
+}
+
+function renderRangeResults(reviews) {
+  const container = document.getElementById('strategy-reviews');
+  container.innerHTML = `
+    <div class="range-result">
+      <div class="range-title">📚 ${currentReviewType === 'daily' ? '日' : currentReviewType === 'weekly' ? '周' : '月'}报列表 (${reviews.length} 份)</div>
+      ${reviews.map(r => renderRangeItem(r)).join('')}
+    </div>
+  `;
+}
+
+function renderRangeItem(r) {
+  const d = r.data || {};
+  const type = d.type || r.type || '?';
+  let title = '';
+  let pnl = null;
+
+  if (type === 'daily') {
+    const headline = d.summary_L1?.headline || '(无 headline)';
+    title = headline;
+    pnl = d.performance?.total_cumulative_pnl;
+  } else if (type === 'weekly') {
+    const headline = d.weekly_view?.headline || '(无 weekly_view)';
+    title = headline;
+    pnl = null;
+  } else if (type === 'monthly') {
+    const headline = d.monthly_view?.headline || '(无 monthly_view)';
+    title = headline;
+    pnl = null;
+  }
+
+  const pnlHtml = pnl !== null && pnl !== undefined
+    ? `<span class="${pnl >= 0 ? 'up' : 'down'}" style="font-family:var(--font-mono);font-weight:700">${pnl >= 0 ? '+' : ''}¥${pnl.toLocaleString('zh-CN', {minimumFractionDigits:0})}</span>`
+    : '';
+
+  return `
+    <div class="range-item" onclick="loadReview('${r.date}')" style="cursor:pointer">
+      <div class="range-item-header">
+        <span class="range-item-date">${r.date}</span>
+        <span class="range-item-type">${type}</span>
+      </div>
+      <div style="font-size:13px;color:var(--text-primary);margin:4px 0">${title}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;color:var(--text-muted)">${r.filename}</span>
+        ${pnlHtml}
+      </div>
+    </div>
+  `;
+}
+
+// ========== P3-1 (2026-06-27): 月度对比图 ==========
+let monthlyChart = null;
+
+async function renderMonthlyChart() {
+  const container = document.getElementById('strategy-reviews');
+  const meta = document.getElementById('review-meta');
+  meta.textContent = '加载月度数据...';
+
+  // 先放一个 chart canvas 占位
+  container.innerHTML = `
+    <div class="monthly-chart-section">
+      <div class="chart-header">
+        <h3>📈 5 策略月度累计 P&L 对比</h3>
+        <p style="color:var(--text-muted);font-size:12px">最近 6 个月累计收益率 (%)</p>
+      </div>
+      <div class="chart-canvas-wrap" style="height:380px;position:relative;background:var(--bg-surface);border-radius:var(--radius-md);padding:16px">
+        <canvas id="monthlyChart"></canvas>
+      </div>
+      <div id="monthly-table-wrap" style="margin-top:20px"></div>
+    </div>
+  `;
+
+  try {
+    const res = await fetch(`${API_BASE}/dashboard/monthly_compare`);
+    const result = await res.json();
+    if (result.code !== 0) {
+      meta.textContent = `加载失败: ${result.message}`;
+      return;
+    }
+    const d = result.data;
+    meta.textContent = `${d.months.length} 个月窗口 / ${Object.keys(d.strategies).length} 策略`;
+
+    // 准备 Chart.js 数据
+    const labels = d.months;
+    const datasets = Object.entries(d.strategies).map(([sid, info]) => {
+      const data = info.data.map(v => v === null ? null : v);
+      return {
+        label: info.name,
+        data,
+        borderColor: info.color,
+        backgroundColor: info.color + '20',
+        fill: false,
+        tension: 0.3,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        borderWidth: 2,
+        spanGaps: true,
+      };
+    });
+
+    // 销毁旧图
+    if (monthlyChart) { monthlyChart.destroy(); }
+    const ctx = document.getElementById('monthlyChart');
+    if (ctx) {
+      monthlyChart = new Chart(ctx.getContext('2d'), {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top', labels: { color: '#a0a0b8', font: { family: 'SF Mono, Consolas, monospace', size: 11 }, usePointStyle: true, boxWidth: 8 } },
+            tooltip: {
+              backgroundColor: 'rgba(10,10,15,0.9)',
+              titleColor: '#e8e8f0',
+              bodyColor: '#a0a0b8',
+              borderColor: 'rgba(255,255,255,0.1)',
+              borderWidth: 1,
+              callbacks: {
+                label: c => `${c.dataset.label}: ${c.parsed.y !== null ? (c.parsed.y >= 0 ? '+' : '') + c.parsed.y.toFixed(2) + '%' : '无数据'}`,
+              },
+            },
+          },
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#606078', font: { size: 11 } } },
+            y: {
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { color: '#606078', callback: v => v + '%', font: { size: 11 } },
+            },
+          },
+        },
+      });
+    }
+
+    // 渲染对比表
+    const tableWrap = document.getElementById('monthly-table-wrap');
+    if (tableWrap) {
+      const sidMap = Object.keys(d.strategies);
+      tableWrap.innerHTML = `
+        <h3 style="margin-bottom:12px;font-size:14px">📊 详细数据表</h3>
+        <div style="overflow-x:auto">
+          <table class="trade-table">
+            <thead>
+              <tr>
+                <th>月份</th>
+                ${sidMap.map(sid => `<th>${d.strategies[sid].name}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${labels.map((m, i) => `
+                <tr>
+                  <td style="font-weight:600;color:var(--r32-end)">${m}</td>
+                  ${sidMap.map(sid => {
+                    const v = d.strategies[sid].data[i];
+                    if (v === null || v === undefined) {
+                      return '<td style="color:var(--text-muted)">—</td>';
+                    }
+                    return `<td class="${v >= 0 ? 'up' : 'down'}" style="font-family:var(--font-mono);font-weight:600">${v >= 0 ? '+' : ''}${v.toFixed(2)}%</td>`;
+                  }).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        <p style="color:var(--text-muted);font-size:12px;margin-top:12px">
+          ${d.note} | 当前月: <strong style="color:var(--r32-end)">${d.current_month}</strong> | 5 策略曲线颜色: 🔵七星 / 🟢三驾马车 / 🟠追电 / 🟣三合 / 🟡闪电
+        </p>
+      `;
+    }
+  } catch (e) {
+    meta.textContent = `加载失败: ${e.message}`;
+  }
+}
+
+// ========== P4 (2026-06-27): 5 策略执行流程视图 ==========
+let _currentFlowStrategy = 'qixing';
+
+async function renderExecutionFlow() {
+  const container = document.getElementById('strategy-reviews');
+  const meta = document.getElementById('review-meta');
+  meta.textContent = '加载 5 策略执行流程...';
+
+  container.innerHTML = `
+    <div class="flow-section">
+      <h3 style="margin-bottom:12px;font-size:14px">🎯 核心 KPI：5 策略各自独立完整逐日模拟交易记录</h3>
+      <div id="flow-kpi"></div>
+
+      <h3 style="margin:24px 0 12px;font-size:14px">⚙️ 单策略逐日执行流水</h3>
+      <div id="strategy-selector" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
+      <div id="strategy-flow-detail"></div>
+
+      <details style="margin-top:24px">
+        <summary style="cursor:pointer;font-size:13px;color:var(--text-muted)">📈 5 策略 ratchet 演化历史（参数测试报告，参考）</summary>
+        <div id="ratchet-evolution" style="margin-top:12px"></div>
+      </details>
+    </div>
+  `;
+
+  // 并行加载：核心 KPI 状态 + 单策略 flow + ratchet 演化
+  const [summaryRes, flowRes, ratchetRes] = await Promise.all([
+    fetch(`${API_BASE}/dashboard/strategies_flow_summary`).then(r => r.json()).catch(e => ({code:1, message: e.message, data: null})),
+    fetch(`${API_BASE}/dashboard/qixing_flow?strategy=${_currentFlowStrategy}`).then(r => r.json()).catch(e => ({code:1, message: e.message, data: null})),
+    fetch(`${API_BASE}/dashboard/ratchet_evolution`).then(r => r.json()).catch(e => ({code:1, message: e.message, data: null})),
+  ]);
+
+  // 渲染 KPI 总览
+  const kpiDiv = document.getElementById('flow-kpi');
+  const sum = summaryRes.data || {};
+  const kpi = sum.core_kpi_status || {};
+  const strategies = sum.strategies || {};
+
+  kpiDiv.innerHTML = `
+    <div style="background:linear-gradient(135deg, #1e293b, #0f172a);padding:16px;border-radius:8px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-size:13px;color:#94a3b8">${kpi.kpi || ''}</div>
+          <div style="font-size:20px;font-weight:700;color:${kpi.all_have_daily_log ? '#10b981' : '#ef4444'};margin-top:4px">
+            ${kpi.all_have_daily_log ? '✅ 已满足' : '⚠️ 缺失'}
+          </div>
+        </div>
+        <div style="display:flex;gap:24px">
+          <div>
+            <div style="font-size:11px;color:#64748b">总日数</div>
+            <div style="font-size:18px;font-weight:700;color:#e2e8f0">${kpi.total_days || 0}</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:#64748b">总 sessions</div>
+            <div style="font-size:18px;font-weight:700;color:#e2e8f0">${kpi.total_sessions || 0}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(170px, 1fr));gap:8px">
+      ${Object.entries(strategies).map(([sid, info]) => `
+        <div style="background:var(--bg-surface);padding:12px;border-radius:6px;border-left:3px solid ${info.color || '#94a3b8'}">
+          <div style="font-size:12px;font-weight:600;color:${info.color || '#94a3b8'}">${info.name}</div>
+          <div style="font-size:18px;font-weight:700;margin-top:4px">${info.days} 天 <span style="font-size:12px;color:var(--text-muted)">/ ${info.sessions} sessions</span></div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px">${info.note}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  // 策略选择器
+  const selDiv = document.getElementById('strategy-selector');
+  const strategyOrder = ['qixing', 'r32', 'zhuidian', 'sanhe', 'lightning'];
+  selDiv.innerHTML = strategyOrder.map(sid => {
+    const info = strategies[sid] || {};
+    const isActive = sid === _currentFlowStrategy;
+    return `<button class="strategy-pill ${isActive ? 'active' : ''}" data-sid="${sid}" style="
+      padding: 6px 14px;
+      border: 2px solid ${isActive ? (info.color || '#3b82f6') : 'var(--border-color)'};
+      background: ${isActive ? (info.color || '#3b82f6') : 'transparent'};
+      color: ${isActive ? '#fff' : 'var(--text-primary)'};
+      border-radius: 16px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.15s;
+    ">
+      ${info.name || sid} (${info.days || 0}d)
+    </button>`;
+  }).join('');
+
+  // 绑定点击切换
+  selDiv.querySelectorAll('.strategy-pill').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      _currentFlowStrategy = btn.dataset.sid;
+      await renderExecutionFlow();
+    });
+  });
+
+  // 渲染单策略流水
+  const detailDiv = document.getElementById('strategy-flow-detail');
+  const fd = flowRes.data || {};
+  if (!fd.days_count) {
+    detailDiv.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>${fd.strategy_id || '此策略'} 暂无 daily log 数据</p></div>`;
+  } else {
+    const strategyInfo = strategies[fd.strategy_id] || {};
+    detailDiv.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap">
+        <strong style="color:${strategyInfo.color || '#3b82f6'}">${strategyInfo.name || fd.strategy_id}</strong>
+        <span style="font-size:12px;color:var(--text-muted)">${fd.days_count} 天 / ${fd.sessions_count} sessions / 成功率 ${(fd.success_rate * 100).toFixed(1)}%</span>
+        ${strategyInfo.note ? `<span style="font-size:10px;background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px">${strategyInfo.note}</span>` : ''}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:8px;margin-bottom:12px">
+        <div style="padding:8px;background:var(--bg-surface);border-radius:6px">
+          <div style="font-size:10px;color:var(--text-muted)">动作分布</div>
+          <div style="font-size:13px;font-weight:600;margin-top:2px">${Object.entries(fd.action_distribution || {}).map(([k,v]) => `${k}×${v}`).join(' / ') || '—'}</div>
+        </div>
+        <div style="padding:8px;background:var(--bg-surface);border-radius:6px">
+          <div style="font-size:10px;color:var(--text-muted)">目标 ETF 分布</div>
+          <div style="font-size:13px;font-weight:600;margin-top:2px">${Object.entries(fd.target_distribution || {}).slice(0, 3).map(([k,v]) => `${k}×${v}`).join(' / ') || '—'}</div>
+        </div>
+      </div>
+      <div style="overflow-x:auto;max-height:480px;overflow-y:auto">
+        <table class="trade-table">
+          <thead>
+            <tr>
+              <th>日期</th><th>Session</th><th>动作</th><th>目标 ETF</th>
+              <th>当日 PnL</th><th>宽度</th><th>环境</th><th>成功</th>
+              <th>版本</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(fd.timeline || []).map(t => `
+              <tr>
+                <td style="font-family:var(--font-mono);font-size:12px">${t['date']}</td>
+                <td>${t['session']}</td>
+                <td class="${t['action'] === 'DEFENSIVE' ? 'down' : (t['action'] === 'MOMENTUM' || t['action'] === 'REBALANCE' ? 'up' : '')}">${t['action']}</td>
+                <td class="code" style="font-size:11px">${t['target_etf'] || '—'}</td>
+                <td style="font-family:var(--font-mono);color:${(t['daily_pnl_total'] || 0) >= 0 ? 'var(--color-up)' : 'var(--color-down)'}">${t['daily_pnl_total'] !== undefined ? (t['daily_pnl_total'] >= 0 ? '+' : '') + t['daily_pnl_total'].toFixed(0) : '—'}</td>
+                <td style="font-family:var(--font-mono);font-size:11px">${t['breadth'] !== null && t['breadth'] !== undefined ? (t['breadth'] * 100).toFixed(1) + '%' : '—'}</td>
+                <td>${t['breadth'] !== null && t['breadth'] !== undefined ? (t['breadth'] < 0.4 ? 'crash' : t['breadth'] < 0.65 ? 'normal' : 'ideal') : '—'}</td>
+                <td class="${t['success'] ? 'up' : 'down'}">${t['success'] ? '✓' : '✗'}</td>
+                <td class="code" style="font-size:10px;color:var(--text-muted)">${(t['version'] || '').slice(0, 20)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  // 5 策略 ratchet 演化（折叠）
+  const reDiv = document.getElementById('ratchet-evolution');
+  const re_ = ratchetRes.data || {};
+  if (!re_.strategies) {
+    reDiv.innerHTML = '<div class="empty-state">ratchet 演化数据缺失</div>';
+  } else {
+    reDiv.innerHTML = Object.entries(re_.strategies).map(([sid, info]) => `
+      <div class="ratchet-block" style="margin-bottom:12px;padding:10px;background:var(--bg-surface);border-radius:var(--radius-md);border-left:3px solid ${info.color}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <strong style="color:${info.color}">${info.name}</strong>
+          <span style="font-size:11px;color:var(--text-muted)">${info.iterations_count} 轮迭代（参数测试报告）</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="trade-table" style="font-size:11px">
+            <thead>
+              <tr><th>迭代日期</th><th>版本</th><th>累计收益</th><th>夏普</th><th>回撤</th><th>笔数</th></tr>
+            </thead>
+            <tbody>
+              ${(info.history || []).map(h => `
+                <tr>
+                  <td style="font-family:var(--font-mono)">${h['date']}</td>
+                  <td class="code" style="font-size:10px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h['version']}</td>
+                  <td class="${h['total_return'] >= 0 ? 'up' : 'down'}" style="font-family:var(--font-mono)">${h['total_return'] >= 0 ? '+' : ''}${h['total_return'].toFixed(2)}%</td>
+                  <td style="font-family:var(--font-mono)">${h['sharpe'].toFixed(2)}</td>
+                  <td class="down" style="font-family:var(--font-mono)">${h['max_drawdown'].toFixed(2)}%</td>
+                  <td style="font-family:var(--font-mono)">${h['trades']}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  meta.textContent = `5 策略 daily log: ${kpi.total_days || 0} 天 / ${kpi.total_sessions || 0} sessions / 当前选中: ${strategies[_currentFlowStrategy]?.name || _currentFlowStrategy}`;
+}
 
 async function loadReview(date) {
+  if (!date) return;
+  currentDate = date;
   document.getElementById('review-date').textContent = date;
-  
-  // 加载概览数据
+
+  // P0-3 (2026-06-26): 改为读 /review/{date} 而非 overview API
   try {
-    const res = await fetch(`${API_BASE}/dashboard/overview`);
+    const res = await fetch(`${API_BASE}/review/${date}`);
     const result = await res.json();
     if (result.code === 0) {
       reviewData = result.data;
-      renderSummary(result.data);
-      renderStrategyReviews(result.data.strategies);
-      renderAllTrades(result.data.strategies);
+      renderFromReviewJson(result.data);
+    } else {
+      throw new Error(result.message);
     }
   } catch (e) {
     console.error('复盘数据加载失败:', e);
@@ -222,11 +799,186 @@ async function loadReview(date) {
         <p>数据服务未连接，请确认 real_data_server.py 已启动</p>
       </div>
     `;
+    return;
   }
-  
-  // 加载本地笔记
-  const notes = localStorage.getItem('review_notes_' + date);
-  if (notes) document.getElementById('review-notes').value = notes;
+
+  // 加载笔记（从 review/{date}.json 的 user_notes 字段，localStorage 作为后备）
+  const notesTextarea = document.getElementById('review-notes');
+  let notes = '';
+  if (reviewData && reviewData.user_notes) {
+    notes = reviewData.user_notes;
+  } else {
+    notes = localStorage.getItem('review_notes_' + date) || '';
+  }
+  notesTextarea.value = notes;
+}
+
+// P0-3: 新渲染函数 — 从 review JSON 渲染而非 overview
+function renderFromReviewJson(d) {
+  // v1.0.1 (2026-06-26) 兼容: v2 schema 用 strategies_L2, v1 用 strategies
+  if (!d.strategies && d.strategies_L2) d.strategies = d.strategies_L2;
+
+  // 渲染顶部汇总（4 卡片）
+  renderSummary(d);
+
+  // 渲染策略复盘列表
+  renderStrategyReviewsFromJson(d);
+
+  // 渲染今日交易明细（从 today_actions API 拉）
+  renderTradesForDate(currentDate);
+}
+
+function renderSummary(d) {
+  const strategies = d.strategies || {};
+  const sList = Object.entries(strategies).map(([k, v]) => ({
+    strategy_id: k.startsWith('sanhe_5y') ? 'sanhe' : k.startsWith('sanhe_2y') ? 'sanhe' : k,
+    strategy_name: STRATEGY_NAMES[k.startsWith('sanhe') ? 'sanhe' : k] || k,
+    today_pnl: v.today_pnl != null ? v.today_pnl : null,
+    today_return: v.today_return != null ? v.today_return : null,
+    total_return: v.total_return || 0,
+    annualized_return: v.annualized_return || 0,
+    max_drawdown: v.max_drawdown || 0,
+    sharpe: v.sharpe || 0,
+    trades_count: v.trades_count || 0,
+    version: v.version || '',
+  }));
+
+  // 计算组合指标（5 策略 × 10k 本金）
+  const initial = 50000;
+  const totalValue = sList.reduce((sum, s) => sum + 10000 * (1 + (s.total_return || 0) / 100), 0);
+  const totalPnl = totalValue - initial;
+  const totalReturn = (totalPnl / initial) * 100;
+  const best = sList.reduce((a, b) => (a.today_return > b.today_return ? a : b), { today_return: -Infinity, strategy_name: '—' });
+  const worst = sList.reduce((a, b) => (a.today_return < b.today_return ? a : b), { today_return: Infinity, strategy_name: '—' });
+
+  const summaryGrid = document.getElementById('summary-grid');
+  summaryGrid.innerHTML = `
+    <div class="summary-card">
+      <div class="label">总资金</div>
+      <div class="value ${totalReturn >= 0 ? 'up' : 'down'}">¥${totalValue.toLocaleString('zh-CN', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
+      <div class="sub">初始 ¥${initial.toLocaleString()} · ${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">总盈亏</div>
+      <div class="value ${totalPnl >= 0 ? 'up' : 'down'}">${totalPnl >= 0 ? '+' : ''}¥${totalPnl.toLocaleString('zh-CN', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
+      <div class="sub">${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}% · 5 策略</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">交易笔数</div>
+      <div class="value">${sList.reduce((sum, s) => sum + (s.trades_count || 0), 0)}</div>
+      <div class="sub">${sList.length} 个策略合计</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">最佳 / 最差</div>
+      <div class="value ${best.today_return >= 0 ? 'up' : 'down'}" style="font-size:18px">
+        ${best.strategy_name} ${best.today_return === -Infinity ? '--' : (best.today_return >= 0 ? '+' : '') + best.today_return.toFixed(2) + '%'}
+      </div>
+      <div class="sub ${worst.today_return >= 0 ? 'up' : 'down'}">
+        ${worst.strategy_name} ${worst.today_return === Infinity ? '--' : (worst.today_return >= 0 ? '+' : '') + worst.today_return.toFixed(2) + '%'}
+      </div>
+    </div>
+  `;
+}
+
+function renderStrategyReviewsFromJson(d) {
+  const container = document.getElementById('strategy-reviews');
+  const strategies = d.strategies || {};
+
+  if (Object.keys(strategies).length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">📭</div>
+        <p>${d.empty_template ? '该日期暂无复盘数据。可在下方笔记区开始记录。' : '无策略数据'}</p>
+      </div>
+    `;
+    return;
+  }
+
+  // 把 sanhe_2y / sanhe_5y 合并成 sanhe 一组展示
+  const grouped = {};
+  for (const [k, v] of Object.entries(strategies)) {
+    const sid = k.startsWith('sanhe') ? 'sanhe' : k;
+    if (!grouped[sid]) grouped[sid] = [];
+    grouped[sid].push({ key: k, data: v });
+  }
+
+  container.innerHTML = Object.entries(grouped).map(([sid, items]) => {
+    const color = STRATEGY_COLORS[sid] || '#888';
+    const main = items[0].data;
+    const pnlClass = (main.today_return || 0) >= 0 ? 'up' : 'down';
+    const versions = items.map(i => `<span class="tlt-tag" style="font-size:10px;padding:2px 6px;background:rgba(255,255,255,0.05);border-radius:4px;margin-right:4px">${i.key}: ${i.data.version || '—'}</span>`).join('');
+
+    const reviewRowsHtml = items.map(i => `
+      <div class="review-block" style="margin-bottom:12px">
+        <h4>${i.key === 'sanhe_2y' ? '2Y 口径' : i.key === 'sanhe_5y' ? '5Y 口径' : '关键指标'}</h4>
+        <div class="review-row"><span class="key">总收益</span><span class="val ${(i.data.total_return||0) >= 0 ? 'up' : 'down'}">${(i.data.total_return||0) >= 0 ? '+' : ''}${(i.data.total_return||0).toFixed(2)}%</span></div>
+        <div class="review-row"><span class="key">年化</span><span class="val ${(i.data.annualized_return||0) >= 0 ? 'up' : 'down'}">${(i.data.annualized_return||0) >= 0 ? '+' : ''}${(i.data.annualized_return||0).toFixed(2)}%</span></div>
+        <div class="review-row"><span class="key">回撤</span><span class="val ${(i.data.max_drawdown||0) >= 0 ? 'down' : 'down'}">${(i.data.max_drawdown||0).toFixed(2)}%</span></div>
+        <div class="review-row"><span class="key">夏普</span><span class="val">${(i.data.sharpe||0).toFixed(2)}</span></div>
+        <div class="review-row"><span class="key">交易笔数</span><span class="val">${i.data.trades_count||0}</span></div>
+      </div>
+    `).join('');
+
+    return `
+      <div class="strategy-review">
+        <div class="review-header" onclick="toggleReview('${sid}')">
+          <div class="name">
+            <span class="color-dot" style="background:${color}"></span>
+            ${STRATEGY_NAMES[sid] || sid}
+            <span style="margin-left:8px">${versions}</span>
+          </div>
+          <div class="pnl ${pnlClass}">${(main.total_return||0) >= 0 ? '+' : ''}${(main.total_return||0).toFixed(2)}%</div>
+        </div>
+        <div class="review-body" id="review-${sid}">
+          ${reviewRowsHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function renderTradesForDate(date) {
+  const tbody = document.querySelector('#all-trades tbody');
+  try {
+    const res = await fetch(`${API_BASE}/dashboard/today_actions_all`);
+    const result = await res.json();
+    const tbody = document.querySelector('#all-trades tbody');
+    if (result.code !== 0 || !result.data.strategies) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:20px">今日无交易</td></tr>';
+      return;
+    }
+    const allTrades = [];
+    for (const [sid, info] of Object.entries(result.data.strategies)) {
+      const positions = info.positions || [];
+      for (const p of positions) {
+        allTrades.push({
+          strategy: STRATEGY_NAMES[sid] || sid,
+          strategy_id: sid,
+          action: info.action || 'HOLD',
+          code: p.code,
+          name: p.name || '',
+          qty: p.qty || p.weight || 0,
+          price: p.cost || 0,
+          amount: (p.qty || p.weight || 0) * (p.cost || 0),
+        });
+      }
+    }
+    const colorMap = STRATEGY_COLORS;
+    tbody.innerHTML = allTrades.length > 0 ? allTrades.map(t => `
+      <tr>
+        <td>${date}</td>
+        <td><span style="color:${colorMap[t.strategy_id]};font-weight:600">${t.strategy}</span></td>
+        <td class="${(t.action||'').toUpperCase() === 'BUY' ? 'up' : (t.action||'').toUpperCase() === 'SELL' ? 'down' : ''}">${(t.action||'HOLD').toUpperCase()}</td>
+        <td class="code">${t.code}</td>
+        <td>${t.name}</td>
+        <td>${typeof t.qty === 'number' ? t.qty.toLocaleString() : t.qty}</td>
+        <td>¥${t.price}</td>
+        <td>¥${t.amount.toLocaleString('zh-CN', {minimumFractionDigits:2})}</td>
+      </tr>
+    `).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:20px">无持仓</td></tr>';
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:20px">加载失败</td></tr>';
+  }
 }
 
 function renderSummary(data) {
@@ -245,8 +997,8 @@ function renderSummary(data) {
     </div>
     <div class="summary-card">
       <div class="label">今日盈亏</div>
-      <div class="value ${c.today_return >= 0 ? 'up' : 'down'}">${c.today_pnl >= 0 ? '+' : ''}¥${c.today_pnl.toFixed(2)}</div>
-      <div class="sub">${c.today_return >= 0 ? '+' : ''}${c.today_return}%</div>
+      <div class="value ${pnlClass(c.today_pnl)}">${fmtPnl(c.today_pnl)}</div>
+      <div class="sub">${fmtReturn(c.today_return)}</div>
     </div>
     <div class="summary-card">
       <div class="label">交易笔数</div>
@@ -266,12 +1018,27 @@ function renderSummary(data) {
   document.getElementById('summary-grid').innerHTML = html;
 }
 
+// 信号日期落后超过 MAX_STALE_DAYS 的策略视为"未运行"，跳过渲染
+const MAX_STALE_DAYS = 5;
+function isStrategyActive(s) {
+  const sid = s.strategy_id || s.id;
+  const sigDate = s.metrics?.signal_date || (window.__todayActions && window.__todayActions[sid]?.signal_date) || '';
+  if (!sigDate) return false;
+  const now = new Date();
+  const sig = new Date(sigDate + 'T00:00:00');
+  return Math.floor((now - sig) / (1000 * 60 * 60 * 24)) <= MAX_STALE_DAYS;
+}
+function activeStrategies(strategies) {
+  return (strategies || []).filter(isStrategyActive);
+}
+
 function renderStrategyReviews(strategies) {
   const container = document.getElementById('strategy-reviews');
+  const filtered = strategies ? activeStrategies(strategies) : [];
   
-  container.innerHTML = strategies.map(s => {
+  container.innerHTML = filtered.map(s => {
     const color = STRATEGY_COLORS[s.strategy_id];
-    const pnlClass = s.today_return >= 0 ? 'up' : 'down';
+    const pnlClass = s.today_return == null ? 'nodata' : (s.today_return >= 0 ? 'up' : 'down');
     const holdingsHtml = (s.holdings || []).map(h => `
       <div class="review-row">
         <span class="key">${h.code} ${h.name}</span>
@@ -286,7 +1053,7 @@ function renderStrategyReviews(strategies) {
             <span class="color-dot" style="background:${color}"></span>
             ${s.strategy_name}
           </div>
-          <div class="pnl ${pnlClass}">${s.today_return >= 0 ? '+' : ''}${s.today_return}%</div>
+          <div class="pnl ${pnlClass}">${fmtReturn(s.today_return)}</div>
         </div>
         <div class="review-body" id="review-${s.strategy_id}">
           <div class="review-grid">
@@ -297,7 +1064,7 @@ function renderStrategyReviews(strategies) {
             <div class="review-block">
               <h4>关键指标</h4>
               <div class="review-row"><span class="key">总资产</span><span class="val">¥${s.total_asset.toFixed(2)}</span></div>
-              <div class="review-row"><span class="key">今日盈亏</span><span class="val ${pnlClass}">${s.today_pnl >= 0 ? '+' : ''}¥${s.today_pnl.toFixed(2)}</span></div>
+              <div class="review-row"><span class="key">今日盈亏</span><span class="val ${pnlClass(s.today_pnl)}">${fmtPnl(s.today_pnl)}</span></div>
               <div class="review-row"><span class="key">现金余额</span><span class="val">¥${s.cash.toFixed(2)}</span></div>
               <div class="review-row"><span class="key">仓位比例</span><span class="val">${(s.position_ratio * 100).toFixed(1)}%</span></div>
               <div class="review-row"><span class="key">交易笔数</span><span class="val">${s.trades_count}</span></div>
@@ -354,11 +1121,38 @@ const ETF_NAMES = {
   '513520': '日经ETF', '513500': '标普500', '510300': '沪深300', '563360': 'A50ETF'
 }
 
-function saveNotes() {
-  const date = document.getElementById('review-date').textContent;
+// P0-4 (2026-06-26): 笔记改为 POST 到 /review/{date}/notes（写入 review/{date}.json）
+async function saveNotes() {
+  const date = currentDate || document.getElementById('review-date').textContent;
   const notes = document.getElementById('review-notes').value;
-  localStorage.setItem('review_notes_' + date, notes);
-  alert('笔记已保存到本地');
+  const btn = event?.target;
+  const oldText = btn?.textContent;
+  if (btn) { btn.disabled = true; btn.textContent = '保存中...'; }
+
+  try {
+    const res = await fetch(`${API_BASE}/review/${date}/notes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notes }),
+    });
+    const result = await res.json();
+    if (result.code === 0) {
+      // 同步 localStorage 作为后备
+      localStorage.setItem('review_notes_' + date, notes);
+      if (btn) {
+        btn.textContent = '✓ 已保存';
+        setTimeout(() => { btn.textContent = oldText; btn.disabled = false; }, 1500);
+      }
+      // 静默成功（不弹 alert）
+    } else {
+      alert('保存失败: ' + result.message);
+      if (btn) { btn.textContent = oldText; btn.disabled = false; }
+    }
+  } catch (e) {
+    alert('保存失败: ' + e.message + '（已尝试写入本地 localStorage）');
+    localStorage.setItem('review_notes_' + date, notes);
+    if (btn) { btn.textContent = oldText; btn.disabled = false; }
+  }
 }
 
 function exportReview() {
@@ -372,11 +1166,11 @@ function exportReview() {
     const c = reviewData.combined;
     text += `【汇总】\n`;
     text += `总资金: ¥${c.total_asset} (${c.total_return >= 0 ? '+' : ''}${c.total_return}%)\n`;
-    text += `今日盈亏: ${c.today_pnl >= 0 ? '+' : ''}¥${c.today_pnl} (${c.today_return >= 0 ? '+' : ''}${c.today_return}%)\n\n`;
+    text += `今日盈亏: ${fmtPnl(c.today_pnl)} (${fmtReturn(c.today_return)})\n\n`;
     
     text += `【策略表现】\n`;
     reviewData.strategies.forEach(s => {
-      text += `${s.strategy_name}: ${s.today_return >= 0 ? '+' : ''}${s.today_return}% (¥${s.today_pnl})\n`;
+      text += `${s.strategy_name}: ${fmtReturn(s.today_return)} (${fmtPnl(s.today_pnl)})\n`;
     });
     text += '\n';
   }
@@ -396,7 +1190,7 @@ function exportReview() {
 
 // 初始化
 window.addEventListener('DOMContentLoaded', () => {
-  loadReview('2026-06-08');
+  loadDateList();  // P0-2: 动态加载日期列表
 });
 </script>
 
