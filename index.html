@@ -1036,8 +1036,92 @@ body {
   </div>
 </section>
 
+<!-- WFA 过拟合审计区 (P9 v1.0, 2026-07-03) -->
+<section class="chart-section" style="border-top:1px solid var(--border-subtle)">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-title">🔬 WFA 过拟合审计（4 策略 Walk-Forward Analysis）</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:12px;color:var(--text-muted)" id="wfa-meta">加载中...</span>
+      </div>
+    </div>
 
+    <!-- 4 策略健康度卡片 -->
+    <div id="wfa-cards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+      <div class="risk-card" style="text-align:center">
+        <div class="risk-title">加载中...</div>
+      </div>
+    </div>
 
+    <!-- WFA 样本外 P&L 折线 -->
+    <div class="section-header" style="margin-top:10px">
+      <span style="font-size:13px;color:var(--text-muted)">📊 样本外（OOS）累计 P&L · 4 策略拼接 13 个测试窗口</span>
+    </div>
+    <div class="chart-container">
+      <canvas id="wfaOosCurveChart"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- 参数稳定性监控区 (P9-D v1.0, 2026-07-03) -->
+<section class="chart-section" style="border-top:1px solid var(--border-subtle)">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-title">🎯 参数稳定性监控（4 策略"假设网格"·13 训练窗口）</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:12px;color:var(--text-muted)" id="param-stability-meta">加载中...</span>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);margin:4px 0 12px 0">
+      在每个训练窗口上跑"假设参数网格"（不动策略代码），看最优参数在 13 窗口的分布 — 反映参数稳健性。
+    </p>
+
+    <!-- 4 策略参数分布柱状图 -->
+    <div id="param-stability-cards" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px">  <!-- P9-D qixing 加入 (2026-07-04) -->
+      <div class="risk-card" style="text-align:center">
+        <div class="risk-title">加载中...</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- P9-D A/B 对照区（grid_mode vs hardcode） (2026-07-04) -->
+<section class="chart-section" style="border-top:1px solid var(--border-subtle);background:rgba(99,102,241,0.04)">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-title">⚖️ A/B 对照（grid_mode vs hardcode · 验证 WFA 优化是否真有效）</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:12px;color:var(--text-muted)" id="ab-comparison-meta">加载中...</span>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);margin:4px 0 12px 0">
+      同一截止日同一份数据，分别用 <b>grid_mode（应用 P9 WFA 网格最优）</b> 和 <b>hardcode（策略代码原参数）</b> 跑 backtest。
+      每日对比 → 6 个月后判断 grid mode 是否真的有效（vs 单纯过拟合）。
+    </p>
+
+    <!-- 总览 KPI 条 -->
+    <div id="ab-comparison-kpi" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+      <div class="risk-card" style="text-align:center">
+        <div class="risk-title">加载中...</div>
+      </div>
+    </div>
+
+    <!-- 4 策略对比卡片 -->
+    <div id="ab-comparison-cards" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">  <!-- P9 E: 加 qixing 第 5 张卡片 -->
+      <div class="risk-card" style="text-align:center">
+        <div class="risk-title">加载中...</div>
+      </div>
+    </div>
+
+    <!-- 时序曲线（diff_sum 走势） -->
+    <div style="margin-top:20px">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">📈 diff_sum 时序（grid_mode - baseline 之和走势；正值=grid_mode 整体更优）</div>
+      <div class="chart-container" style="height:200px">
+        <canvas id="abDiffTrendChart"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- 风险监控区 -->
 <section class="risk-section">
@@ -1874,6 +1958,11 @@ function initChart() {
   loadNavCurves('live');
   // P8 v1.0: 加载 5 策略 Daily P&L 趋势图
   loadDailyPnlTrend(14);
+  // P9 v1.0: 加载 WFA 过拟合审计
+  loadWfaSummary();
+  loadWfaOosCurve();
+  // P9-D v1.0: 加载参数稳定性监控
+  loadParamStability();
 }
 
 async function loadNavCurves(period) {
@@ -2012,10 +2101,426 @@ async function switchDailyPnlView(viewMode) {
   }
 }
 
+// ==================== P9 v1.0: WFA 过拟合审计 ====================
+let wfaOosCurveChart = null;
+let wfaOosCurveData = null;
+
+async function loadWfaSummary() {
+  try {
+    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/wfa_summary`);
+    const data = await res.json();
+    if (data.code !== 0) {
+      throw new Error(data.message || 'API 返回错误');
+    }
+    renderWfaSummaryCards(data.data);
+    const meta = document.getElementById('wfa-meta');
+    if (meta && data.data.kpi) {
+      const k = data.data.kpi;
+      meta.textContent = `${k.wfa_run_date} | ${k.window_count} 窗口 | 训练 ${k.train_months} 月 + 测试 ${k.test_months} 月 | 严重过拟合 ${k.severe_overfit_count}/${k.total_strategies}`;
+    }
+  } catch (e) {
+    console.error('wfa_summary API 失败:', e);
+    const meta = document.getElementById('wfa-meta');
+    if (meta) meta.textContent = 'API 失败（请先跑 walk_forward_runner.py）';
+  }
+}
+
+function renderWfaSummaryCards(payload) {
+  const cardsEl = document.getElementById('wfa-cards');
+  if (!cardsEl) return;
+
+  const sidOrder = ['lightning', 'r32', 'sanhe', 'zhuidian'];
+  const healthIcons = {
+    severe_overfit: '🔴',
+    moderate_overfit: '⚡',
+    healthy: '✅',
+  };
+  const healthLabels = {
+    severe_overfit: '严重过拟合',
+    moderate_overfit: '中度过拟合',
+    healthy: '健康',
+  };
+
+  cardsEl.innerHTML = sidOrder.map(sid => {
+    const info = payload.strategies[sid];
+    if (!info) return '';
+    const ratio = info.overfit_ratio !== null ? info.overfit_ratio.toFixed(3) : 'N/A';
+    const oosRet = info.oos_return_pct.toFixed(2);
+    const fullRet = info.full_return_pct.toFixed(2);
+    const oosDD = info.oos_dd_pct.toFixed(2);
+    return `
+      <div class="risk-card" style="text-align:left;border-left:4px solid ${info.health_color}">
+        <div class="risk-title" style="font-size:13px">
+          ${healthIcons[info.health] || '·'} ${info.name}
+          <span style="font-size:11px;color:${info.health_color};float:right">${healthLabels[info.health] || ''}</span>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text-muted)">过拟合比 (OOS/完整)</div>
+        <div style="font-size:22px;font-weight:bold;color:${info.health_color}">${ratio}</div>
+        <div style="margin-top:6px;font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between">
+          <span>完整收益</span><span style="color:#94a3b8">${fullRet}%</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between">
+          <span>样本外收益</span><span style="color:${info.health_color};font-weight:bold">${oosRet}%</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between">
+          <span>OOS 最大回撤</span><span style="color:#94a3b8">${oosDD}%</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function loadWfaOosCurve() {
+  try {
+    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/wfa_oos_curve`);
+    const data = await res.json();
+    if (data.code !== 0) {
+      throw new Error(data.message || 'API 返回错误');
+    }
+    wfaOosCurveData = data.data;
+    renderWfaOosCurveChart(wfaOosCurveData);
+  } catch (e) {
+    console.error('wfa_oos_curve API 失败:', e);
+  }
+}
+
+function renderWfaOosCurveChart(data) {
+  const canvas = document.getElementById('wfaOosCurveChart');
+  if (!canvas || !data) return;
+
+  if (wfaOosCurveChart) wfaOosCurveChart.destroy();
+
+  // 4 策略按健康度排序显示（严重过拟合用 dashed）
+  const datasets = Object.entries(data.strategies).map(([sid, info]) => ({
+    label: info.name,
+    data: info.data,
+    borderColor: info.color,
+    backgroundColor: info.color + '20',
+    borderWidth: 2,
+    borderDash: sid === 'lightning' ? [6, 4] : [],  // lightning 用 dashed 警示
+    pointRadius: 2,
+    pointHoverRadius: 4,
+    tension: 0.2,
+    fill: false,
+  }));
+
+  wfaOosCurveChart = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: data.dates,
+      datasets: datasets,
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top', labels: { color: '#94a3b8', font: { size: 12 } } },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              const val = ctx.parsed.y;
+              return `${ctx.dataset.label}: ¥${val >= 0 ? '+' : ''}${val.toFixed(0)}`;
+            },
+          },
+        },
+        title: {
+          display: true,
+          text: '样本外累计 P&L（4 策略）',
+          color: '#64748b',
+          font: { size: 13 },
+        },
+      },
+      scales: {
+        x: { ticks: { color: '#94a3b8', maxRotation: 45, minRotation: 45 }, grid: { color: '#1e293b' } },
+        y: {
+          ticks: {
+            color: '#94a3b8',
+            callback: function(v) { return '¥' + v.toLocaleString(); },
+          },
+          grid: { color: '#1e293b' },
+        },
+      },
+    },
+  });
+}
+
+// ==================== P9-D v1.0: 参数稳定性监控 ====================
+async function loadParamStability() {
+  try {
+    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/param_stability`);
+    const data = await res.json();
+    if (data.code !== 0) {
+      throw new Error(data.message || 'API 返回错误');
+    }
+    renderParamStabilityCards(data.data);
+    const meta = document.getElementById('param-stability-meta');
+    if (meta && data.data.kpi) {
+      meta.textContent = `${data.data.kpi.run_date} | 13 训练窗口 | 4 策略 × 1 关键参数网格`;
+    }
+  } catch (e) {
+    console.error('param_stability API 失败:', e);
+    const meta = document.getElementById('param-stability-meta');
+    if (meta) meta.textContent = 'API 失败';
+  }
+}
+
+function renderParamStabilityCards(payload) {
+  const cardsEl = document.getElementById('param-stability-cards');
+  if (!cardsEl) return;
+
+  // 策略显示顺序（按稳定性评分从高到低排序）
+  const sidOrder = ['r32', 'lightning', 'sanhe', 'zhuidian', 'qixing'];  // P9-D qixing WFA (2026-07-04)
+
+  // 稳定性评分配色
+  function scoreColor(s) {
+    if (s >= 0.8) return '#10b981';  // 绿
+    if (s >= 0.6) return '#facc15';  // 黄
+    return '#dc2626';                 // 红
+  }
+
+  cardsEl.innerHTML = sidOrder.map(sid => {
+    const info = payload.strategies[sid];
+    if (!info) return '';
+
+    const score = info.stability_score;
+    const sColor = scoreColor(score);
+    const isCurrentMode = info.current_is_mode;
+    const modeMatch = isCurrentMode
+      ? '<span style="color:#10b981;font-size:11px">✅ 当前=众数</span>'
+      : '<span style="color:#f59e0b;font-size:11px">⚠️ 当前≠众数</span>';
+
+    // 参数分布柱状图（HTML/CSS 实现，避免 Chart.js 多次创建）
+    const distBars = info.grid_values.map(v => {
+      // Python 端 key 可能是 "3" 或 "40.0"，JS 兼容多种形式
+      const vNum = Number(v);
+      const count = info.distribution[String(v)]
+                 ?? info.distribution[String(vNum)]
+                 ?? info.distribution[Object.keys(info.distribution).find(k => Number(k) === vNum) || '']
+                 ?? 0;
+      const pct = info.mode_count > 0 ? (count / info.mode_count) * 100 : 0;
+      const isMode = v === info.mode || Number(v) === Number(info.mode);
+      const color = isMode ? sColor : '#475569';
+      // 显示值（40.0 → 40，3 → 3）
+      const displayV = (vNum === Math.floor(vNum)) ? vNum.toString() : String(v);
+      return `
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;margin:3px 0">
+          <span style="width:36px;color:#94a3b8">${displayV}${isCurrentMode ? '<span style="font-size:9px">👈</span>' : ''}</span>
+          <div style="flex:1;background:#1e293b;border-radius:3px;height:14px;overflow:hidden">
+            <div style="width:${pct}%;background:${color};height:100%;transition:width 0.3s"></div>
+          </div>
+          <span style="width:24px;text-align:right;color:#94a3b8">${count}</span>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="risk-card" style="text-align:left;border-left:4px solid ${sColor}">
+        <div class="risk-title" style="font-size:13px">
+          ${info.param_name}
+          <span style="font-size:11px;color:${sColor};float:right">${info.interpretation.split('（')[0]}</span>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text-muted)">稳定性评分</div>
+        <div style="font-size:24px;font-weight:bold;color:${sColor}">${score.toFixed(2)}</div>
+        <div style="margin-top:6px;font-size:11px;color:var(--text-muted)">
+          当前=<b style="color:#94a3b8">${info.current_value}</b> | 众数=<b style="color:${sColor}">${info.mode}</b> ${modeMatch}
+        </div>
+        <div style="margin-top:8px;font-size:10px;color:var(--text-muted)">13 窗口参数分布：</div>
+        ${distBars}
+        <div style="margin-top:6px;font-size:10px;color:var(--text-muted)">
+          std=${info.std.toFixed(2)} | 中位数=${info.median}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ==================== P9-D v1.0: A/B 对照（grid_mode vs hardcode）====================
+async function loadAbComparison() {
+  try {
+    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/ab_comparison?days=60`);
+    const data = await res.json();
+    if (data.code !== 0 || !data.data || !data.data.date) {
+      throw new Error(data.message || 'API 返回错误或无 A/B 数据');
+    }
+    renderAbComparisonKpi(data.data);
+    renderAbComparisonCards(data.data);
+    renderAbDiffTrendChart(data.data.history);
+    const meta = document.getElementById('ab-comparison-meta');
+    if (meta) {
+      meta.textContent = `${data.data.date} | ${data.data.totals.strategies_count || 0} 策略 | 最近 ${data.data.history.length} 天`;
+    }
+  } catch (e) {
+    console.error('ab_comparison API 失败:', e);
+    const meta = document.getElementById('ab-comparison-meta');
+    if (meta) meta.textContent = 'API 失败';
+    const kpiEl = document.getElementById('ab-comparison-kpi');
+    if (kpiEl) kpiEl.innerHTML = '<div class="risk-card" style="text-align:center;color:var(--text-muted)">尚无 A/B 数据（等 P7 daily run 跑出第一份对照）</div>';
+  }
+}
+
+function renderAbComparisonKpi(payload) {
+  const el = document.getElementById('ab-comparison-kpi');
+  if (!el) return;
+  const k = payload.kpi || {};
+  const t = payload.totals || {};
+  el.innerHTML = `
+    <div class="risk-card" style="text-align:left;border-left:4px solid #10b981">
+      <div class="risk-title" style="font-size:12px">Grid Mode Wins</div>
+      <div style="font-size:28px;font-weight:bold;color:#10b981">${k.grid_wins || 0}</div>
+      <div style="font-size:10px;color:var(--text-muted)">grid_mode 收益更高的策略数</div>
+    </div>
+    <div class="risk-card" style="text-align:left;border-left:4px solid #f59e0b">
+      <div class="risk-title" style="font-size:12px">Baseline Wins</div>
+      <div style="font-size:28px;font-weight:bold;color:#f59e0b">${k.baseline_wins || 0}</div>
+      <div style="font-size:10px;color:var(--text-muted)">hardcode 收益更高的策略数</div>
+    </div>
+    <div class="risk-card" style="text-align:left;border-left:4px solid #94a3b8">
+      <div class="risk-title" style="font-size:12px">Ties</div>
+      <div style="font-size:28px;font-weight:bold;color:#94a3b8">${k.ties || 0}</div>
+      <div style="font-size:10px;color:var(--text-muted)">两者持平的策略数（参数相同）</div>
+    </div>
+    <div class="risk-card" style="text-align:left;border-left:4px solid ${(t.diff_sum || 0) >= 0 ? '#10b981' : '#dc2626'}">
+      <div class="risk-title" style="font-size:12px">Total diff_sum</div>
+      <div style="font-size:28px;font-weight:bold;color:${(t.diff_sum || 0) >= 0 ? '#10b981' : '#dc2626'}">${(t.diff_sum >= 0 ? '+' : '') + (t.diff_sum || 0).toLocaleString()}</div>
+      <div style="font-size:10px;color:var(--text-muted)">5 策略 grid_mode - baseline 累计差（元）</div>
+    </div>
+  `;
+}
+
+function renderAbComparisonCards(payload) {
+  const el = document.getElementById('ab-comparison-cards');
+  if (!el) return;
+
+  const sidNames = {
+    'r32': '三驾马车',
+    'zhuidian': '追电策略',
+    'sanhe': '三合策略',
+    'lightning': '闪电策略',
+    'qixing': '七星策略',  // P9 E (2026-07-04)
+  };
+  const sidColors = {
+    'r32': '#10b981',
+    'zhuidian': '#f59e0b',
+    'sanhe': '#a855f7',
+    'lightning': '#facc15',
+    'qixing': '#3b82f6',  // P9 E
+  };
+
+  // 按 diff_cumulative 绝对值排序（震动最大的在前）
+  const sids = Object.keys(payload.strategies || {}).sort((a, b) => {
+    return Math.abs(payload.strategies[b].diff.diff_cumulative) - Math.abs(payload.strategies[a].diff.diff_cumulative);
+  });
+
+  el.innerHTML = sids.map(sid => {
+    const info = payload.strategies[sid];
+    const gm = info.grid_mode;
+    const bl = info.baseline;
+    const diff = info.diff;
+    const winColor = diff.winner === 'grid_mode' ? '#10b981' : (diff.winner === 'baseline' ? '#f59e0b' : '#94a3b8');
+    const winLabel = diff.winner === 'grid_mode' ? '🟢 grid_mode 赢' : (diff.winner === 'baseline' ? '🟠 baseline 赢' : '⚪ 平');
+    const diffSign = diff.diff_cumulative >= 0 ? '+' : '';
+    const paramStr = JSON.stringify(gm.params_used || {});
+
+    return `
+      <div class="risk-card" style="text-align:left;border-left:4px solid ${sidColors[sid]}">
+        <div class="risk-title" style="font-size:13px">
+          ${sidNames[sid] || sid}
+          <span style="font-size:11px;color:${winColor};float:right">${winLabel}</span>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text-muted)">Grid Mode（应用 grid）</div>
+        <div style="font-size:14px;font-weight:bold;color:#10b981">
+          ¥${gm.cumulative.toLocaleString()} (${gm.return_pct.toFixed(2)}%)
+        </div>
+        <div style="font-size:10px;color:var(--text-muted)">params: ${paramStr}</div>
+        <div style="margin-top:6px;font-size:11px;color:var(--text-muted)">Baseline（原 hardcode）</div>
+        <div style="font-size:14px;font-weight:bold;color:#94a3b8">
+          ¥${bl.cumulative.toLocaleString()} (${bl.return_pct.toFixed(2)}%)
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text-muted)">Diff（grid - hardcode）</div>
+        <div style="font-size:16px;font-weight:bold;color:${diff.diff_cumulative >= 0 ? '#10b981' : '#dc2626'}">
+          ${diffSign}¥${diff.diff_cumulative.toLocaleString()} (${diffSign}${diff.diff_return_pct.toFixed(2)}%)
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+let _abChart = null;
+function renderAbDiffTrendChart(history) {
+  const ctx = document.getElementById('abDiffTrendChart');
+  if (!ctx) return;
+  if (_abChart) _abChart.destroy();
+
+  if (!history || history.length === 0) {
+    // 占位
+    _abChart = new Chart(ctx, {
+      type: 'bar',
+      data: { labels: ['尚无数据'], datasets: [{ label: 'diff_sum', data: [0], backgroundColor: '#475569' }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } },
+    });
+    return;
+  }
+
+  const labels = history.map(h => h.date);
+  const data = history.map(h => h.diff_sum);
+  const colors = data.map(v => v >= 0 ? 'rgba(16,185,129,0.7)' : 'rgba(220,38,38,0.7)');
+
+  _abChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'diff_sum（grid - baseline）',
+        data,
+        backgroundColor: colors,
+        borderColor: colors.map(c => c.replace('0.7', '1')),
+        borderWidth: 1,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              const v = ctx.parsed.y;
+              return `diff_sum: ${v >= 0 ? '+' : ''}¥${v.toLocaleString()}`;
+            },
+          },
+        },
+      },
+      scales: {
+        y: {
+          ticks: { callback: v => (v >= 0 ? '+' : '') + '¥' + v.toLocaleString() },
+          grid: { color: '#1e293b' },
+        },
+        x: { grid: { color: '#1e293b' } },
+      },
+    },
+  });
+}
+
+// ========== 键盘快捷键 ==========
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeDrawer(); }
+  if (e.key === 'r' || e.key === 'R') refreshData();
+  if (e.key === '1') openStrategyDetail('qixing');
+  if (e.key === '2') openStrategyDetail('r32');
+  if (e.key === '3') openStrategyDetail('zhuidian');
+  if (e.key === '4') openStrategyDetail('sanhe');
+});
+
 // ========== 初始化 ==========
 window.addEventListener('DOMContentLoaded', () => {
   initChart();
   initData();
+  // P9-D: 加载 A/B 对照（grid_mode vs hardcode）
+  if (typeof loadAbComparison === 'function') {
+    loadAbComparison();
+  }
 });
 </script>
 
