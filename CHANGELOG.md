@@ -10,6 +10,7 @@
 ### Added
 - docs: 引入版本管理规则 v1.0（`VERSION_MANAGEMENT.md` 362 行，11 节）+ CHANGELOG 初始化（`a73540f`）
 - docs(changelog): 追加已发布版本索引表（5 tag + 备份锚点）（`315f107`）
+- docs(changelog): 补全 4 个 commit 回溯（8a274fc / 92f635e / f67b38c / 8c2fd0e）+ Unreleased 段写入规则 commit（`763b5b0`）
 
 ### Changed
 - 待写
