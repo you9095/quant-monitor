@@ -1668,7 +1668,7 @@ function renderLogs(strategies) {
   if (!container) return;
   if (!strategies || strategies.length === 0) { container.innerHTML = ''; return; }
   // 4 策略各自的最近事件 (与 metrics 联动)
-  const labelMap = { qixing: '七星', r32: 'R32', zhuidian: '追电', sanhe: '三合' };
+  const labelMap = { qixing: '七星', r32: '三驾马车', zhuidian: '追电', sanhe: '三合', lightning: '闪电' };
   const logs = [];
   strategies.forEach(s => {
     const sid = s.id || s.strategy_id;
