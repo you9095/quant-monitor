@@ -62,3 +62,19 @@
 - **规则文档**：`VERSION_MANAGEMENT.md`
 - **生效起点**：2026-07-30 commit `1d4d862` 之后
 - **维护者**：主 agent（每次 commit 前后自动更新）
+
+## 已发布版本索引
+
+| Tag | commit | 日期 | 标题 |
+|---|---|---|---|
+| `v0.1.0` | `b4224d7` | 2026-06-08 | 三策略监控面板 V2.0（项目起点） |
+| `v1.0.0` | `ed21adf` | 2026-06-16 | 五策略主监控面板上线（主版本跃升：3→5 策略） |
+| `v1.1.0` | `db28b48` | 2026-07-29 | 信号日期落后 5 天自动跳过策略卡 |
+| `v1.2.0` | `ec5d944` | 2026-07-29 | 删除 PL趋势/WFA/参数稳定性/A-B 4 区段 |
+| `v1.2.1` | `ca3fe8f` | 2026-07-29 | renderStrategyCards 循环边界 + 数据源改用 filtered（M02 P0 漏洞修复） |
+
+**未打 tag 的关键 commit**：
+- `1d4d862`（2026-07-30）— 4 项修复（labelMap / signal sanity / audit_daily.sh）— 已被 `a73540f` 规则 commit 覆盖在 master 上，仍是当前部署版本
+- `6647cf2`（2026-07-29，已 revert）— agent 自主删除 4 区段，**反面案例，禁止打 tag**
+
+**备份锚点**：`backup-before-historical-tagging-20260730` 指向 `a73540f`（规则 commit）
