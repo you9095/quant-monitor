@@ -126,12 +126,12 @@ const DataLayer = {
           total_return_5y: 256.18,
           max_dd_5y: -21.15,
           trades_5y: 132,
-          annualized_return_2y: 103.18,
+          annualized_return_2y: 110.53,
           annualized_return_5y: 32.65,
           sharpe_2y: 2.35,
           sharpe_5y: 1.18,
           latest_round: 'R17_score_max_38',
-          latest_desc: '2Y年化103.18% 5Y年化32.65%'
+          latest_desc: '2Y年化110.53% 5Y年化32.65%'
         }
       },
       {
@@ -198,6 +198,9 @@ const DataLayer = {
     portfolio: {
       total_value: 50000,
       total_return: null,
+      total_pnl: 0,
+      total_return_pct: 0,
+      initial_capital: 50000,
       last_update: new Date().toISOString()
     },
     // 历史收益曲线数据

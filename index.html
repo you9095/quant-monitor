@@ -1612,7 +1612,7 @@ async function updatePortfolio(portfolio) {
       const d = result.data;
       const initial = d.initial_capital || 50000;
       const total = d.total_value || initial;
-      const pnl = d.total_pnl || 0;
+      const pnl = d.total_pnl !== undefined ? d.total_pnl : (d.total_value - (d.initial_capital || 50000));
       const ret = d.total_return_pct || 0;
 
       const psInitial = document.getElementById('ps-initial');
