@@ -196,11 +196,8 @@ const DataLayer = {
       }
     ],
     portfolio: {
-      total_value: 53614.6,
+      total_value: 50000,
       total_return: null,
-      total_pnl: 3614.6,
-      total_return_pct: 7.23,
-      initial_capital: 50000,
       last_update: new Date().toISOString()
     },
     // 历史收益曲线数据
