@@ -1639,11 +1639,11 @@ async function updatePortfolio(portfolio) {
     console.warn('portfolio_summary API 失败，回退到传入数据:', err);
   }
 
-  // 回退到传入数据
+  // 回退到传入数据 (P0 修复 2026-08-01: 静态站 fetch 必失败 → pnl 优先读 portfolio.total_pnl,兜底用 total - initial)
   const initial = 50000;
   const total = portfolio.total_value || initial;
-  const ret = portfolio.total_return || 0;
-  const pnl = total - initial;
+  const ret = portfolio.total_return_pct || 0;
+  const pnl = portfolio.total_pnl !== undefined && portfolio.total_pnl !== null ? portfolio.total_pnl : (total - initial);
   const psInitial = document.getElementById('ps-initial');
   const psPnl = document.getElementById('ps-pnl');
   const psReturn = document.getElementById('ps-return');
