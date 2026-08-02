@@ -195,66 +195,10 @@ const DataLayer = {
         }
       }
     ],
-    
     portfolio: {
-      total_value: 86146.0,
-      total_return: 72.29,
-      last_update: "2026-08-01T21:30:05.009761",
-      total_pnl: 36146.0,
-      total_return_pct: 72.29,
-      initial_capital: 50000,
-      per_strategy: {
-        'qixing': {
-          "strategy_id": "qixing",
-          "name": "七星策略",
-          "initial_capital": 10000,
-          "current_value": 9852.0,
-          "pnl": -148.0,
-          "return_pct": -1.48,
-          "latest_signal_date": "2026-07-31",
-          "version": "R120_breadth_0.253_holdings_2",
-        },
-        'r32': {
-          "strategy_id": "r32",
-          "name": "三驾马车",
-          "initial_capital": 10000,
-          "current_value": 12928.0,
-          "pnl": 2928.0,
-          "return_pct": 29.28,
-          "latest_signal_date": "2026-07-31",
-          "version": "R35_crowdness",
-        },
-        'zhuidian': {
-          "strategy_id": "zhuidian",
-          "name": "追电策略",
-          "initial_capital": 10000,
-          "current_value": 37031.0,
-          "pnl": 27031.0,
-          "return_pct": 270.31,
-          "latest_signal_date": "2026-07-20",
-          "version": "R17_score_max_38",
-        },
-        'sanhe': {
-          "strategy_id": "sanhe",
-          "name": "三合策略",
-          "initial_capital": 10000,
-          "current_value": 11875.0,
-          "pnl": 1875.0,
-          "return_pct": 18.75,
-          "latest_signal_date": "2026-07-31",
-          "version": "R25_vol_weight",
-        },
-        'lightning': {
-          "strategy_id": "lightning",
-          "name": "闪电策略",
-          "initial_capital": 10000,
-          "current_value": 14460.0,
-          "pnl": 4460.0,
-          "return_pct": 44.6,
-          "latest_signal_date": "2026-07-31",
-          "version": "R4_m3",
-        },
-      },
+      total_value: 50000,
+      total_return: null,
+      last_update: new Date().toISOString()
     },
     // 历史收益曲线数据
     history: {
