@@ -43,6 +43,7 @@
   --color-down: #ef4444;
   --color-warn: #f59e0b;
   --color-danger: #ef4444;
+
   /* 字体 */
   --font-mono: "SF Mono", "Consolas", "Monaco", monospace;
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
@@ -269,15 +270,6 @@ body {
 .strategy-card.r32:hover { box-shadow: var(--shadow-hover), var(--shadow-glow-r32); }
 .strategy-card.zhuidian:hover { box-shadow: var(--shadow-hover), var(--shadow-glow-zhuidian); }
 .strategy-card.sanhe:hover { box-shadow: var(--shadow-hover), 0 0 20px rgba(168,85,247,0.15); }
-
-/* ========== 回测策略卡片（降低视觉层级） ========== */
-.strategy-card.backtest { opacity: 0.85; }
-.strategy-card.backtest:hover { opacity: 1; }
-.strategy-card.backtest .pb-amount { font-size: 20px !important; }
-.strategy-card.backtest .pb-label { font-size: 10px !important; }
-.strategy-card.backtest .profit-block { padding: 8px 12px !important; }
-.strategy-card.backtest .today-action-strip { padding: 6px 10px !important; }
-.strategy-card.backtest .tas-title { font-size: 10px !important; }
 
 .card-header {
   height: 4px;
@@ -683,141 +675,6 @@ body {
 .text-up { color: var(--color-up); }
 .text-down { color: var(--color-down); }
 .text-warn { color: var(--color-warn); }
-
-/* ========== v1.1 (2026-06-26) 顶部总览条 ========== */
-.portfolio-summary {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  font-size: 12px;
-}
-.portfolio-summary .item {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  padding: 0 var(--space-sm);
-  border-right: 1px solid var(--border-subtle);
-}
-.portfolio-summary .item:last-child { border-right: none; }
-.portfolio-summary .item .label {
-  color: var(--text-muted);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.portfolio-summary .item .val {
-  font-family: var(--font-mono);
-  font-weight: 600;
-  font-size: 13px;
-}
-.portfolio-summary .item.total .val {
-  font-size: 16px;
-  color: var(--text-primary);
-}
-.portfolio-summary .item.pnl.up .val { color: var(--color-up); }
-.portfolio-summary .item.pnl.down .val { color: var(--color-down); }
-
-/* ========== v1.1 (2026-06-26) 卡片顶部：今日交易条 ========== */
-.today-action-strip {
-  background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
-  border: 1px solid var(--border-subtle);
-  border-left-width: 3px;
-  border-radius: var(--radius-md);
-  padding: var(--space-md);
-  margin-bottom: var(--space-md);
-}
-.today-action-strip.qixing { border-left-color: var(--qixing-start); }
-.today-action-strip.r32 { border-left-color: var(--r32-start); }
-.today-action-strip.zhuidian { border-left-color: var(--zhuidian-start); }
-.today-action-strip.sanhe { border-left-color: var(--sanhe-start); }
-.today-action-strip.lightning { border-left-color: var(--lightning-start); }
-
-.today-action-strip .tas-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-.today-action-strip .tas-title {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: var(--text-muted);
-}
-.today-action-strip .tas-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: 700;
-  font-family: var(--font-mono);
-}
-.today-action-strip .tas-action.BUY { background: rgba(16,185,129,0.18); color: var(--color-up); }
-.today-action-strip .tas-action.SELL { background: rgba(239,68,68,0.18); color: var(--color-down); }
-.today-action-strip .tas-action.REBALANCE { background: rgba(6,182,212,0.18); color: var(--r32-end); }
-.today-action-strip .tas-action.DEFENSIVE { background: rgba(245,158,11,0.18); color: var(--color-warn); }
-.today-action-strip .tas-action.HOLD { background: rgba(160,160,184,0.18); color: var(--text-secondary); }
-.today-action-strip .tas-flow {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 2px 0;
-  letter-spacing: 0.3px;
-}
-.today-action-strip .tas-target {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-bottom: 4px;
-}
-.today-action-strip .tas-detail {
-  font-size: 11px;
-  color: var(--text-muted);
-  line-height: 1.4;
-}
-
-/* ========== v1.1 (2026-06-26) 卡片中央：总盈亏大字 ========== */
-.profit-block {
-  text-align: center;
-  padding: var(--space-md) 0;
-  margin: var(--space-md) 0;
-  border-top: 1px dashed var(--border-subtle);
-  border-bottom: 1px dashed var(--border-subtle);
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
-}
-.profit-block .pb-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--text-muted);
-  margin-bottom: 4px;
-}
-.profit-block .pb-amount {
-  font-family: var(--font-mono);
-  font-size: 32px;
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.5px;
-}
-.profit-block .pb-amount.up { color: var(--color-up); text-shadow: 0 0 16px rgba(16,185,129,0.3); }
-.profit-block .pb-amount.down { color: var(--color-down); text-shadow: 0 0 16px rgba(239,68,68,0.3); }
-.profit-block .pb-amount.neutral { color: var(--text-secondary); }
-.profit-block .pb-meta {
-  display: flex;
-  justify-content: space-around;
-  margin-top: var(--space-sm);
-  font-size: 12px;
-  color: var(--text-secondary);
-  font-family: var(--font-mono);
-}
-.profit-block .pb-meta .pb-meta-item .lbl {
-  color: var(--text-muted);
-  font-size: 10px;
-  margin-right: 4px;
-}
 </style>
 </head>
 <body>
@@ -831,12 +688,7 @@ body {
   <div class="topbar-meta">
     <span id="current-date">2026-06-08</span>
     <span id="current-time">15:00:00</span>
-    <div class="portfolio-summary" id="portfolio-summary">
-      <div class="item"><span class="label">初始</span><span class="val text-mono" id="ps-initial">¥50,000.00</span></div>
-      <div class="item pnl"><span class="label">总盈亏</span><span class="val" id="ps-pnl">--</span></div>
-      <div class="item pnl"><span class="label">收益率</span><span class="val" id="ps-return">--</span></div>
-      <div class="item total"><span class="label">总资金</span><span class="val text-mono" id="ps-total">¥50,000.00</span></div>
-    </div>
+    <span>总资金: <strong class="text-mono" id="total-value">¥400,000.00</strong></span>
     <button class="refresh-btn" onclick="refreshData()" title="快捷键: R">⟳ 刷新</button>
   </div>
 </header>
@@ -1024,35 +876,7 @@ async function initData() {
 }
 
 // 渲染全部
-async function renderAll(data) {
-  // v1.1 (2026-06-26): 预取实盘模拟总览 + 今日动作，让卡片可以读到
-  try {
-    const [psRes, taRes] = await Promise.all([
-      fetch(`${DataLayer.config.apiBase}/dashboard/portfolio_summary`).then(r => r.json()).catch(() => null),
-      fetch(`${DataLayer.config.apiBase}/dashboard/today_actions_all`).then(r => r.json()).catch(() => null),
-    ]);
-    if (psRes && psRes.code === 0) {
-      window.__portfolioPerStrategy = psRes.data.per_strategy || {};
-    }
-    if (taRes && taRes.code === 0) {
-      window.__todayActions = taRes.data.strategies || {};
-      if (data.strategies) {
-        data.strategies.forEach(s => {
-          const sid = s.id || s.strategy_id;
-          const ta = (window.__todayActions || {})[sid];
-          if (ta) {
-            s.today_action = ta.action || s.today_action;
-            s.target = ta.target || s.target;
-            if (ta.signal_date && s.metrics) {
-              s.metrics.signal_date = ta.signal_date;
-            }
-          }
-        });
-      }
-    }
-  } catch (err) {
-    console.warn('预取数据失败:', err);
-  }
+function renderAll(data) {
   renderStrategyCards(data.strategies);
   renderActionItems(data.strategies);
   renderTradeDetails(data.strategies);
@@ -1120,39 +944,23 @@ function calcGridRows(count) {
   return baseRows;
 }
 
-// 信号日期落后超过 MAX_STALE_DAYS 的策略视为"未运行"，跳过渲染
-const MAX_STALE_DAYS = 5;
-function isStrategyActive(s) {
-  const sid = s.id || s.strategy_id;
-  const sigDate = s.metrics?.signal_date || (window.__todayActions && window.__todayActions[sid]?.signal_date) || '';
-  if (!sigDate) return false; // 无信号日期 = 无数据 = 不在运行
-  const now = new Date();
-  const sig = new Date(sigDate + 'T00:00:00');
-  const diffDays = Math.floor((now - sig) / (1000 * 60 * 60 * 24));
-  return diffDays <= MAX_STALE_DAYS;
-}
-function activeStrategies(strategies) {
-  return (strategies || []).filter(isStrategyActive);
-}
-
 // 动态生成策略卡片栅格
 function renderStrategyCards(strategies) {
   const container = document.getElementById('strategy-cards');
   if (!container) return;
-  const filtered = strategies ? activeStrategies(strategies) : [];
-  if (filtered.length === 0) {
-    container.innerHTML = '<div class="col-12" style="text-align:center;color:var(--text-muted);padding:48px">暂无正在运行的策略数据</div>';
+  if (!strategies || strategies.length === 0) {
+    container.innerHTML = '<div class="col-12" style="text-align:center;color:var(--text-muted);padding:48px">暂无策略数据</div>';
     return;
   }
 
-  const rows = calcGridRows(filtered.length);
+  const rows = calcGridRows(strategies.length);
   let html = '';
   let idx = 0;
   rows.forEach((rowSize, rowIdx) => {
     // 复用 row flex 布局
     html += '<div class="row strategy-row" data-row="' + (rowIdx + 1) + '">';
-    for (let i = 0; i < rowSize && idx < filtered.length; i++, idx++) {
-      const s = filtered[idx];
+    for (let i = 0; i < rowSize && idx < strategies.length; i++, idx++) {
+      const s = strategies[idx];
       const sid = s.id || s.strategy_id;
       const sname = s.name || s.strategy_name || sid;
       // 100% 自适应: 每张 col 宽度 = 100/rowSize
@@ -1166,8 +974,6 @@ function renderStrategyCards(strategies) {
 }
 
 function buildCardHtml(sid, sname, s) {
-  // 数据来源标记：全部回测（非实盘）
-  const isBacktest = true; // 策略卡片均为回测数据
   // 从数据中提取字段
   const holdings = s.holdings || [];
   const totalReturn = s.total_return;
@@ -1178,41 +984,6 @@ function buildCardHtml(sid, sname, s) {
   const todayAction = s.today_action || s.action || 'HOLD';
   // R 标签
   const latestRound = s.metrics?.latest_round || s.metrics?.latest_desc || '';
-
-  // ===== v1.1 (2026-06-26) 卡片顶部：今日交易条 =====
-  const actionLabel = (todayAction || 'HOLD').toUpperCase();
-  const targetText = s.target ? `→ ${s.target}` : '';
-  const todayDetail = (s.metrics && s.metrics.latest_desc) || (holdings.length > 0 ? `${holdings.length}只持仓` : '空仓观望');
-  // 信号日期
-  const sigDate = s.metrics?.signal_date || (window.__todayActions && window.__todayActions[sid]?.signal_date) || '';
-  const todayActionStrip = `
-    <div class="today-action-strip ${sid}">
-      <div class="tas-header">
-        <span class="tas-title">⚡ 今日交易流程 ${sigDate ? `· ${sigDate}` : ''}</span>
-        <span class="tas-action ${actionLabel}">${actionLabel}</span>
-      </div>
-      <div class="tas-flow">${(actionLabel === 'BUY' ? '买入 ' : actionLabel === 'SELL' ? '卖出 ' : actionLabel === 'REBALANCE' ? '调仓至 ' : actionLabel === 'DEFENSIVE' ? '防御 ' : '观望 ') + (s.target || '—')}</div>
-      <div class="tas-detail">${todayDetail}</div>
-    </div>
-  `;
-
-  // ===== v1.1 (2026-06-26) 总盈亏大字区块 =====
-  const initCap = s.initial_capital || (window.__portfolioPerStrategy && window.__portfolioPerStrategy[sid]?.initial_capital) || 10000;
-  const curVal = (window.__portfolioPerStrategy && window.__portfolioPerStrategy[sid]?.current_value) || (initCap * (1 + (totalReturn || 0) / 100));
-  const pnlAmount = curVal - initCap;
-  const pnlClass = pnlAmount > 0 ? 'up' : pnlAmount < 0 ? 'down' : 'neutral';
-  const pnlStr = (pnlAmount >= 0 ? '+¥' : '-¥') + Math.abs(pnlAmount).toLocaleString('zh-CN', {minimumFractionDigits: 2});
-  const returnStr = (totalReturn !== undefined && totalReturn !== null) ? ((totalReturn >= 0 ? '+' : '') + totalReturn.toFixed(2) + '%') : '--';
-  const profitBlock = `
-    <div class="profit-block">
-      <div class="pb-label">总盈亏（实盘模拟 ${initCap >= 1000 ? (initCap/1000).toFixed(0) + 'k本金' : initCap + '本金'} 至今）</div>
-      <div class="pb-amount ${pnlClass}" data-metric="card-pnl-amount">${pnlStr}</div>
-      <div class="pb-meta">
-        <span class="pb-meta-item"><span class="lbl">收益率</span>${returnStr}</span>
-        <span class="pb-meta-item"><span class="lbl">当前市值</span>¥${curVal.toLocaleString('zh-CN', {minimumFractionDigits: 2})}</span>
-      </div>
-    </div>
-  `;
 
   let holdingsHtml = holdings.map(h => {
     const qty = h.qty ? h.qty.toLocaleString() : (h.weight ? h.weight + '%' : '--');
@@ -1233,7 +1004,7 @@ function buildCardHtml(sid, sname, s) {
     holdingsHtml = '<div class="holding-row" style="justify-content:center;color:var(--text-muted)">无持仓</div>';
   }
 
-  return `<div class="strategy-card ${sid} backtest" data-strategy="${sid}" data-source="backtest" onclick="openStrategyDetail('${sid}')">
+  return `<div class="strategy-card ${sid}" data-strategy="${sid}" onclick="openStrategyDetail('${sid}')">
     <div class="card-header ${sid}"></div>
     <div class="card-body">
       <div class="card-title-row">
@@ -1245,18 +1016,16 @@ function buildCardHtml(sid, sname, s) {
         <span class="tlt-tag tlt-period" title="回测数据期">📅 ${s.metrics?.data_period || '未指定'}</span>
         <span class="tlt-tag tlt-caliber" title="指标计算口径">⚙️ ${s.metrics?.caliber || '未指定'}</span>
       </div>
-      ${todayActionStrip}
-      ${profitBlock}
       <div class="metric-row">
         <div class="metric">
           <div class="metric-label">2Y 年化 (主)</div>
           <div class="metric-value ${totalReturn !== undefined && totalReturn !== null ? (totalReturn >= 0 ? 'up' : 'down') : 'neutral'}" data-metric="annualized-return" data-period="2y">${s.metrics?.annualized_return_2y !== undefined ? (s.metrics.annualized_return_2y >= 0 ? '+' : '') + s.metrics.annualized_return_2y.toFixed(2) + '%' : (totalReturn !== undefined && totalReturn !== null ? (totalReturn >= 0 ? '+' : '') + totalReturn.toFixed(2) + '%' : '--')}</div>
-          <div class="metric-sub">回撤 ${s.metrics?.max_dd_2y !== undefined ? s.metrics.max_dd_2y.toFixed(2) + '%' : '--'}</div>
+          <div class="metric-profit ${s.metrics?.total_return_amount >= 0 ? 'up' : 'down'}" style="font-size:16px;font-weight:600;margin-top:4px" data-metric="profit-amount">¥${(s.metrics?.total_return_amount || 0).toLocaleString('zh-CN', {style:'currency', currency:'CNY', minimumFractionDigits:2}).replace('¥', '')}</div>
         </div>
         <div class="metric">
-          <div class="metric-label">仓位 / 现金</div>
-          <div class="metric-value neutral" style="font-size:13px;color:var(--text-muted)">${position !== undefined ? position.toFixed(1) + '%' : '--'}</div>
-          <div class="metric-sub">¥${cash !== undefined ? cash.toFixed(2) : '--'}</div>
+          <div class="metric-label">仓位</div>
+          <div class="metric-value neutral" style="font-size:13px;color:var(--text-muted)" data-metric="position">${position !== undefined ? position.toFixed(1) + '%' : '--'}</div>
+          <div class="metric-sub" data-metric="dd-2y" style="font-size:10px;color:var(--text-muted)">2Y回撤 ${s.metrics?.max_dd_2y !== undefined ? s.metrics.max_dd_2y.toFixed(2) + '%' : '--'}</div>
         </div>
       </div>
       <div class="holdings-list">
@@ -1266,8 +1035,8 @@ function buildCardHtml(sid, sname, s) {
         ${holdingsHtml}
       </div>
       <div class="card-footer">
-        <span class="card-footer-cash">交易 ${s.metrics?.trades_count || 0} 笔</span>
-        <span>成本 ¥${(s.metrics?.trades_count !== undefined ? (s.metrics.trades_count * 6).toFixed(2) : '0.00')}</span>
+        <span class="card-footer-cash">现金 ¥${cash !== undefined ? cash.toFixed(2) : '--'}</span>
+        <span>交易成本 ¥${(s.metrics?.trades_count !== undefined ? (s.metrics.trades_count * 6).toFixed(2) : '0.00')}</span>
       </div>
     </div>
   </div>`;
@@ -1328,93 +1097,35 @@ function renderTradeDetails(strategies) {
 }
 
 // 渲染收益对比图 (3+1 四策略)
-// v1.1 (2026-06-26): 改为实盘模拟累计曲线，从实盘模拟首日 (2026-05-25) 到今天
-async function renderNavCurves(strategies) {
+function renderNavCurves(strategies) {
   const ctx = document.getElementById('returnChart');
   if (!ctx) return;
   const colors = {
-    qixing:   { border: '#3b82f6', bg: 'rgba(59,130,246,0.08)' },
-    r32:      { border: '#10b981', bg: 'rgba(16,185,129,0.08)' },
+    qixing: { border: '#3b82f6', bg: 'rgba(59,130,246,0.08)' },
+    r32: { border: '#10b981', bg: 'rgba(16,185,129,0.08)' },
     zhuidian: { border: '#f59e0b', bg: 'rgba(245,158,11,0.08)' },
-    sanhe:    { border: '#a855f7', bg: 'rgba(168,85,247,0.08)' },
-    lightning:{ border: '#facc15', bg: 'rgba(250,204,21,0.08)' }
+    sanhe: { border: '#a855f7', bg: 'rgba(168,85,247,0.08)' }
   };
-
-  // 优先调用 live_curves API；失败时回退到 mockData.history['2y']
-  let liveData = null;
-  try {
-    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/live_curves`);
-    const result = await res.json();
-    if (result.code === 0) liveData = result.data;
-  } catch (err) {
-    console.warn('live_curves API 失败，使用 mockData 回退:', err);
-  }
-
   if (currentChart) { currentChart.destroy(); }
-
-  let labels = [];
-  let datasets = [];
-
-  if (liveData && liveData.curves) {
-    // 实盘模拟数据：使用 dates 作为 X 轴，returns 作为 Y 轴
-    labels = liveData.curves[Object.keys(liveData.curves)[0]].dates.map(d => d.substring(5)); // MM-DD
-    datasets = (liveData.strategy_ids || Object.keys(liveData.curves)).map(sid => {
-      const c = liveData.curves[sid];
-      const cs = colors[sid] || { border: '#888', bg: 'rgba(136,136,136,0.08)' };
-      // 找到该 sid 在 strategies 里的名字
-      const s = (strategies || []).find(x => (x.id || x.strategy_id) === sid);
-      const sname = s?.name || s?.strategy_name || sid;
-      return {
-        label: sname,
-        data: c.returns,
-        borderColor: cs.border,
-        backgroundColor: cs.bg,
-        fill: false,
-        tension: 0.3,
-        pointRadius: 1,
-        borderWidth: 2,
-        _initial_capital: s?.initial_capital || 10000,
-      };
-    });
-    // 缓存供标题使用
-    window.__liveCurveMeta = { start: liveData.start_date, end: liveData.end_date, days: liveData.days };
-  } else {
-    // 回退：mockData history 2y
-    const hist = (DataLayer.mockData && DataLayer.mockData.history && DataLayer.mockData.history['2y']) || { labels: [], qixing: [], r32: [], sanhe: [], zhuidian: [], lightning: [] };
-    labels = (hist.labels || []).map(l => l.substring(5));
-    const stratMap = { qixing: hist.qixing, r32: hist.r32, zhuidian: hist.zhuidian, sanhe: hist.sanhe, lightning: hist.lightning };
-    datasets = (strategies || []).map(s => {
-      const sid = s.id || s.strategy_id;
-      const sname = s.name || s.strategy_name || sid;
-      const c = colors[sid] || { border: '#888', bg: 'rgba(136,136,136,0.08)' };
-      return {
-        label: sname + ' (回测2Y)',
-        data: stratMap[sid] || [],
-        borderColor: c.border,
-        backgroundColor: c.bg,
-        fill: false,
-        tension: 0.3,
-        pointRadius: 1,
-        borderWidth: 2,
-        borderDash: [4, 4],
-      };
-    });
-    window.__liveCurveMeta = { start: '2024-06', end: '2026-06', days: 25, mode: 'mock' };
-  }
-
-  // 更新 section header 的时间范围描述
-  const meta = window.__liveCurveMeta || {};
-  const sectionTitle = document.querySelector('.chart-section .section-title');
-  if (sectionTitle) {
-    sectionTitle.textContent = `收益曲线 · 实盘模拟 ${meta.start || '?'} → ${meta.end || '?'}（${meta.days || '?'}天）`;
-  }
-  const tabsEl = document.querySelector('.chart-section .section-tabs');
-  if (tabsEl && tabsEl.children.length > 0) {
-    tabsEl.children[0].textContent = '实盘模拟';
-    tabsEl.children[0].classList.add('active');
-    if (tabsEl.children[1]) tabsEl.children[1].textContent = '回测对比';
-  }
-
+  let labels = ['09:30', '10:00', '10:30', '11:00', '11:30', '13:00', '13:30', '14:00', '14:30', '15:00'];
+  let datasets = (strategies || []).map((s, i) => {
+    const sid = s.id || s.strategy_id;
+    const sname = s.name || s.strategy_name || sid;
+    // 模拟日内收益
+    const base = s.total_return !== undefined ? s.total_return : 0;
+    const arr = labels.map((_, k) => +(base - (labels.length - 1 - k) * 0.3 + (Math.random() - 0.5) * 0.5).toFixed(2));
+    const c = colors[sid] || { border: '#888', bg: 'rgba(136,136,136,0.08)' };
+    return {
+      label: sname,
+      data: arr,
+      borderColor: c.border,
+      backgroundColor: c.bg,
+      fill: false,
+      tension: 0.3,
+      pointRadius: 1,
+      borderWidth: 2
+    };
+  });
   currentChart = new Chart(ctx.getContext('2d'), {
     type: 'line',
     data: { labels, datasets },
@@ -1430,18 +1141,11 @@ async function renderNavCurves(strategies) {
           bodyColor: '#a0a0b8',
           borderColor: 'rgba(255,255,255,0.1)',
           borderWidth: 1,
-          callbacks: {
-            title: items => {
-              const idx = items[0].dataIndex;
-              const ds = liveData?.curves?.[Object.keys(liveData.curves)[0]]?.dates;
-              return ds ? ds[idx] : items[0].label;
-            },
-            label: c => c.dataset.label + ': ' + (c.parsed.y >= 0 ? '+' : '') + c.parsed.y.toFixed(2) + '%'
-          }
+          callbacks: { label: c => c.dataset.label + ': ' + (c.parsed.y >= 0 ? '+' : '') + c.parsed.y.toFixed(2) + '%' }
         }
       },
       scales: {
-        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#606078', maxTicksLimit: 10, font: { size: 10 } } },
+        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#606078', maxTicksLimit: 8, font: { size: 10 } } },
         y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#606078', callback: v => v + '%', font: { size: 10 } } }
       }
     }
@@ -1455,63 +1159,16 @@ function renderMultiChart(curves, period) {
   renderNavCurves(all);
 }
 
-// 更新总资金 / 总盈亏 / 总收益率 (v1.1 - 2026-06-26)
-async function updatePortfolio(portfolio) {
-  // 调用 portfolio_summary API 获取权威数据
-  try {
-    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/portfolio_summary`);
-    const result = await res.json();
-    if (result.code === 0 && result.data) {
-      const d = result.data;
-      const initial = d.initial_capital || 50000;
-      const total = d.total_value || initial;
-      const pnl = d.total_pnl !== undefined ? d.total_pnl : (d.total_value - (d.initial_capital || 50000));
-      const ret = d.total_return_pct || 0;
-
-      const psInitial = document.getElementById('ps-initial');
-      const psPnl = document.getElementById('ps-pnl');
-      const psReturn = document.getElementById('ps-return');
-      const psTotal = document.getElementById('ps-total');
-
-      if (psInitial) psInitial.textContent = '¥' + initial.toLocaleString('zh-CN', {minimumFractionDigits: 2});
-      if (psPnl) {
-        psPnl.textContent = (pnl >= 0 ? '+¥' : '-¥') + Math.abs(pnl).toLocaleString('zh-CN', {minimumFractionDigits: 2});
-        psPnl.parentElement.className = 'item pnl ' + (pnl >= 0 ? 'up' : 'down');
-      }
-      if (psReturn) {
-        psReturn.textContent = (ret >= 0 ? '+' : '') + ret.toFixed(2) + '%';
-        psReturn.parentElement.className = 'item pnl ' + (ret >= 0 ? 'up' : 'down');
-      }
-      if (psTotal) {
-        psTotal.textContent = '¥' + total.toLocaleString('zh-CN', {minimumFractionDigits: 2});
-        psTotal.style.color = pnl >= 0 ? 'var(--color-up)' : 'var(--color-down)';
-      }
-      return;
-    }
-  } catch (err) {
-    console.warn('portfolio_summary API 失败，回退到传入数据:', err);
+// 更新总资金
+function updatePortfolio(portfolio) {
+  const el = document.getElementById('total-value');
+  if (el && portfolio.total_value) {
+    el.textContent = '¥' + portfolio.total_value.toLocaleString('zh-CN', {minimumFractionDigits: 2});
   }
-
-  // 回退到传入数据 (P0 修复 2026-08-01: 静态站 fetch 必失败 → pnl 优先读 portfolio.total_pnl,兜底用 total - initial)
-  const initial = 50000;
-  const total = portfolio.total_value || initial;
-  const ret = portfolio.total_return_pct || 0;
-  const pnl = portfolio.total_pnl !== undefined && portfolio.total_pnl !== null ? portfolio.total_pnl : (total - initial);
-  const psInitial = document.getElementById('ps-initial');
-  const psPnl = document.getElementById('ps-pnl');
-  const psReturn = document.getElementById('ps-return');
-  const psTotal = document.getElementById('ps-total');
-  if (psInitial) psInitial.textContent = '¥' + initial.toLocaleString('zh-CN', {minimumFractionDigits: 2});
-  if (psPnl) {
-    psPnl.textContent = (pnl >= 0 ? '+¥' : '-¥') + Math.abs(pnl).toLocaleString('zh-CN', {minimumFractionDigits: 2});
-    psPnl.parentElement.className = 'item pnl ' + (pnl >= 0 ? 'up' : 'down');
-  }
-  if (psReturn) {
-    psReturn.textContent = (ret >= 0 ? '+' : '') + ret.toFixed(2) + '%';
-    psReturn.parentElement.className = 'item pnl ' + (ret >= 0 ? 'up' : 'down');
-  }
-  if (psTotal) {
-    psTotal.textContent = '¥' + total.toLocaleString('zh-CN', {minimumFractionDigits: 2});
+  // 更新总收益颜色
+  const totalReturn = portfolio.total_return;
+  if (totalReturn !== undefined && totalReturn !== null) {
+    el.className = 'text-mono ' + (totalReturn >= 0 ? 'text-up' : 'text-down');
   }
 }
 
@@ -1521,7 +1178,7 @@ function renderLogs(strategies) {
   if (!container) return;
   if (!strategies || strategies.length === 0) { container.innerHTML = ''; return; }
   // 4 策略各自的最近事件 (与 metrics 联动)
-  const labelMap = { qixing: '七星', r32: '三驾马车', zhuidian: '追电', sanhe: '三合', lightning: '闪电' };
+  const labelMap = { qixing: '七星', r32: 'R32', zhuidian: '追电', sanhe: '三合' };
   const logs = [];
   strategies.forEach(s => {
     const sid = s.id || s.strategy_id;
@@ -1726,6 +1383,8 @@ function switchChart(period) {
   event.target.classList.add('active');
   loadNavCurves(period);
 }
+
+// ========== 键盘快捷键 ==========
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { closeModal(); closeDrawer(); }
   if (e.key === 'r' || e.key === 'R') refreshData();
