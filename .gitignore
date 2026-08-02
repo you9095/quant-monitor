@@ -22,3 +22,8 @@ __pycache__/
 logs/.alert_state.json
 project_memory/*.json
 
+# 2026-08-02 加: 真数据保护(按用户拍板)
+assets/data.js.bak.*
+review/*.json
+results/*.json
+
