@@ -17,3 +17,8 @@ __pycache__/
 # 个人配置
 .env
 .env.local
+
+# 2026-08-01 加: 防止 cron + 工作日志污染工作树
+logs/.alert_state.json
+project_memory/*.json
+
