@@ -2,7 +2,7 @@
   "meta": {
     "memory_schema_version": "1.0",
     "create_timestamp": 1781314760,
-    "last_update_timestamp": 1781314869,
+    "last_update_timestamp": 1783046897530,
     "project_id": "ai_quant_three_strategy_monitoring_panel",
     "remark": "AI量化三策略监控面板项目专属单文件记忆库-结构化工作日志资产，支持存量日志导入"
   },
@@ -96,6 +96,101 @@
       "create_ts": 1781314760,
       "update_ts": 1781314869,
       "status": "valid"
+    },
+    {
+      "mem_id": "mem_1782914781232",
+      "mem_type": "log工作日志",
+      "title": "工作日志 — 2026-07-01 虚假数据修复 + work_logs桥接 + 七星回填",
+      "content": "核心变更：\n1. today_pnl虚假零值修复：API→null，前端→'无数据'\n2. work_logs→signals桥接：本金1万，逐日累加，回测数据完全隔离\n3. 七星调度器修复：新增daily_pnl计算（511880真实价格）\n4. 七星13天历史回填完成\n5. 实盘数据最高视觉层级，回测降低层级\n6. 每日自动运行链路搭建（cron 35 9 * * 1-5）\n\n后加的：七星cron未配置，待补14:30定时\n\nKPI数据（截至06-30）：\n七星+2.88/三驾马车+2164.89/追电+25700.00/三合+2380.48/闪电+3688.20",
+      "tags": [
+        "监控面板",
+        "工作日志",
+        "桥接",
+        "每日运行",
+        "本金修正"
+      ],
+      "create_ts": 1782914781232,
+      "update_ts": 1782914781232,
+      "status": "valid"
+    },
+    {
+      "mem_id": "mem_1783044371080",
+      "mem_type": "cron配置",
+      "title": "每日自动运行 cron 配置完成",
+      "content": "工作日 9:35 → daily_full_chain.sh\n  拉行情→4策略(r32/zhuidian/sanhe/lightning)→桥接面板\n\n工作日 14:30 → qixing_daily.sh\n  七星信号生成→daily_pnl计算→桥接面板\n\n两个定时器覆盖5策略每日的行情获取、信号生成、模拟交易、盈亏计算、面板同步全链路。",
+      "tags": [
+        "监控面板",
+        "cron",
+        "自动运行"
+      ],
+      "create_ts": 1783044371080,
+      "update_ts": 1783044371080,
+      "status": "valid"
+    },
+    {
+      "mem_id": "mem_1783046521622",
+      "mem_type": "log风控修复",
+      "title": "追电策略风控修复 — 止盈/止损/多仓/ETF补充",
+      "content": "[已回滚] 2026-07-03 用户要求全部回滚。详见回滚日志 mem_1783046521623",
+      "tags": [
+        "监控面板",
+        "追电策略",
+        "风控",
+        "止盈止损"
+      ],
+      "create_ts": 1783046521622,
+      "update_ts": 1783046897530,
+      "status": "invalid"
+    },
+    {
+      "mem_id": "mem_1783046897530",
+      "mem_type": "log回滚",
+      "title": "追电策略风控回滚 — 2026-07-03",
+      "content": "回滚范围：三项风控修改全部撤回。\n1. 引擎层：删除 take_profit/trailing_stop，恢复原始 stop_loss 单段判断\n2. 参数层 R50：恢复 max_hold=1, stop_loss=-10%, 删除 take_profit/trailing_stop\n3. ETF池：从21只恢复到原始11只\n\n原因：用户认为一次性改动面积过大，要求分步验证。\n后续：按顺序逐个添加：止盈→回撤止盈→多仓+ETF扩容。\n参考基线：R17_score_max_38（年化+103.18%，回撤-16.76%）",
+      "tags": [
+        "监控面板",
+        "追电策略",
+        "风控",
+        "回滚"
+      ],
+      "create_ts": 1783046897530,
+      "update_ts": 1783046897530,
+      "status": "valid"
+    },
+    {
+      "mem_id": "mem_1785322872002_agents_md_rule_p0",
+      "mem_type": "task_completion_task",
+      "title": "2026-07-29 用户硬约束沉淀 — AGENTS.md P0 + AI 团队派单协议 + 反思闭环",
+      "tags": [
+        "任务完成三件套",
+        "AGENTS.md",
+        "AI 团队派单",
+        "反思闭环",
+        "主 agent 越权反例",
+        "Hermes 客户端架构盲区",
+        "4 层沉淀优先级"
+      ],
+      "status": "valid",
+      "create_ts": 1785322872.002368,
+      "content": "2026-07-29 用户 P0 投诉: 主 agent 越权亲手跑 T1-T4 全覆盖测试。根因: AGENTS.md 自动注入机制存在但主 agent 不知道,规则挂在 skill trigger 词里命中率 30-70%,8 天失守触发用户极度反感。\n\n用户硬约束 4 层架构(按稳定性排序):\nL1 ~/.hermes/AGENTS.md - 用户硬约束/反思闭环 - 每次会话无条件注入\nL2 ~/.hermes/memories/MEMORY.md - 身份红线 - 每次会话无条件注入(2200 容量上限)\nL3 ~/.hermes/skills/*/SKILL.md - 方法论详情 - trigger 词命中时\nL4 ~/Documents/Obsidian/反面案例/ + 量化项目/logs/工作日志_*.md - 失信事件/工作记录 - 不进 system context\n\n已执行修复:\n1. ~/.hermes/AGENTS.md 创建(4509 B) - 5 节硬约束(§1 AI 团队派单协议 + §2 反思闭环 + §2.1 反向铁律 + §3 失信案例索引 + §4 4 层架构 + §5 修改权限)\n2. ~/.hermes/skills/ai-team-complex-task-dispatch/SKILL.md description trigger 词扩展(测试/验收/全覆盖/核查/多通道穷尽/数据准确性/信号日期过滤/前端渲染验证)\n3. ~/Documents/Obsidian Vault/Hermes/反面案例/2026-07-29_主agent越权亲手跑T1-T4.md 创建(4000 B)\n4. ca3fe8f commit 已 push 到 master\n\n未来铁律: 任何规则沉淀前必须先查 Hermes 客户端源码确认最稳层级(AGENTS.md/memory/skill/沉淀)。禁止不知机制就挂位置。\n\n反模式: ①嘴上答应走 AI 团队实际亲手跑 ②bit-perfect 等价偷换概念 ③凭印象写 PASS ④复述此前的 raw_output 当新 evidence。",
+      "_superseded_by": "mem_1785322872002_agents_md_rule_p0_v2",
+      "_superseded_reason": "AGENTS.md 不是自动注入路径;真正稳态注入是 memory P0 条目本身"
+    },
+    {
+      "mem_id": "mem_1785330004328_dispatch_protocol_pointer_v1",
+      "mem_type": "task_completion_task",
+      "title": "AI 团队派单协议 P0 触发词(精简指针)",
+      "tags": [
+        "P0",
+        "AI 团队派单",
+        "派单协议",
+        "触发词",
+        "指针",
+        "精简"
+      ],
+      "status": "valid",
+      "create_ts": 1785330004.328,
+      "content": "派单协议 P0 触发词: 测试/验收/全覆盖/核查/多通道穷尽/逐项核查/全部跑一遍/数据准确性/前端渲染验证/主 agent 越权 → 派 3+ subagent 并发(evidence 三件套)。全文 ~/.hermes/AGENTS.md(用户反查权威文本,不保证 AI 自动注入)。细节 ~/.hermes/skills/ai-team-complex-task-dispatch/SKILL.md(trigger 命中后加载)。"
     }
   ]
 }
