@@ -261,3 +261,28 @@ A：Docker 单端口方案适合私有部署；GitHub Pages 适合公开只读�
 ## 路线图
 
 详见 `references/quantdinger-v2-roadmap.md`（对标 QuantDinger 的 v2 演进路线）。
+
+## 数据隐私策略 (2026-08-02)
+
+本仓库严格区分公开代码与私密数据。
+
+**GitHub Pages 公开版本**（任何人能访问 https://you9095.github.io/quant-monitor/）：
+- 仅显示脱敏 mockData（portfolio.total_value: 50000，无真实盈亏数字）
+- 不显示真实持仓 / 真实盈亏 / 真实交易数据
+- 部署文件仅含代码结构 / 配置 / 静态资源
+
+**用户本机私有版本**（仅用户本机 Docker 部署可见）：
+- 真 portfolio_summary（总资金 / 总盈亏 / 5 策略分项）
+- 真信号文件 signals/
+- 真后端 Flask api/
+
+**自动化隔离机制**：
+- crontab 工作日 16:30 同步真 portfolio 到本机 assets/data.js，**不 push 到 origin**
+- 真数据源 signals/ + api/ + review/*.json + results/*.json 全部 `.gitignore` 排除
+- 真后端数据仅本机 Docker 容器可见，公开 Pages 永远无法访问
+
+**撤回历史**：
+- 2026-08-01 commit `07824b9` 曾误推真 portfolio 数据到公开 Pages（86146 / 36146 / 72.29%）
+- 2026-08-02 commit `f6d2760`「Revert "data: 路径3 本机cron同步真portfolio_summary到assets/data.js"」撤回
+- 2026-08-02 commit `83c5425` `.gitignore` 增 3 条真数据保护规则
+- 撤回后公开 Pages 恢复脱敏状态（portfolio.total_value: 50000）
