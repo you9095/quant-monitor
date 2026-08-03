@@ -71,6 +71,7 @@ const DataLayer = {
           sharpe_2y: 2.15,
           sharpe_5y: 0.57,
           calmar_2y: 4.92,
+          signal_date: '2026-08-03',
           latest_round: 'R120_breadth_0.353_holdings_1',
           latest_desc: '2Y年化32.35% 5Y年化1.92% (R11_weekly_2最优)'
         }
@@ -102,6 +103,7 @@ const DataLayer = {
           annualized_return_5y: 23.72,
           sharpe_2y: 1.15,
           sharpe_5y: 1.19,
+          signal_date: '2026-08-03',
           latest_round: 'R35_rebal_15',
           latest_desc: '半月调仓 2Y年化17.16% 5Y年化23.72%'
         }
@@ -130,6 +132,7 @@ const DataLayer = {
           annualized_return_5y: 32.65,
           sharpe_2y: 2.35,
           sharpe_5y: 1.18,
+          signal_date: '2026-07-20',
           latest_round: 'R17_score_max_38',
           latest_desc: '2Y年化110.53% 5Y年化32.65%'
         }
@@ -160,6 +163,7 @@ const DataLayer = {
           sharpe_2y: 1.44,
           sharpe_5y: 1.20,
           calmar_2y: 1.53,
+          signal_date: '2026-08-03',
           latest_round: 'R44_weekly_h4_cap2418',
           latest_desc: '历史2Y年化35.80% / 5Y年化23.18%'
         }
@@ -190,6 +194,7 @@ const DataLayer = {
           sharpe_2y: 1.20,
           sharpe_5y: null,
           calmar_2y: 1.94,
+          signal_date: '2026-08-03',
           latest_round: 'R4_m3',
           latest_desc: '2Y年化27.34%（5Y未跑）'
         }

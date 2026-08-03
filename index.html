@@ -1404,8 +1404,8 @@ function renderStrategyCards(strategies) {
   rows.forEach((rowSize, rowIdx) => {
     // 复用 row flex 布局
     html += '<div class="row strategy-row" data-row="' + (rowIdx + 1) + '">';
-    for (let i = 0; i < rowSize && idx < strategies.length; i++, idx++) {
-      const s = strategies[idx];
+    for (let i = 0; i < rowSize && idx < filtered.length; i++, idx++) {
+      const s = filtered[idx];
       const sid = s.id || s.strategy_id;
       const sname = s.name || s.strategy_name || sid;
       // 100% 自适应: 每张 col 宽度 = 100/rowSize
