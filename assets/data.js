@@ -60,7 +60,8 @@ const DataLayer = {
         position_pct: 99.9,
         cash: 50.00,
         holdings: [
-          { code: '159915', name: '创业板ETF', qty: 1350, cost: 4.02, price: 4.15, pnl: 175.50, pnl_pct: 3.23 }
+          // 2026-08-03 FIX_S3: holdings 换真实 signals positions (signals/qixing_2026-08-03.json)
+          { code: '511880', name: '银华日利ETF', qty: 1000, weight: null, cost: 100000.0, price: 100000.0, pnl: null, pnl_pct: 0.0 }
         ],
         metrics: {
           total_return_2y: 32.35,
@@ -89,13 +90,8 @@ const DataLayer = {
         position_pct: 100.0,
         cash: 0,
         holdings: [
-          // 2026-08-03 修复: 无 qty 只有 weight 的持仓, pnl 无法确算 → null (R3 禁止编造)
-          { code: '159967', name: '国企红利', weight: 16.67, cost: 0.995, price: 1.00, pnl: null, pnl_pct: 0.50 },
-          { code: '513100', name: '纳指ETF', weight: 16.67, cost: 2.205, price: 2.22, pnl: null, pnl_pct: 0.68 },
-          { code: '513520', name: '日经ETF', weight: 16.67, cost: 1.346, price: 1.35, pnl: null, pnl_pct: 0.30 },
-          { code: '159915', name: '创业板', weight: 16.67, cost: 3.977, price: 3.99, pnl: null, pnl_pct: 0.33 },
-          { code: '513500', name: '标普500', weight: 16.67, cost: 2.179, price: 2.19, pnl: null, pnl_pct: 0.50 },
-          { code: '518880', name: '黄金ETF', weight: 16.67, cost: 4.620, price: 4.66, pnl: null, pnl_pct: 0.87 }
+          // 2026-08-03 FIX_S3: holdings 换真实 signals positions (signals/r32_2026-08-03.json)
+          { code: '512040', name: '512040', qty: 9900, weight: null, cost: 1.2226, price: 1.2226, pnl: null, pnl_pct: 0.0 }
         ],
         metrics: {
           total_return_2y: 114.08,
@@ -123,9 +119,18 @@ const DataLayer = {
         position_pct: 100.0,
         cash: 0,
         holdings: [
-          { code: '513100', name: '纳指ETF', qty: 1820, cost: 2.18, price: 2.22, pnl: 72.80, pnl_pct: 1.83 },
-          { code: '513520', name: '日经ETF', qty: 980, cost: 2.05, price: 2.10, pnl: 49.00, pnl_pct: 2.44 },
-          { code: '513500', name: '标普500', qty: 1150, cost: 2.35, price: 2.38, pnl: 34.50, pnl_pct: 1.28 }
+          // 2026-08-03 FIX_S3: holdings 换真实 signals positions (signals/zhuidian_2026-07-20.json, 11 只 qty=0 如实写入)
+          { code: '513520', name: '513520', qty: 0, weight: null, cost: 0.0, price: 0.0, pnl: null, pnl_pct: null },
+          { code: '513100', name: '513100', qty: 0, weight: null, cost: 0.0, price: 0.0, pnl: null, pnl_pct: null },
+          { code: '518880', name: '518880', qty: 0, weight: null, cost: 0.0, price: 0.0, pnl: null, pnl_pct: null },
+          { code: '159985', name: '159985', qty: 0, weight: null, cost: 0.0, price: 0.0, pnl: null, pnl_pct: null },
+          { code: '513130', name: '513130', qty: 0, weight: null, cost: 0.0, price: 0.0, pnl: null, pnl_pct: null },
+          { code: '512890', name: '512890', qty: 0, weight: null, cost: 0.0, price: 0.0, pnl: null, pnl_pct: null },
+          { code: '161226', name: '161226', qty: 0, weight: null, cost: 0.0, price: 0.0, pnl: null, pnl_pct: null },
+          { code: '512100', name: '512100', qty: 0, weight: null, cost: 0.0, price: 0.0, pnl: null, pnl_pct: null },
+          { code: '159915', name: '159915', qty: 0, weight: null, cost: 0.0, price: 0.0, pnl: null, pnl_pct: null },
+          { code: '513030', name: '513030', qty: 0, weight: null, cost: 0.0, price: 0.0, pnl: null, pnl_pct: null },
+          { code: '511010', name: '511010', qty: 0, weight: null, cost: 0.0, price: 0.0, pnl: null, pnl_pct: null }
         ],
         metrics: {
           total_return_2y: 288.06,
@@ -153,11 +158,12 @@ const DataLayer = {
         position_pct: 100.0,
         cash: 0,
         holdings: [
-          // 2026-08-03 修复: 无 qty 只有 weight 的持仓, pnl 无法确算 → null (R3 禁止编造)
-          { code: '513100', name: '纳指ETF', weight: 24.18, cost: 2.205, price: 2.22, pnl: null, pnl_pct: 0.68 },
-          { code: '518880', name: '黄金ETF', weight: 24.18, cost: 4.620, price: 4.66, pnl: null, pnl_pct: 0.87 },
-          { code: '159985', name: '豆粕ETF', weight: 24.18, cost: 1.040, price: 1.05, pnl: null, pnl_pct: 0.96 },
-          { code: '511010', name: '国债ETF', weight: 24.18, cost: 1.378, price: 1.38, pnl: null, pnl_pct: 0.15 }
+          // 2026-08-03 FIX_S3: holdings 换真实 signals positions (signals/sanhe_2026-08-03.json)
+          { code: '588080', name: '588080', qty: 900, weight: null, cost: 2.18, price: 2.18, pnl: null, pnl_pct: 0.0 },
+          { code: '510500', name: '510500', qty: 300, weight: null, cost: 8.913, price: 8.913, pnl: null, pnl_pct: 0.0 },
+          { code: '512100', name: '512100', qty: 700, weight: null, cost: 3.498, price: 3.498, pnl: null, pnl_pct: 0.0 },
+          { code: '510050', name: '510050', qty: 800, weight: null, cost: 3.035, price: 3.035, pnl: null, pnl_pct: 0.0 },
+          { code: '159915', name: '159915', qty: 300, weight: null, cost: 3.859, price: 3.859, pnl: null, pnl_pct: 0.0 }
         ],
         metrics: {
           total_return_2y: 78.90,
@@ -186,11 +192,8 @@ const DataLayer = {
         position_pct: 100.0,
         cash: 0,
         holdings: [
-          // 2026-08-03 修复: 无 qty 只有 weight 的持仓, pnl 无法确算 → null (R3 禁止编造)
-          { code: '513100', name: '纳指ETF', weight: 25, cost: 2.205, price: 2.22, pnl: null, pnl_pct: 0.68 },
-          { code: '513520', name: '日经ETF', weight: 25, cost: 1.346, price: 1.35, pnl: null, pnl_pct: 0.30 },
-          { code: '513030', name: '德国ETF', weight: 25, cost: 1.440, price: 1.45, pnl: null, pnl_pct: 0.69 },
-          { code: '513130', name: '恒生科技ETF', weight: 25, cost: 0.404, price: 0.412, pnl: null, pnl_pct: 1.98 }
+          // 2026-08-03 FIX_S3: holdings 换真实 signals positions (signals/lightning_2026-08-03.json, 1 只 qty=0 如实写入)
+          { code: '513520', name: '513520', qty: 0, weight: null, cost: 0.0, price: 0.0, pnl: null, pnl_pct: null }
         ],
         metrics: {
           total_return_2y: 74.06,
@@ -272,7 +275,8 @@ const DataLayer = {
             // 2026-08-03 修复 (P1-6): 移除 Math.random 价格 jitter(每次刷新生成随机假盈亏);
             // pnl 仅在 qty 存在时可确算, 无 qty 持仓(weight 语义)保持 null, 禁止编造
             h.pnl = h.qty != null ? +((h.price - h.cost) * h.qty).toFixed(2) : null;
-            h.pnl_pct = +((h.price / h.cost - 1) * 100).toFixed(2);
+            // FIX_S3: cost=0 (空仓) 时 (price/cost-1) 为 NaN → 保持 null, 禁止 NaN 上屏
+            h.pnl_pct = h.cost > 0 ? +((h.price / h.cost - 1) * 100).toFixed(2) : null;
           }
         });
       });
