@@ -275,74 +275,6 @@ body {
 .strategy-card.zhuidian:hover { box-shadow: var(--shadow-hover), var(--shadow-glow-zhuidian); }
 .strategy-card.sanhe:hover { box-shadow: var(--shadow-hover), 0 0 20px rgba(168,85,247,0.15); }
 
-/* ========== 实盘持仓卡片（最高视觉层级） ========== */
-.live-card {
-  background: linear-gradient(135deg, rgba(6,182,212,0.12) 0%, rgba(6,182,212,0.04) 100%);
-  border: 1px solid rgba(6,182,212,0.3);
-  border-radius: var(--radius-lg);
-  padding: var(--space-lg) var(--space-xl);
-  margin-bottom: var(--space-lg);
-  box-shadow: var(--shadow-live);
-  position: relative;
-  overflow: hidden;
-}
-.live-card::before {
-  content: '实盘';
-  position: absolute;
-  top: 8px; right: 12px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: var(--color-live);
-  opacity: 0.5;
-}
-.live-card .lc-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-md);
-}
-.live-card .lc-badge {
-  display: inline-block;
-  background: var(--color-live);
-  color: var(--text-inverse);
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 10px;
-  border-radius: 99px;
-  letter-spacing: 0.5px;
-}
-.live-card .lc-title { font-size: 18px; font-weight: 600; color: var(--text-primary); }
-.live-card .lc-row { display: flex; gap: var(--space-xl); flex-wrap: wrap; }
-.live-card .lc-stat { flex: 1; min-width: 140px; }
-.live-card .lc-stat .label {
-  font-size: 11px; color: var(--text-muted);
-  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
-}
-.live-card .lc-stat .value {
-  font-family: var(--font-mono); font-size: 28px; font-weight: 700;
-}
-.live-card .lc-stat .value.up { color: var(--color-up); }
-.live-card .lc-stat .value.down { color: var(--color-down); }
-.live-card .lc-stat .value.nodata { color: var(--text-muted); font-style: italic; font-size: 16px; }
-.live-card .lc-stat .sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
-.live-card .lc-holdings {
-  margin-top: var(--space-md); padding-top: var(--space-md);
-  border-top: 1px solid var(--border-subtle);
-}
-.live-card .lc-holdings .title {
-  font-size: 12px; color: var(--text-muted);
-  margin-bottom: var(--space-sm); text-transform: uppercase; letter-spacing: 0.5px;
-}
-.live-card .lc-holdings table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.live-card .lc-holdings th {
-  text-align: left; padding: 4px 8px; color: var(--text-muted);
-  font-weight: 500; font-size: 11px; border-bottom: 1px solid var(--border-subtle);
-}
-.live-card .lc-holdings td {
-  padding: 4px 8px; border-bottom: 1px solid var(--border-subtle);
-  font-family: var(--font-mono); font-size: 12px;
-}
 
 /* ========== 回测策略卡片（降低视觉层级） ========== */
 .strategy-card.backtest { opacity: 0.85; }
@@ -928,8 +860,6 @@ body {
 <!-- 策略卡片区 -->
 <section class="strategy-section">
   <div class="container">
-    <!-- 实盘持仓卡片（最高视觉层级） -->
-    <div id="live-trading-card"></div>
 
     <div id="strategy-cards">
       <!-- 动态填充 (calcGridRows 决定 1-3 排布局) -->
@@ -1208,80 +1138,14 @@ async function initData() {
   DataLayer.startPolling(renderAll);
 }
 
-// ========== 实盘持仓渲染（最高视觉层级） ==========
-function renderLiveTrading(lt) {
-  const container = document.getElementById('live-trading-card');
-  if (!container) return;
-  if (!lt || lt.data_source === 'none') {
-    // R3 铁律 (2026-08-03): fetch 失败/无数据 → 诚实文案, 绝不回退编造静态数字
-    container.innerHTML = '<div class="live-card" style="text-align:center;padding:24px;color:var(--text-muted)">实盘数据不可用（本地后端未连接）</div>';
-    return;
-  }
-  const pnlClass = lt.today_pnl > 0 ? 'up' : lt.today_pnl < 0 ? 'down' : 'nodata';
-  const totalClass = lt.total_return > 0 ? 'up' : lt.total_return < 0 ? 'down' : 'nodata';
-  const holdingsRows = (lt.holdings || []).map(h => `
-    <tr>
-      <td>${h.code}</td>
-      <td>${h.name}</td>
-      <td style="text-align:right">${h.shares}</td>
-      <td style="text-align:right">¥${h.price.toFixed(3)}</td>
-      <td style="text-align:right">¥${h.value.toFixed(2)}</td>
-      <td style="text-align:right" class="${h.pnl >= 0 ? 'up' : 'down'}">${h.pnl >= 0 ? '+' : ''}¥${h.pnl.toFixed(2)}</td>
-      <td style="text-align:right">${h.weight.toFixed(1)}%</td>
-    </tr>
-  `).join('');
-
-  container.innerHTML = `
-    <div class="live-card">
-      <div class="lc-header">
-        <span class="lc-badge">🔴 实盘</span>
-        <span class="lc-title">KIMI 自动化交易系统 · 实时账户</span>
-      </div>
-      <div class="lc-row">
-        <div class="lc-stat">
-          <div class="label">今日盈亏</div>
-          <div class="value ${pnlClass}">${lt.today_pnl == null ? '无数据' : (lt.today_pnl >= 0 ? '+¥' : '-¥') + Math.abs(lt.today_pnl).toFixed(2)}</div>
-          <div class="sub">${lt.today_return == null ? '—' : (lt.today_return >= 0 ? '+' : '') + lt.today_return.toFixed(2) + '%'}</div>
-        </div>
-        <div class="lc-stat">
-          <div class="label">总资产</div>
-          <div class="value">¥${(lt.total_asset || 0).toLocaleString('zh-CN', {minimumFractionDigits:2})}</div>
-          <div class="sub">初始 ¥${(lt.initial_capital || 10000).toLocaleString()}</div>
-        </div>
-        <div class="lc-stat">
-          <div class="label">累计收益</div>
-          <div class="value ${totalClass}">${lt.total_return == null ? '—' : (lt.total_return >= 0 ? '+' : '') + lt.total_return.toFixed(2) + '%'}</div>
-          <div class="sub">${lt.total_return == null ? '—' : ((lt.total_return / 100) * lt.initial_capital || 0) >= 0 ? '盈利' : '亏损'}</div>
-        </div>
-        <div class="lc-stat">
-          <div class="label">现金</div>
-          <div class="value">¥${(lt.cash || 0).toLocaleString('zh-CN', {minimumFractionDigits:2})}</div>
-          <div class="sub">持仓 ${(lt.position_value || 0).toLocaleString('zh-CN', {minimumFractionDigits:2})}</div>
-        </div>
-      </div>
-      ${(lt.holdings || []).length > 0 ? `
-      <div class="lc-holdings">
-        <div class="title">当前持仓</div>
-        <table>
-          <thead><tr>
-            <th>代码</th><th>名称</th><th style="text-align:right">数量</th><th style="text-align:right">现价</th>
-            <th style="text-align:right">市值</th><th style="text-align:right">浮动盈亏</th><th style="text-align:right">权重</th>
-          </tr></thead>
-          <tbody>${holdingsRows}</tbody>
-        </table>
-      </div>` : ''}
-    </div>
-  `;
-}
 
 // 渲染全部
 async function renderAll(data) {
   // v1.1 (2026-06-26): 预取实盘模拟总览 + 今日动作，让卡片可以读到
   try {
-    const [psRes, taRes, liveRes] = await Promise.all([
+    const [psRes, taRes] = await Promise.all([
       fetch(`${DataLayer.config.apiBase}/dashboard/portfolio_summary`).then(r => r.json()).catch(() => null),
       fetch(`${DataLayer.config.apiBase}/dashboard/today_actions_all`).then(r => r.json()).catch(() => null),
-      fetch(`${DataLayer.config.apiBase}/dashboard/overview`).then(r => r.json()).catch(() => null),
     ]);
     if (psRes && psRes.code === 0) {
       window.__portfolioPerStrategy = psRes.data.per_strategy || {};
@@ -1306,13 +1170,6 @@ async function renderAll(data) {
           }
         });
       }
-    }
-    // 实盘数据渲染
-    if (liveRes && liveRes.code === 0 && liveRes.data && liveRes.data.live_trading) {
-      renderLiveTrading(liveRes.data.live_trading);
-    } else {
-      // R3 铁律 (2026-08-03 审计): fetch 404/失败/无数据 → 诚实文案, 实盘卡不再空白
-      renderLiveTrading({ data_source: 'none' });
     }
   } catch (err) {
     console.warn('预取数据失败:', err);
