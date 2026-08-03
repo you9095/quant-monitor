@@ -1123,7 +1123,7 @@ body {
   </div>
 </div>
 
-  <script src="assets/data.js?v=8"></script>
+  <script src="assets/data.js?v=9"></script>
   <script>
 // ========== 数据状态（从DataLayer加载） ==========
 let strategiesData = {};
@@ -1320,9 +1320,20 @@ function buildCardHtml(sid, sname, s) {
     </div>
   `;
 
-  // ===== v1.1 (2026-06-26) 总盈亏大字区块 =====
+  // ===== v1.1 (2026-06-26) + 2026-08-03 P0 fix: 总盈亏大字区块 =====
+  // 优先用后端真实持仓市值(__portfolioPerStrategy.current_value),否则从本地 holdings 算市值
   const initCap = s.initial_capital || (window.__portfolioPerStrategy && window.__portfolioPerStrategy[sid]?.initial_capital) || 10000;
-  const curVal = (window.__portfolioPerStrategy && window.__portfolioPerStrategy[sid]?.current_value) || (initCap * (1 + (totalReturn || 0) / 100));
+  let curVal = window.__portfolioPerStrategy && window.__portfolioPerStrategy[sid]?.current_value;
+  if (curVal == null) {
+    // 本地 fallback: sum(qty * price) + cash; 没有 qty*price 时 sum(cost-weight) + cost
+    const livePnL = s.metrics && (s.metrics.live_total_pnl != null ? s.metrics.live_total_pnl : null);
+    if (livePnL != null) {
+      curVal = initCap + livePnL;  // signals 有 live_total_pnl → 直接换算市值
+    } else {
+      // 退化: 用总收益率 × 本金
+      curVal = initCap * (1 + (totalReturn || 0) / 100);
+    }
+  }
   const pnlAmount = curVal - initCap;
   const pnlClass = pnlAmount > 0 ? 'up' : pnlAmount < 0 ? 'down' : 'neutral';
   const pnlStr = (pnlAmount >= 0 ? '+¥' : '-¥') + Math.abs(pnlAmount).toLocaleString('zh-CN', {minimumFractionDigits: 2});

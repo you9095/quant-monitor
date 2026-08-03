@@ -67,6 +67,9 @@ const DataLayer = {
           total_return_2y: 32.35,
           max_dd_2y: -6.58,
           trades_2y: 40,
+          // 2026-08-03 P0 fix: 实盘累计盈亏 (来自 signals/qixing_2026-08-03.json)
+          live_total_pnl: -147.55,
+          live_total_pnl_source_date: '2026-08-03',
           total_return_5y: null,
           max_dd_5y: null,
           trades_5y: null,
@@ -104,6 +107,9 @@ const DataLayer = {
           annualized_return_5y: 19.6,
           sharpe_2y: 1.15,
           sharpe_5y: 1.5,
+          // 2026-08-03 P0 fix: 实盘累计盈亏 (来自 signals/r32_2026-08-03.json)
+          live_total_pnl: 3080.31,
+          live_total_pnl_source_date: '2026-08-03',
           signal_date: '2026-08-03',
           latest_round: 'R35_rebal_15',
           latest_desc: '半月调仓 2Y年化17.16% 回撤-22.26% (R35)',
@@ -143,6 +149,9 @@ const DataLayer = {
           annualized_return_5y: null,
           sharpe_2y: 2.35,
           sharpe_5y: null,
+          // 2026-08-03 P0 fix: 实盘累计盈亏 (来自 signals/zhuidian_2026-07-20.json)
+          live_total_pnl: 27030.7,
+          live_total_pnl_source_date: '2026-07-20',
           signal_date: '2026-07-20',
           latest_round: 'R17_score_max_38',
           latest_desc: '2Y年化110.53% 回撤-16.76% (R17_score_max_38)',
@@ -177,6 +186,9 @@ const DataLayer = {
           sharpe_2y: 1.44,
           sharpe_5y: 1.20,
           calmar_2y: 1.53,
+          // 2026-08-03 P0 fix: 实盘累计盈亏 (来自 signals/sanhe_2026-08-03.json)
+          live_total_pnl: 1874.57,
+          live_total_pnl_source_date: '2026-08-03',
           signal_date: '2026-08-03',
           latest_round: 'R43_w_zhuidian_0.5',
           latest_desc: '历史2Y年化35.80% / 5Y年化23.18%',
@@ -207,6 +219,9 @@ const DataLayer = {
           sharpe_2y: 1.20,
           sharpe_5y: null,
           calmar_2y: 1.94,
+          // 2026-08-03 P0 fix: 实盘累计盈亏 (来自 signals/lightning_2026-08-03.json)
+          live_total_pnl: 4712.3,
+          live_total_pnl_source_date: '2026-08-03',
           signal_date: '2026-08-03',
           latest_round: 'R4_m3',
           latest_desc: '2Y年化27.34%（5Y未跑）',
