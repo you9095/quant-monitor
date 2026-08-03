@@ -942,7 +942,9 @@ body {
   <div class="container">
     <div class="section-header">
       <span class="section-title">今日交易明细</span>
-      <span style="font-size:12px;color:var(--text-muted)">2026-06-08 实盘首日 · 全自动执行</span>
+      <!-- 2026-08-03 审计陷阱#5: 硬编码 2026-06-08 与后端 LIVE_START_DATE=2026-05-25 冲突 → 去掉硬编码,
+           有 API 时由 renderAll 注入真实起始日(portfolio_summary.live_start_date) -->
+      <span id="live-start-label" style="font-size:12px;color:var(--text-muted)">实盘模拟 · 全自动执行</span>
     </div>
     <div class="trade-grid" id="trade-details">
       <!-- 动态填充 (auto-fit 自适应) -->
@@ -1211,7 +1213,8 @@ function renderLiveTrading(lt) {
   const container = document.getElementById('live-trading-card');
   if (!container) return;
   if (!lt || lt.data_source === 'none') {
-    container.innerHTML = '<div class="live-card" style="text-align:center;padding:24px;color:var(--text-muted)">实盘数据不可用</div>';
+    // R3 铁律 (2026-08-03): fetch 失败/无数据 → 诚实文案, 绝不回退编造静态数字
+    container.innerHTML = '<div class="live-card" style="text-align:center;padding:24px;color:var(--text-muted)">实盘数据不可用（本地后端未连接）</div>';
     return;
   }
   const pnlClass = lt.today_pnl > 0 ? 'up' : lt.today_pnl < 0 ? 'down' : 'nodata';
@@ -1282,6 +1285,11 @@ async function renderAll(data) {
     ]);
     if (psRes && psRes.code === 0) {
       window.__portfolioPerStrategy = psRes.data.per_strategy || {};
+      // 注入真实实盘起始日 (2026-08-03 审计陷阱#5: 后端 LIVE_START_DATE=2026-05-25)
+      if (psRes.data.live_start_date) {
+        const lbl = document.getElementById('live-start-label');
+        if (lbl) lbl.textContent = `${psRes.data.live_start_date} 实盘模拟起始日 · 全自动执行`;
+      }
     }
     if (taRes && taRes.code === 0) {
       window.__todayActions = taRes.data.strategies || {};
@@ -1302,15 +1310,21 @@ async function renderAll(data) {
     // 实盘数据渲染
     if (liveRes && liveRes.code === 0 && liveRes.data && liveRes.data.live_trading) {
       renderLiveTrading(liveRes.data.live_trading);
+    } else {
+      // R3 铁律 (2026-08-03 审计): fetch 404/失败/无数据 → 诚实文案, 实盘卡不再空白
+      renderLiveTrading({ data_source: 'none' });
     }
   } catch (err) {
     console.warn('预取数据失败:', err);
   }
+  // 统一 stale 过滤 (2026-08-03 审计陷阱#4): 与 renderStrategyCards 一致,
+  // 过期策略(zhuidian 7-20 距今>5天)不再进入今日动作/交易明细/日志
+  const filtered = activeStrategies(data.strategies);
   renderStrategyCards(data.strategies);
-  renderActionItems(data.strategies);
-  renderTradeDetails(data.strategies);
+  renderActionItems(filtered);
+  renderTradeDetails(filtered);
   renderNavCurves(data.strategies);
-  renderLogs(data.strategies);
+  renderLogs(filtered);
   updatePortfolio(data.portfolio);
 }
 
@@ -1559,7 +1573,8 @@ function renderTradeDetails(strategies) {
       <div class="trade-card-body">
         ${holdings.length === 0 ? '<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:12px">无持仓</div>' :
           holdings.map((h, i) => {
-            const time = (h.time || ('09:30:' + String(20 + i*2).padStart(2, '0')));
+            // 2026-08-03 审计陷阱#3: 禁止 String(20+i*2) 生成假成交时间 → 无真实时间显示 --:--
+            const time = (h.time || '--:--');
             return `<div class="trade-row">
               <div class="trade-row-left">
                 <div class="trade-time">${time}</div>
@@ -1632,17 +1647,41 @@ async function renderNavCurves(strategies) {
     // 缓存供标题使用
     window.__liveCurveMeta = { start: liveData.start_date, end: liveData.end_date, days: liveData.days };
   } else {
-    // 回退：mockData history 2y
+    // 回退：mockData history 2y（诚实标注为回测数据, 非实盘模拟）
     const hist = (DataLayer.mockData && DataLayer.mockData.history && DataLayer.mockData.history['2y']) || { labels: [], qixing: [], r32: [], sanhe: [], zhuidian: [], lightning: [] };
     labels = (hist.labels || []).map(l => l.substring(5));
+    // 2026-08-03 审计陷阱#2: mockData 终点(qixing 74.0 / r32 38.14)与真实回测不符
+    // → 尽力从 signals/{sid}_{signal_date}.json 拉取 backtest_total_return 重生成终点;
+    //   静态站拉不到时保留 mock 终点并在 label 上注明"mock占位", 不冒充真实
+    const realEndpoints = {};
+    await Promise.all((strategies || []).map(async s => {
+      const sid = s.id || s.strategy_id;
+      const sigDate = s.metrics?.signal_date || (window.__todayActions && window.__todayActions[sid]?.signal_date);
+      if (!sigDate) return;
+      try {
+        const res = await fetch(`signals/${sid}_${sigDate}.json`);
+        if (res.ok) {
+          const sig = await res.json();
+          if (typeof sig.backtest_total_return === 'number') {
+            realEndpoints[sid] = sig.backtest_total_return;
+          }
+        }
+      } catch (e) { /* 保持 mock 终点, label 会注明 mock占位 */ }
+    }));
     const stratMap = { qixing: hist.qixing, r32: hist.r32, zhuidian: hist.zhuidian, sanhe: hist.sanhe, lightning: hist.lightning };
     datasets = (strategies || []).map(s => {
       const sid = s.id || s.strategy_id;
       const sname = s.name || s.strategy_name || sid;
       const c = colors[sid] || { border: '#888', bg: 'rgba(136,136,136,0.08)' };
+      let arr = stratMap[sid] || [];
+      const endpointFixed = realEndpoints[sid] !== undefined && arr.length > 0;
+      if (endpointFixed) {
+        arr = arr.slice();
+        arr[arr.length - 1] = realEndpoints[sid]; // 终点 = signals 真实 backtest_total_return
+      }
       return {
-        label: sname + ' (回测2Y)',
-        data: stratMap[sid] || [],
+        label: sname + (endpointFixed ? ' (回测2Y·终点=signals真实)' : ' (回测2Y·mock占位)'),
+        data: arr,
         borderColor: c.border,
         backgroundColor: c.bg,
         fill: false,
@@ -1652,20 +1691,29 @@ async function renderNavCurves(strategies) {
         borderDash: [4, 4],
       };
     });
-    window.__liveCurveMeta = { start: '2024-06', end: '2026-06', days: 25, mode: 'mock' };
+    // days 由 labels 长度(月点数)推导, 不再硬编码 25天 (2026-08-03 审计陷阱#2)
+    window.__liveCurveMeta = { start: (hist.labels || [])[0] || '2024-06', end: (hist.labels || []).slice(-1)[0] || '2026-06', days: (hist.labels || []).length, mode: 'mock' };
   }
 
   // 更新 section header 的时间范围描述
   const meta = window.__liveCurveMeta || {};
   const sectionTitle = document.querySelector('.chart-section .section-title');
   if (sectionTitle) {
-    sectionTitle.textContent = `收益曲线 · 实盘模拟 ${meta.start || '?'} → ${meta.end || '?'}（${meta.days || '?'}天）`;
+    // mock 回退时数据是 2Y 回测(月粒度) → 标注"回测2Y + 个月", 不冒充"实盘模拟 + 天"
+    const unit = meta.mode === 'mock' ? '个月' : '天';
+    const modeLabel = meta.mode === 'mock' ? '回测2Y' : '实盘模拟';
+    sectionTitle.textContent = `收益曲线 · ${modeLabel} ${meta.start || '?'} → ${meta.end || '?'}（${meta.days || '?'}${unit}）`;
   }
   const tabsEl = document.querySelector('.chart-section .section-tabs');
   if (tabsEl && tabsEl.children.length > 0) {
-    tabsEl.children[0].textContent = '实盘模拟';
+    if (meta.mode === 'mock') {
+      tabsEl.children[0].textContent = '回测2Y';
+      if (tabsEl.children[1]) tabsEl.children[1].textContent = '回测5Y';
+    } else {
+      tabsEl.children[0].textContent = '实盘模拟';
+      if (tabsEl.children[1]) tabsEl.children[1].textContent = '回测对比';
+    }
     tabsEl.children[0].classList.add('active');
-    if (tabsEl.children[1]) tabsEl.children[1].textContent = '回测对比';
   }
 
   currentChart = new Chart(ctx.getContext('2d'), {
@@ -1776,18 +1824,25 @@ async function updatePortfolio(portfolio) {
 function renderLogs(strategies) {
   const container = document.getElementById('strategy-logs');
   if (!container) return;
-  if (!strategies || strategies.length === 0) { container.innerHTML = ''; return; }
-  // 4 策略各自的最近事件 (与 metrics 联动)
+  // 2026-08-03 审计陷阱#4: 与 renderStrategyCards 一致走 stale 过滤; 无有效日志时显示"暂无日志"
+  const active = strategies ? activeStrategies(strategies) : [];
+  if (!active || active.length === 0) {
+    container.innerHTML = '<div class="log-item" style="justify-content:center;color:var(--text-muted)">暂无日志</div>';
+    return;
+  }
+  // 各策略的最近事件 (与 metrics 联动)
   const labelMap = { qixing: '七星', r32: 'R32', zhuidian: '追电', sanhe: '三合' };
   const logs = [];
-  strategies.forEach(s => {
+  active.forEach(s => {
     const sid = s.id || s.strategy_id;
     const r = s.metrics?.latest_round || '';
     const desc = s.metrics?.latest_desc || s.metrics?.data_period || '';
     const action = s.today_action || 'PARAM';
     const annRet = s.metrics?.annualized_return !== undefined ? `年化 ${(s.metrics.annualized_return*100).toFixed(2)}%` : '';
+    // 2026-08-03 审计陷阱#3: 时间戳用真实 signal_date, 不用 new Date() 每次刷新生成假时间
+    const sigDate = s.metrics?.signal_date || (window.__todayActions && window.__todayActions[sid]?.signal_date) || '';
     logs.push({
-      time: new Date().toISOString().substring(0, 16).replace('T', ' '),
+      time: sigDate || '--',
       sid,
       label: labelMap[sid] || sid,
       action,
