@@ -1,0 +1,91 @@
+==========================================
+M03 Audit Command Script
+==========================================
+
+[1/6] Repo state
+  HEAD: f1fa35a6d21c14824ad966cb077d1d893d862e1f
+  Last commit: f1fa35a fix(panel): 策略卡总盈亏/当前市值用真实 live_total_pnl (2026-08-03)
+  index.html size:    91960 bytes
+  assets/data.js size:    15235 bytes
+
+[2/6] Portfolio stats in index.html
+841:      <div class="item"><span class="label">初始</span><span class="val text-mono" id="ps-initial">¥50,000.00</span></div>
+842:      <div class="item pnl"><span class="label">总盈亏</span><span class="val" id="ps-pnl">--</span></div>
+843:      <div class="item pnl"><span class="label">收益率</span><span class="val" id="ps-return">--</span></div>
+844:      <div class="item total"><span class="label">总资金</span><span class="val text-mono" id="ps-total">¥50,000.00</span></div>
+1329:    const livePnL = s.metrics && (s.metrics.live_total_pnl != null ? s.metrics.live_total_pnl : null);
+1636:      const total = d.total_value || initial;
+1638:      const pnl = d.total_pnl !== undefined ? d.total_pnl : (d.total_value - (d.initial_capital || 50000));
+1640:      const ret = d.total_return_pct || 0;
+1642:      const psInitial = document.getElementById('ps-initial');
+1643:      const psPnl = document.getElementById('ps-pnl');
+1644:      const psReturn = document.getElementById('ps-return');
+1645:      const psTotal = document.getElementById('ps-total');
+1668:  const total = portfolio.total_value || initial;
+1670:  const ret = portfolio.total_return_pct || 0;
+1672:  const pnl = portfolio.total_pnl !== undefined && portfolio.total_pnl !== null ? portfolio.total_pnl : (total - initial);
+1673:  const psInitial = document.getElementById('ps-initial');
+1674:  const psPnl = document.getElementById('ps-pnl');
+1675:  const psReturn = document.getElementById('ps-return');
+1676:  const psTotal = document.getElementById('ps-total');
+
+[3/6] mockData portfolio values in assets/data.js
+43:      total_value: 'number',
+44:      total_pnl: 'number',
+45:      total_return_pct: 'number?',
+71:          live_total_pnl: -147.55,
+72:          live_total_pnl_source_date: '2026-08-03',
+111:          live_total_pnl: 3080.31,
+112:          live_total_pnl_source_date: '2026-08-03',
+153:          live_total_pnl: 27030.7,
+154:          live_total_pnl_source_date: '2026-07-20',
+190:          live_total_pnl: 1874.57,
+
+[4/6] Today's action bar - signal sources
+  --- signals latest dates ---
+  EXISTS: signals/qixing_2026-08-03.json (    1549 bytes)
+  EXISTS: signals/r32_2026-08-03.json (    1519 bytes)
+  EXISTS: signals/sanhe_2026-08-03.json (    2054 bytes)
+  EXISTS: signals/lightning_2026-08-03.json (    1528 bytes)
+  zhuidian latest: signals/zhuidian_2026-07-20.json
+
+[5/6] Action bar rendering logic
+174:.action-bar {
+179:.action-bar-title {
+851:<section class="action-bar">
+853:    <div class="action-bar-title">今日动作</div>
+1148:      fetch(`${DataLayer.config.apiBase}/dashboard/today_actions_all`).then(r => r.json()).catch(() => null),
+1165:            s.today_action = ta.action || s.today_action;
+1179:  const filtered = activeStrategies(data.strategies);
+1181:  renderActionItems(filtered);
+1189:function renderActionItems(strategies) {
+1195:    const action = s.today_action || s.action || 'HOLD';
+1247:// 信号日期落后超过 MAX_STALE_DAYS 的策略视为"未运行"，跳过渲染
+1248:const MAX_STALE_DAYS = 5;
+1249:function isStrategyActive(s) {
+1256:  return diffDays <= MAX_STALE_DAYS;
+1258:function activeStrategies(strategies) {
+1259:  return (strategies || []).filter(isStrategyActive);
+1266:  const filtered = strategies ? activeStrategies(strategies) : [];
+1302:  const todayAction = s.today_action || s.action || 'HOLD';
+1439:        <span class="trade-card-badge ${s.today_action === 'BUY' ? 'buy' : (s.today_action === 'SELL' ? 'sell' : 'rebalance')}">${s.today_action || 'HOLD'}</span>
+1696:  const active = strategies ? activeStrategies(strategies) : [];
+
+[6/6] Local static serve verification
+  Starting python3 http.server on port 8765...
+  Server PID: 49024
+  Curl status: 200
+
+  --- DOM verification ---
+  Portfolio summary elements:
+action-bar
+ps-initial
+ps-pnl
+ps-return
+ps-total
+总盈亏
+总资金
+收益率
+今日动作
+
+  Stopping server...
