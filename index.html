@@ -279,9 +279,21 @@ body {
 /* ========== 回测策略卡片（降低视觉层级） ========== */
 .strategy-card.backtest { opacity: 0.85; }
 .strategy-card.backtest:hover { opacity: 1; }
-.strategy-card.backtest .pb-amount { font-size: 20px !important; }
-.strategy-card.backtest .pb-label { font-size: 10px !important; }
-.strategy-card.backtest .profit-block { padding: 8px 12px !important; }
+.strategy-card.backtest .pb-amount { font-size: 40px !important; }
+.strategy-card.backtest .pb-label { font-size: 14px !important; }
+.strategy-card.backtest .profit-block { padding: var(--space-lg) 0 !important; }
+
+/* B 字体：SF Pro Display + tnum cv11 + weight 600 — 压过 backtest (0,4,0) */
+.strategy-card.backtest .pb-amount {
+  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif !important;
+  font-weight: 600 !important;
+  font-feature-settings: 'tnum' 1, 'cv11' 1;
+  font-variant-numeric: tabular-nums;
+}
+/* 数字分段：符号 +¥ 28px / 整数 40px / 小数 .00 28px */
+.strategy-card.backtest .pb-amount .pb-sign { font-size: 28px !important; font-weight: 600; }
+.strategy-card.backtest .pb-amount .pb-int  { font-size: 40px !important; font-weight: 700; }
+.strategy-card.backtest .pb-amount .pb-dec  { font-size: 28px !important; font-weight: 500; opacity: 0.7; }
 .strategy-card.backtest .today-action-strip { padding: 6px 10px !important; }
 .strategy-card.backtest .tas-title { font-size: 10px !important; }
 
@@ -363,7 +375,7 @@ body {
   flex: 1;
 }
 .metric-label {
-  font-size: 11px;
+  font-size: 9px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -371,17 +383,18 @@ body {
 }
 .metric-value {
   font-family: var(--font-mono);
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 400;
   line-height: 1.2;
+  color: var(--text-secondary);
 }
-.metric-value.up { color: var(--color-up); }
-.metric-value.down { color: var(--color-down); }
-.metric-value.neutral { color: var(--text-primary); }
+.metric-value.up { color: var(--text-secondary); }
+.metric-value.down { color: var(--text-secondary); }
+.metric-value.neutral { color: var(--text-secondary); }
 
 .metric-sub {
-  font-size: 12px;
-  color: var(--text-secondary);
+  font-size: 10px;
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
@@ -788,22 +801,22 @@ body {
 /* ========== v1.1 (2026-06-26) 卡片中央：总盈亏大字 ========== */
 .profit-block {
   text-align: center;
-  padding: var(--space-md) 0;
+  padding: var(--space-lg) 0;
   margin: var(--space-md) 0;
   border-top: 1px dashed var(--border-subtle);
   border-bottom: 1px dashed var(--border-subtle);
   background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
 }
 .profit-block .pb-label {
-  font-size: 11px;
+  font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--text-muted);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 .profit-block .pb-amount {
   font-family: var(--font-mono);
-  font-size: 32px;
+  font-size: 40px;
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.5px;
@@ -1336,12 +1349,18 @@ function buildCardHtml(sid, sname, s) {
   }
   const pnlAmount = curVal - initCap;
   const pnlClass = pnlAmount > 0 ? 'up' : pnlAmount < 0 ? 'down' : 'neutral';
-  const pnlStr = (pnlAmount >= 0 ? '+¥' : '-¥') + Math.abs(pnlAmount).toLocaleString('zh-CN', {minimumFractionDigits: 2});
+  const pnlAbs = Math.abs(pnlAmount);
+  const pnlSign = pnlAmount >= 0 ? '+' : '-';
+  const pnlFormatted = pnlAbs.toLocaleString('zh-CN', {minimumFractionDigits: 2});
+  const dotIdx = pnlFormatted.lastIndexOf('.');
+  const pnlInt = dotIdx >= 0 ? pnlFormatted.slice(0, dotIdx) : pnlFormatted;
+  const pnlDec = dotIdx >= 0 ? pnlFormatted.slice(dotIdx) : '';
+  const pnlStr = `<span class="pb-sign">${pnlSign}¥</span><span class="pb-int">${pnlInt}</span><span class="pb-dec">${pnlDec}</span>`;
   const returnStr = (totalReturn !== undefined && totalReturn !== null) ? ((totalReturn >= 0 ? '+' : '') + totalReturn.toFixed(2) + '%') : '--';
   const profitBlock = `
     <div class="profit-block">
       <div class="pb-label">总盈亏（实盘模拟 ${initCap >= 1000 ? (initCap/1000).toFixed(0) + 'k本金' : initCap + '本金'} 至今）</div>
-      <div class="pb-amount ${pnlClass}" data-metric="card-pnl-amount">${pnlStr}</div>
+      <div class="pb-amount ${pnlClass} pb-font-${sid}" data-metric="card-pnl-amount">${pnlStr}</div>
       <div class="pb-meta">
         <span class="pb-meta-item"><span class="lbl">收益率</span>${returnStr}</span>
         <span class="pb-meta-item"><span class="lbl">当前市值</span>¥${curVal.toLocaleString('zh-CN', {minimumFractionDigits: 2})}</span>
