@@ -6,7 +6,7 @@ const DataLayer = {
   config: {
     pollInterval: 30000,      // 30秒轮询
     pricePollInterval: 5000,  // 5秒行情轮询
-    apiBase: '/api/v1',  // API基地址（Docker/任意端口通用）
+    apiBase: 'http://localhost:8766/api/v1',  // 2026-08-09 CORS proxy 8766 → 8765 (real_data_server_v2.py)
     useMock: false            // 使用真实API（Mock服务器）
   },
 
@@ -273,9 +273,12 @@ const DataLayer = {
   // 获取数据（模拟/API切换）
   async fetchStrategies() {
     // 始终优先调用真实API（real_data_server）
+    console.log('[2026-08-09 DEBUG] fetchStrategies called, apiBase=', this.config.apiBase);
     try {
       const res = await fetch(`${this.config.apiBase}/dashboard/overview`);
+      console.log('[DEBUG] fetch res status=', res.status, 'ok=', res.ok);
       const result = await res.json();
+      console.log('[DEBUG] fetch result code=', result?.code, 'strategies=', result?.data?.strategies?.length);
       if (result.code === 0) {
         return this.transformApiData(result.data);
       }
@@ -313,7 +316,7 @@ const DataLayer = {
       total_return: s.total_return,
       today_pnl: s.today_pnl,
       today_return: s.today_return,
-      holdings: (s.positions || []).map(p => ({
+      holdings: (s.positions || s.holdings || []).map(p => ({
         code: p.code,
         name: p.name,
         qty: p.quantity,
