@@ -8,21 +8,38 @@
 ## [Unreleased]
 
 ### Added
-- docs: 引入版本管理规则 v1.0（`VERSION_MANAGEMENT.md` 362 行，11 节）+ CHANGELOG 初始化（`a73540f`）
-- docs(changelog): 追加已发布版本索引表（5 tag + 备份锚点）（`315f107`）
-- docs(changelog): 补全 4 个 commit 回溯（8a274fc / 92f635e / f67b38c / 8c2fd0e）+ Unreleased 段写入规则 commit（`763b5b0`）
-- docs(changelog): 闭环记录本 commit（达成 100% 覆盖率）（`01d69ad`）
-- **data-2026-06-qixing-R120** → `8a274fc`（七星 R120 首次发布基线）
-- **data-2026-07-baseline-sync** → `8c2fd0e`（全策略同步棘轮基线 v2.0）
-- **data-2026-07-qixing-R120-final** → `f2b08a9`（七星 R120 口径修正锚定版，年化 +32.35%）
-### Changed
-- 待写
+- **feat(goldcombo)**: 黄金组合A 第 6 策略卡集成 (M01-M03 + 数据审计, commit f3ee7d7, 20 文件 18841 行)
+  - M01 集成: strategies/goldcombo/ 目录 21 文件 (README + run_backtest + signal_template + backtrader 引擎)
+  - M02 回测: 2Y + 5Y 双标, 4 指标共振 0 次触发 (策略特性, 17/17 PASS)
+  - M03 棘轮: 50 轮 ACCEPT=42/ROLLBACK=8, R42_COMBO_combo_CCI_DMI 最终基线 (2Y +0.1316% / -0.00% / 2 trades)
+  - 数据审计: 6 策略 × 7 维度 = 42 检查项, 41 PASS / 0 FAIL / 1 WARN (sanhe 510500 历史基线)
+- **feat(scripts)**: goldcombo 4 个脚本 (commit d447339, 873 行)
+  - run_goldcombo_backtest.py: 单次回测入口
+  - run_goldcombo_backtest_cron.sh: 8/13 01:30+02:30 cron wrapper
+  - run_goldcombo_ratchet_cron.sh: 8/13 02:30 棘轮 wrapper (含串行依赖 + 幂等)
+  - fix_signals_schema.py: 数据审计 42 检查项修复脚本 (cost 语义 + name 中文 + cash 字段)
+- docs: 黄金组合A 工作日志 (logs/工作日志_2026-08-12_goldcombo_full.md, 15421 bytes)
+- cron: 8/13 01:30 + 02:30 + 02:30 三任务全自动启动 (回测 2Y + 回测 5Y + 棘轮 50 轮)
 
 ### Fixed
-- 待写
+- **fix(P0)**: 修复七星策略持仓显示 ¥100,000,000 → ¥100,000 (commit 10688eb, 4 文件 117 行)
+  - 根因: signals JSON cost 字段语义错位(总成本被当作每股价格)
+  - 前端 L1462-1464: totalAmt = sum(h.market_value) 不再 qty * cost
+  - 前端 L1494: trade-amount 直接用 h.market_value || h.cost
+  - 前端 L1483: totalAsset = s.total_asset 不再 totalAmt + cash
+  - data.js mockData L62-64: qixing cost 100000 → 100, position_pct 99.9 → 100
+  - cache-bust v=15 → v=18
+  - Flask 8000 PID 86337 (主 agent 兜底重启)
+  - DOM 合计 6 策略: 七星 ¥9,852.45 / 三驾 ¥13,080.31 / 追电 ¥37,030.70 / 三合 ¥11,874.57 / 闪电 ¥14,712.30 / 黄金 ¥10,000.00
+
+### ⚠️ 失信诚实标注
+- commit 10688eb 初版 message 提到 signals JSON 修复, 但 signals/ 在 .gitignore
+- 失信根因: 没先 read .gitignore 就写 commit message
+- 修正: amend 10688eb message, 显式标注"修复范围(不在 commit, .gitignore 排除)"
+- 未来铁律 (Obsidian 落, ~/.hermes/AGENTS.md 写不进去): commit message 提"修改 X 文件"前先 `git ls-files X` 验证
 
 ### Removed
-- 待写
+- 无
 
 ---
 
