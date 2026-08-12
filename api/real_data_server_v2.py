@@ -906,17 +906,25 @@ def dashboard_wfa_oos_curve():
             'lightning': '#facc15',
         }
 
-        # 1) 读每个策略的 per-strategy WFA 文件（取最新一份）
+        # 1) 读每个策略的 per-strategy WFA 文件(取第一个非空 oos_curve 的最新文件)
         strategies_data = {}
         all_dates = set()
+        all_sids = ['qixing', 'r32', 'zhuidian', 'sanhe', 'lightning']
 
-        for sid in ['r32', 'zhuidian', 'sanhe', 'lightning']:
+        for sid in all_sids:
             files = sorted(wfa_dir.glob(f'{sid}_wfa_*.json'), reverse=True)
             if not files:
                 continue
-            latest_file = files[0]
-            with open(latest_file) as f:
-                data = json_mod.load(f)
+            # 取第一个有 oos_curve 数据的文件(8-10 增量检查文件是空的,要跳过)
+            latest_file = None
+            for f in files:
+                d_tmp = json_mod.load(open(f))
+                if d_tmp.get('oos_curve'):
+                    latest_file = f
+                    break
+            if latest_file is None:
+                continue
+            data = json_mod.load(open(latest_file))
             oos_curve = data.get('oos_curve', [])
             if not oos_curve:
                 continue
@@ -935,14 +943,22 @@ def dashboard_wfa_oos_curve():
         # 2) 对齐日期：所有策略共用同一天集合
         sorted_dates = sorted(all_dates)
 
-        # 3) 按对齐日期重建各策略序列（缺失日期用前值填充，保持连续）
+        # 3) 按对齐日期重建各策略序列(缺失日期用前值填充,保持连续)
         aligned_strategies = {}
-        for sid in ['r32', 'zhuidian', 'sanhe', 'lightning']:
+        for sid in all_sids:
             files = sorted(wfa_dir.glob(f'{sid}_wfa_*.json'), reverse=True)
             if not files:
                 continue
-            with open(files[0]) as f:
-                data = json_mod.load(f)
+            # 取第一个有 oos_curve 数据的文件
+            latest_file = None
+            for f in files:
+                d_tmp = json_mod.load(open(f))
+                if d_tmp.get('oos_curve'):
+                    latest_file = f
+                    break
+            if latest_file is None:
+                continue
+            data = json_mod.load(open(latest_file))
             oos_curve = data.get('oos_curve', [])
             if not oos_curve:
                 continue
