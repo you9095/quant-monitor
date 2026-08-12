@@ -1,0 +1,24 @@
+{
+  "strategy_id": "goldcombo",
+  "strategy_name": "黄金组合A",
+  "engine_version": "goldcombo_ratchet_v2",
+  "ratchet_completed_at": "2026-08-12 21:12:57",
+  "total_rounds": 50,
+  "accept_count": 42,
+  "rollback_count": 8,
+  "final_baseline_version": "R42_COMBO_combo_CCI_DMI",
+  "data_periods": {
+    "2y": {
+      "total_return_pct": 0.1316,
+      "max_drawdown_pct": 0,
+      "sharpe_ratio": 909.2227,
+      "trade_count": 2
+    },
+    "5y": {
+      "total_return_pct": 0.0,
+      "max_drawdown_pct": 0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0
+    }
+  }
+}

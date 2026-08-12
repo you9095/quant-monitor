@@ -1,0 +1,581 @@
+{
+  "strategy_id": "goldcombo",
+  "strategy_name": "黄金组合A",
+  "data_period": "2021-08-13 ~ 2026-08-13",
+  "initial_capital": 100000.0,
+  "commission_rate": 0.001,
+  "slippage": 0.001,
+  "final_equity": 100000.08,
+  "total_return_pct": 0.0001,
+  "max_drawdown_pct": 0.0,
+  "sharpe_ratio": 0.0,
+  "trade_count": 0,
+  "closed_trades": 0,
+  "win_count": 0,
+  "win_rate_pct": 0.0,
+  "etf_pool_count": 36,
+  "etf_pool_used": [
+    "513290",
+    "513310",
+    "518880",
+    "501018",
+    "511220",
+    "159981",
+    "513500",
+    "513520",
+    "513030",
+    "513080",
+    "159792",
+    "513130",
+    "513050",
+    "513690",
+    "510300",
+    "510500",
+    "510050",
+    "588080",
+    "512100",
+    "512890",
+    "512040",
+    "511380",
+    "511010",
+    "159985",
+    "161226",
+    "513100",
+    "159915",
+    "159980",
+    "159920",
+    "159967",
+    "510210",
+    "159509",
+    "563300",
+    "513730",
+    "513400",
+    "159529"
+  ],
+  "per_etf_stats": {
+    "513290": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "513310": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "518880": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "501018": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "511220": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "159981": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "513500": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "513520": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "513030": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "513080": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "159792": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "513130": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "513050": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "513690": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "510300": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "510500": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "510050": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "588080": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "512100": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "512890": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "512040": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "511380": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "511010": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "159985": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "161226": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "513100": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "159915": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "159980": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "159920": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "159967": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "510210": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "159509": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "563300": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "513730": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "513400": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    },
+    "159529": {
+      "final_equity": 2777.78,
+      "return_pct": 0.0,
+      "buy_count": 0,
+      "sell_count": 0,
+      "win_count": 0
+    }
+  },
+  "indicator_trigger_stats": {
+    "totals": {
+      "C3_MACD_golden_cross_below_0": 622,
+      "C4_BOLL_broadening": 13339,
+      "C7_CCI_under_-100": 4922,
+      "C8_DMI_bear_extreme": 1358,
+      "all_4_combined": 0,
+      "at_least_1": 15474
+    },
+    "per_etf": {
+      "518880": {
+        "C3": 10,
+        "C4": 380,
+        "C7": 91,
+        "C8": 3,
+        "all4": 0
+      },
+      "159985": {
+        "C3": 21,
+        "C4": 382,
+        "C7": 154,
+        "C8": 49,
+        "all4": 0
+      },
+      "501018": {
+        "C3": 25,
+        "C4": 366,
+        "C7": 134,
+        "C8": 8,
+        "all4": 0
+      },
+      "161226": {
+        "C3": 19,
+        "C4": 371,
+        "C7": 119,
+        "C8": 14,
+        "all4": 0
+      },
+      "513100": {
+        "C3": 11,
+        "C4": 379,
+        "C7": 115,
+        "C8": 1,
+        "all4": 0
+      },
+      "159915": {
+        "C3": 18,
+        "C4": 400,
+        "C7": 194,
+        "C8": 85,
+        "all4": 0
+      },
+      "511220": {
+        "C3": 7,
+        "C4": 387,
+        "C7": 47,
+        "C8": 50,
+        "all4": 0
+      },
+      "159980": {
+        "C3": 15,
+        "C4": 380,
+        "C7": 115,
+        "C8": 25,
+        "all4": 0
+      },
+      "159981": {
+        "C3": 25,
+        "C4": 381,
+        "C7": 167,
+        "C8": 27,
+        "all4": 0
+      },
+      "159509": {
+        "C3": 14,
+        "C4": 308,
+        "C7": 108,
+        "C8": 5,
+        "all4": 0
+      },
+      "513290": {
+        "C3": 23,
+        "C4": 417,
+        "C7": 147,
+        "C8": 7,
+        "all4": 0
+      },
+      "513500": {
+        "C3": 9,
+        "C4": 386,
+        "C7": 116,
+        "C8": 15,
+        "all4": 0
+      },
+      "159529": {
+        "C3": 12,
+        "C4": 256,
+        "C7": 113,
+        "C8": 17,
+        "all4": 0
+      },
+      "513400": {
+        "C3": 11,
+        "C4": 266,
+        "C7": 78,
+        "C8": 6,
+        "all4": 0
+      },
+      "513520": {
+        "C3": 17,
+        "C4": 376,
+        "C7": 117,
+        "C8": 15,
+        "all4": 0
+      },
+      "513030": {
+        "C3": 15,
+        "C4": 361,
+        "C7": 123,
+        "C8": 4,
+        "all4": 0
+      },
+      "513080": {
+        "C3": 16,
+        "C4": 359,
+        "C7": 135,
+        "C8": 8,
+        "all4": 0
+      },
+      "513310": {
+        "C3": 16,
+        "C4": 390,
+        "C7": 121,
+        "C8": 24,
+        "all4": 0
+      },
+      "513730": {
+        "C3": 14,
+        "C4": 290,
+        "C7": 115,
+        "C8": 10,
+        "all4": 0
+      },
+      "159792": {
+        "C3": 20,
+        "C4": 375,
+        "C7": 188,
+        "C8": 63,
+        "all4": 0
+      },
+      "513130": {
+        "C3": 24,
+        "C4": 373,
+        "C7": 166,
+        "C8": 41,
+        "all4": 0
+      },
+      "513050": {
+        "C3": 30,
+        "C4": 393,
+        "C7": 173,
+        "C8": 33,
+        "all4": 0
+      },
+      "159920": {
+        "C3": 19,
+        "C4": 383,
+        "C7": 144,
+        "C8": 41,
+        "all4": 0
+      },
+      "513690": {
+        "C3": 19,
+        "C4": 381,
+        "C7": 139,
+        "C8": 51,
+        "all4": 0
+      },
+      "510300": {
+        "C3": 20,
+        "C4": 391,
+        "C7": 175,
+        "C8": 47,
+        "all4": 0
+      },
+      "510500": {
+        "C3": 19,
+        "C4": 391,
+        "C7": 169,
+        "C8": 88,
+        "all4": 0
+      },
+      "510050": {
+        "C3": 18,
+        "C4": 374,
+        "C7": 142,
+        "C8": 50,
+        "all4": 0
+      },
+      "510210": {
+        "C3": 18,
+        "C4": 366,
+        "C7": 158,
+        "C8": 85,
+        "all4": 0
+      },
+      "588080": {
+        "C3": 20,
+        "C4": 405,
+        "C7": 191,
+        "C8": 73,
+        "all4": 0
+      },
+      "512100": {
+        "C3": 20,
+        "C4": 393,
+        "C7": 174,
+        "C8": 99,
+        "all4": 0
+      },
+      "563300": {
+        "C3": 13,
+        "C4": 300,
+        "C7": 116,
+        "C8": 75,
+        "all4": 0
+      },
+      "512890": {
+        "C3": 16,
+        "C4": 411,
+        "C7": 149,
+        "C8": 47,
+        "all4": 0
+      },
+      "159967": {
+        "C3": 23,
+        "C4": 383,
+        "C7": 184,
+        "C8": 64,
+        "all4": 0
+      },
+      "512040": {
+        "C3": 20,
+        "C4": 388,
+        "C7": 145,
+        "C8": 42,
+        "all4": 0
+      },
+      "511380": {
+        "C3": 19,
+        "C4": 396,
+        "C7": 139,
+        "C8": 59,
+        "all4": 0
+      },
+      "511010": {
+        "C3": 6,
+        "C4": 401,
+        "C7": 61,
+        "C8": 27,
+        "all4": 0
+      }
+    }
+  },
+  "generated_at": "2026-08-12 22:00:28",
+  "engine_version": "goldcombo_v2",
+  "strategy_mechanic": "4指标共振 (MACD金叉<0 + BOLL扩口 + CCI<-100 + DMI空方极致) + 8%止损",
+  "kpi_target": {
+    "return_target": "+5% (棘轮基线最低门槛)",
+    "drawdown_max": "-30% (棘轮硬约束)"
+  },
+  "_trigger_stats_recomputed": "subagent #2b 后处理: 5Y min_rows=500 重算 (策略代码硬编码 1000 bug)"
+}

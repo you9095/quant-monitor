@@ -1,0 +1,61 @@
+{
+  "_comment": "goldcombo 信号文件 schema 模板 (M01 集成阶段 2026-08-12)",
+  "_source": "本字段为 schema 注释, 真实 signals 文件不含此字段",
+  "date": "YYYY-MM-DD",
+  "strategy_id": "goldcombo",
+  "data_source": "backtrader_2y_or_5y_backtest",
+  "data_period": "YYYY-MM-DD ~ YYYY-MM-DD",
+  "caliber": "2Y 年化(主) / 5Y 年化(副)",
+  "initial_capital": 10000.0,
+  "positions": [
+    {
+      "code": "string",
+      "name": "string",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    }
+  ],
+  "action": {
+    "action": "BUY | SELL | REBALANCE | HOLD",
+    "target": "ETF代码或空",
+    "detail": "string"
+  },
+  "today_pnl": 0.0,
+  "today_return": 0.0,
+  "live_total_pnl": 0.0,
+  "live_total_return": 0.0,
+  "live_days": 0,
+  "live_start_date": "YYYY-MM-DD",
+  "backtest_total_return": null,
+  "backtest_sharpe": null,
+  "backtest_max_drawdown": null,
+  "backtest_annualized_return": null,
+  "backtest_trades": 0,
+  "backtest_version": "R0_initial",
+  "backtest_data_period": "YYYY-MM-DD ~ YYYY-MM-DD",
+  "version": "R0_initial",
+  "source_file": "/Users/junze/quant-monitor-local/strategies/goldcombo/",
+  "source_file_latest": "/Users/junze/.hermes/work_logs/goldcombo/goldcombo_YYYY-MM-DD.json",
+  "source_file_count": 0,
+  "source_file_first_date": null,
+  "source_file_last_date": null,
+  "validation": {
+    "note": "信号文件 schema 与 lightning/r32/qixing 等策略保持一致。真实回测由 cron 8/13 01:30 启动后生成。",
+    "initial_capital_source": "config/strategies.json goldcombo.initial_capital",
+    "indicator_set": ["MACD(12/26/9)", "BOLL(20,2σ)", "CCI(14)", "DMI(14)", "TRIX(12)+TRMA(9)"],
+    "entry_conditions": {
+      "C3": "MACD 低位金叉 + MACD 双负",
+      "C4": "BOLL 开口放大",
+      "C7": "CCI < -100",
+      "C8": "+DI < 10 且 -DI > 30"
+    },
+    "exit_conditions": {
+      "S2": "CCI > 120",
+      "S3": "+DI > 30 且 -DI < 20 且 ADX > 32",
+      "S4": "TRIX > TRMA 且 TRIX > 0",
+      "S6": "MACD > signal 且 MACD 双正"
+    },
+    "stop_loss": "sl_pct = 0.08 (8% 硬止损)"
+  }
+}
