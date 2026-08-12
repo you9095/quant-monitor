@@ -37,6 +37,9 @@
   --sanhe-end: #facc15;
   --lightning-start: #eab308;
   --lightning-end: #f97316;
+  /* 黄金组合A（极致恐慌反转）M01 集成 2026-08-12：红（避开 5 现有策略色） */
+  --goldcombo-start: #ef4444;
+  --goldcombo-end: #f87171;
 
   /* 状态色 */
   --color-up: #10b981;
@@ -207,6 +210,8 @@ body {
 .action-item.zhuidian { border-left: 3px solid var(--zhuidian-start); }
 .action-item.sanhe { border-left: 3px solid var(--sanhe-start); }
 .action-item.lightning { border-left: 3px solid var(--lightning-start); }
+/* M01 集成 2026-08-12: goldcombo 卡片左色条 */
+.action-item.goldcombo { border-left: 3px solid var(--goldcombo-start); }
 
 .action-badge {
   padding: 4px 10px;
@@ -307,6 +312,8 @@ body {
 .card-header.zhuidian  { background: #f97316; filter: saturate(0.7) brightness(0.8); }
 .card-header.sanhe     { background: #a855f7; filter: saturate(0.7) brightness(0.8); }
 .card-header.lightning { background: #eab308; filter: saturate(0.7) brightness(0.8); }
+/* M01 集成 2026-08-12: goldcombo 卡片顶部色条 */
+.card-header.goldcombo { background: #ef4444; filter: saturate(0.7) brightness(0.8); }
 .strategy-card:hover .card-header { filter: none; }
 
 .card-body {
@@ -851,7 +858,7 @@ body {
     <span>AI量化 · 五策略监控面板</span>
   </div>
   <div class="topbar-meta">
-    <span id="current-date">2026-06-08</span>
+    <span id="current-date"></span>
     <span id="current-time">15:00:00</span>
     <div class="portfolio-summary" id="portfolio-summary">
       <div class="item"><span class="label">初始</span><span class="val text-mono" id="ps-initial">¥50,000.00</span></div>
@@ -914,6 +921,8 @@ body {
 .trade-card.zhuidian { border-left: 3px solid var(--zhuidian-start); }
 .trade-card.sanhe { border-left: 3px solid var(--sanhe-start); }
 .trade-card.lightning { border-left: 3px solid var(--lightning-start); }
+/* M01 集成 2026-08-12: goldcombo 交易明细左色条 */
+.trade-card.goldcombo { border-left: 3px solid var(--goldcombo-start); }
 .trade-card-header {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: var(--space-md);
@@ -1104,7 +1113,6 @@ body {
       <span class="section-title">策略变更日志</span>
       <div style="display:flex;align-items:center;gap:12px">
         <select id="review-date-select" onchange="loadReviewByDate(this.value)" style="background:var(--bg-surface);border:1px solid var(--border-medium);color:var(--text-primary);padding:4px 10px;border-radius:var(--radius-sm);font-size:12px;cursor:pointer">
-          <option value="2026-06-08">2026-06-08 (今日)</option>
         </select>
         <a href="review.html" style="font-size:12px;color:var(--r32-end);text-decoration:none">查看完整复盘 →</a>
       </div>
@@ -1139,7 +1147,7 @@ body {
   </div>
 </div>
 
-  <script src="assets/data.js?v=13"></script>  <!-- 2026-08-09 v13: force fresh fetchStrategies load -->
+  <script src="assets/data.js?v=18"></script>  <!-- 2026-08-12 v18: P0 fix totalAsset 用 s.total_asset (不是 s.cash), 让"合计"显示真实总资产 -->
   <script>
 // ========== 数据状态（从DataLayer加载） ==========
 let strategiesData = {};
@@ -1217,7 +1225,15 @@ function renderActionItems(strategies) {
       desc = '当前无持仓';
     } else if (holdings.length === 1) {
       target = holdings[0].code + ' ' + (holdings[0].name || '');
-      desc = '成本 ¥' + (holdings[0].cost || '--') + ' · ' + (holdings[0].qty ? holdings[0].qty.toLocaleString() + ' 股' : '');
+      // 2026-08-12 P0 fix: signals JSON 的 cost 字段语义是 per-share (每股成本),
+      // 显示"成本"用持仓市值 (qty*price) 才合理,否则 cost=per-share 直接显示会误导
+      // (1000股 × cost=100 显示"¥100" 以为是每股价)。优先 price 字段,退到 cost*qty。
+      const _h0 = holdings[0];
+      const _h0price = _h0.price != null ? _h0.price : _h0.current_price;
+      const _h0mv = (_h0.qty && _h0price) ? _h0.qty * _h0price
+                   : (_h0.qty && _h0.cost) ? _h0.qty * _h0.cost
+                   : (_h0.market_value != null ? _h0.market_value : null);
+      desc = '持仓 ¥' + (_h0mv != null ? _h0mv.toLocaleString('zh-CN', {minimumFractionDigits: 2}) : '--') + ' · ' + (_h0.qty ? _h0.qty.toLocaleString() + ' 股' : '');
     } else {
       const codes = holdings.map(h => h.code).slice(0, 5);
       target = (s.name || sid) + ' ' + holdings.length + '只持仓';
@@ -1374,7 +1390,12 @@ function buildCardHtml(sid, sname, s) {
 
   let holdingsHtml = holdings.map(h => {
     const qty = h.qty ? h.qty.toLocaleString() : (h.weight ? h.weight + '%' : '--');
-    const cost = h.cost ? '¥' + h.cost : '--';
+    // 2026-08-12 P0 fix: cost 字段是 per-share,显示"成本"用持仓市值 (qty*price 或 qty*cost)
+    // 才是用户期望的金额,直接显示 cost=100 会被误读为"总市值 100 元"
+    const _hprice = h.price != null ? h.price : (h.current_price != null ? h.current_price : (h.cost || 0));
+    const _hmv = h.market_value != null ? h.market_value : ((h.qty && _hprice) ? h.qty * _hprice : null);
+    const cost = _hmv != null ? '¥' + _hmv.toLocaleString('zh-CN', {minimumFractionDigits: 2})
+              : (h.cost ? '¥' + h.cost : '--');
     const pnlHtml = h.pnl !== undefined && h.pnl !== null
       ? `<span class="holding-pnl ${h.pnl >= 0 ? 'up' : 'down'}">${h.pnl >= 0 ? '+' : ''}${h.pnl.toFixed(2)} (${h.pnl >= 0 ? '+' : ''}${h.pnl_pct}%)</span>`
       : '<span class="holding-pnl">--</span>';
@@ -1450,12 +1471,16 @@ function renderTradeDetails(strategies) {
     const holdings = s.holdings || [];
     const totalCount = holdings.length;
     const totalAmt = holdings.reduce((sum, h) => {
-      const qty = h.qty || 0;
-      const price = h.price || h.cost || 0;
-      return sum + qty * price;
+      // 2026-08-12 P0 fix: signals JSON 的 cost 字段语义是"总成本"(= market_value),
+      // 不再 qty * cost 双重计算。优先用 market_value, 退到 cost。
+      const mv = h.market_value != null ? h.market_value : (h.cost || 0);
+      return sum + mv;
     }, 0);
     const cash = s.cash || 0;
-    const totalAsset = totalAmt + cash;
+    // 2026-08-12 v17 P0 fix: 合计用 s.total_asset (API 真实总资产) 而不是 s.cash (现金)
+    // 原因: cash = total_asset - holdings_sum, 但 trade-card 已列 holdings 各项 amount, 合计应等于 total_asset
+    // 视觉一致性: 让"共 N 笔交易 合计 ¥X"显示真实总资产
+    const totalAsset = s.total_asset != null ? s.total_asset : (totalAmt + cash);
     return `<div class="trade-card ${sid}">
       <div class="trade-card-header">
         <span class="trade-card-title">${sname}</span>
@@ -1473,7 +1498,8 @@ function renderTradeDetails(strategies) {
               </div>
               <div class="trade-row-right">
                 <div class="trade-qty">${(h.qty || 0).toLocaleString()}股</div>
-                <div class="trade-amount">¥${((h.qty || 0) * (h.price || h.cost || 0)).toLocaleString('zh-CN', {minimumFractionDigits: 2})}</div>
+                <!-- 2026-08-12 P0 fix: 改用 market_value (不再 qty * cost 双重计算, 否则 1000股 × cost=100000 显示成 ¥100,000,000) -->
+                <div class="trade-amount">¥${((h.market_value != null ? h.market_value : (h.cost || 0))).toLocaleString('zh-CN', {minimumFractionDigits: 2})}</div>
               </div>
             </div>`;
           }).join('')}
@@ -1754,13 +1780,55 @@ function renderLogs(strategies) {
 }
 
 // ========== 时钟更新 ==========
+function getTodayStr() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 function updateClock() {
   const now = new Date();
+  const todayStr = getTodayStr();
   document.getElementById('current-date').textContent = now.toLocaleDateString('zh-CN');
   document.getElementById('current-time').textContent = now.toLocaleTimeString('zh-CN');
+  // 同步 review-date-select:若当前选中"今日"option,刷新文字;否则不动用户选择
+  const sel = document.getElementById('review-date-select');
+  if (sel) {
+    const todayOpt = sel.querySelector(`option[value="${todayStr}"]`);
+    if (todayOpt) todayOpt.textContent = `${todayStr} (今日)`;
+  }
+}
+
+function initReviewDateSelect() {
+  const sel = document.getElementById('review-date-select');
+  if (!sel) return;
+  const today = getTodayStr();
+  // 1. 今日默认
+  const opt = document.createElement('option');
+  opt.value = today;
+  opt.textContent = `${today} (今日)`;
+  sel.appendChild(opt);
+  // 2. 最近 14 天回放
+  for (let i = 1; i <= 14; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const past = `${y}-${m}-${dd}`;
+    const o = document.createElement('option');
+    o.value = past;
+    o.textContent = past;
+    sel.appendChild(o);
+  }
+  sel.value = today;
+  loadReviewByDate(today);
 }
 setInterval(updateClock, 1000);
 updateClock();
+initReviewDateSelect();
 
 // ========== 刷新数据 ==========
 function refreshData() {
@@ -1790,23 +1858,15 @@ function loadReviewByDate(date) {
   } else {
     container.innerHTML = `
       <div class="log-item" style="justify-content:center;color:var(--text-muted)">
-        ${date === '2026-06-08' ? '今日暂无更多日志' : '该日期暂无复盘记录'}
+        ${date === getTodayStr() ? '今日暂无复盘记录' : '该日期暂无复盘记录'}
       </div>
     `;
   }
 }
 
-// 获取指定日期的日志（实际应从review/目录加载）
+// 获取指定日期的日志（实际应从 review/ 目录加载）
 function getLogsForDate(date) {
-  if (date === '2026-06-08') {
-    return [
-      { time: '2026-06-14 16:00', strategy: 'sanhe', strategyName: '三合', action: 'PARAM', detail: '三合策略 60 轮棘轮迭代完成 - 基线 R31_vol_weight' },
-      { time: '2026-06-14 15:30', strategy: 'sanhe', strategyName: '三合', action: 'BASELINE', detail: '2Y年化+35.15%/回撤-23.38% · 5Y年化+17.48%/回撤-21.80%' },
-      { time: '2026-06-11 15:00', strategy: 'qixing', strategyName: '七星', action: 'PARAM', detail: '七星策略棘轮基线同步为 R26 持仓1只' },
-      { time: '2026-06-08 09:30', strategy: 'r32', strategyName: 'R32', action: 'REBALANCE', detail: '调仓至 5只ETF等权重' },
-      { time: '2026-06-08 09:30', strategy: 'zhuidian', strategyName: '追电', action: 'BUY', detail: '买入 513100 纳指ETF 4,530股 @ ¥2.205' }
-    ];
-  }
+  // 硬编码 mock 已移除,改为按真实 review 目录加载,无数据返回空
   return [];
 }
 
@@ -1846,7 +1906,12 @@ function openStrategyDetail(id) {
       <div class="holding-row" style="grid-template-columns:1fr 1fr 1fr 1fr">
         <div><div class="holding-code">${h.code}</div><div class="holding-name">${h.name}</div></div>
         <span class="text-mono">${h.qty ? h.qty.toLocaleString() : (h.weight + '%')}</span>
-        <span class="text-mono">¥${h.cost}</span>
+        <!-- 2026-08-12 P0 fix: cost 是 per-share, 显示持仓市值 (qty*price 或 qty*cost fallback) -->
+        ${(() => {
+          const _p = h.price != null ? h.price : (h.current_price != null ? h.current_price : (h.cost || 0));
+          const _mv = h.market_value != null ? h.market_value : ((h.qty && _p) ? h.qty * _p : null);
+          return `<span class="text-mono">¥${_mv != null ? _mv.toLocaleString('zh-CN', {minimumFractionDigits: 2}) : (h.cost || '--')}</span>`;
+        })()}
         <span class="holding-pnl ${(h.pnl||0) >= 0 ? 'up' : 'down'}">${h.pnl ? (h.pnl>=0?'+':'')+h.pnl.toFixed(2)+' ('+(h.pnl>=0?'+':'')+h.pnl_pct+'%)' : '--'}</span>
       </div>
     `).join('')}

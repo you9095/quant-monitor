@@ -6,7 +6,7 @@ const DataLayer = {
   config: {
     pollInterval: 30000,      // 30秒轮询
     pricePollInterval: 5000,  // 5秒行情轮询
-    apiBase: 'http://localhost:8766/api/v1',  // 2026-08-09 CORS proxy 8766 → 8765 (real_data_server_v2.py)
+    apiBase: '/api/v1',  // 2026-08-11 改相对路径,Flask 8000 单端口同时 serve 静态 + API
     useMock: false            // 使用真实API（Mock服务器）
   },
 
@@ -57,11 +57,11 @@ const DataLayer = {
         status: 'running',
         today_action: 'DEFENSIVE',
         target: '511880',
-        position_pct: 99.9,
-        cash: 50.00,
+        position_pct: 100.0,
+        cash: 0.00,
         holdings: [
           // 2026-08-03 FIX_S3: holdings 换真实 signals positions (signals/qixing_2026-08-03.json)
-          { code: '511880', name: '银华日利ETF', qty: 1000, weight: null, cost: 100000.0, price: 100000.0, pnl: null, pnl_pct: 0.0 }
+          { code: '511880', name: '银华日利ETF', qty: 1000, weight: null, cost: 100.0, price: 100.0, pnl: null, pnl_pct: 0.0 }
         ],
         metrics: {
           total_return_2y: 32.35,

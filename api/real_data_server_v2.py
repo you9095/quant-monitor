@@ -114,7 +114,8 @@ def load_strategies():
         return {
             'qixing': {'name': '七星策略', 'color': '#3b82f6', 'initial_capital': 10000},
             'r32': {'name': '三驾马车R32', 'color': '#10b981', 'initial_capital': 10000},
-            'zhuidian': {'name': '追电策略', 'color': '#f59e0b', 'initial_capital': 10000}
+            'zhuidian': {'name': '追电策略', 'color': '#f59e0b', 'initial_capital': 10000},
+            'goldcombo': {'name': '黄金组合A', 'color': '#ef4444', 'initial_capital': 10000}
         }
 
 def get_latest_signal(strategy_id):
@@ -390,13 +391,14 @@ def dashboard_monthly_compare():
                 y -= 1
         months.reverse()  # 升序
 
-        # 5 策略颜色
+        # 6 策略颜色 (M01 集成第 6 张策略卡 2026-08-12)
         colors = {
             'qixing': '#3b82f6',
             'r32': '#10b981',
             'zhuidian': '#f59e0b',
             'sanhe': '#a855f7',
             'lightning': '#facc15',
+            'goldcombo': '#ef4444',
         }
         names = {
             'qixing': '七星策略',
@@ -404,6 +406,7 @@ def dashboard_monthly_compare():
             'zhuidian': '追电策略',
             'sanhe': '三合策略',
             'lightning': '闪电策略',
+            'goldcombo': '黄金组合A',
         }
 
         # 收集每个策略每月的最新 total_return
@@ -492,7 +495,7 @@ def dashboard_qixing_flow():
 
         # P4: 支持策略选择器
         strategy_id = request.args.get('strategy', 'qixing')
-        valid_strategies = ['qixing', 'r32', 'zhuidian', 'sanhe', 'lightning']
+        valid_strategies = ['qixing', 'r32', 'zhuidian', 'sanhe', 'lightning', 'goldcombo']
         if strategy_id not in valid_strategies:
             return jsonify({'code': 1, 'message': f'invalid strategy: {strategy_id}', 'data': None}), 400
 
@@ -650,6 +653,7 @@ def dashboard_daily_pnl_trend():
             'zhuidian': '追电',
             'sanhe': '三合',
             'lightning': '闪电',
+            'goldcombo': '黄金组合A',
         }
         colors = {
             'qixing': '#3b82f6',
@@ -657,6 +661,7 @@ def dashboard_daily_pnl_trend():
             'zhuidian': '#f59e0b',
             'sanhe': '#a855f7',
             'lightning': '#facc15',
+            'goldcombo': '#ef4444',
         }
 
         # 1) 收集每个策略的 daily log 文件路径
@@ -789,12 +794,14 @@ def dashboard_wfa_summary():
             'zhuidian': '追电',
             'sanhe': '三合',
             'lightning': '闪电',
+            'goldcombo': '黄金组合A',
         }
         colors = {
             'r32': '#10b981',
             'zhuidian': '#f59e0b',
             'sanhe': '#a855f7',
             'lightning': '#facc15',
+            'goldcombo': '#ef4444',
         }
 
         # 1) 读 latest_summary.json
@@ -898,18 +905,20 @@ def dashboard_wfa_oos_curve():
             'zhuidian': '追电',
             'sanhe': '三合',
             'lightning': '闪电',
+            'goldcombo': '黄金组合A',
         }
         colors = {
             'r32': '#10b981',
             'zhuidian': '#f59e0b',
             'sanhe': '#a855f7',
             'lightning': '#facc15',
+            'goldcombo': '#ef4444',
         }
 
         # 1) 读每个策略的 per-strategy WFA 文件(取第一个非空 oos_curve 的最新文件)
         strategies_data = {}
         all_dates = set()
-        all_sids = ['qixing', 'r32', 'zhuidian', 'sanhe', 'lightning']
+        all_sids = ['qixing', 'r32', 'zhuidian', 'sanhe', 'lightning', 'goldcombo']
 
         for sid in all_sids:
             files = sorted(wfa_dir.glob(f'{sid}_wfa_*.json'), reverse=True)
@@ -1227,6 +1236,7 @@ def dashboard_strategies_flow_summary():
             'zhuidian': '追电策略',
             'sanhe': '三合策略',
             'lightning': '闪电策略',
+            'goldcombo': '黄金组合A',
         }
         colors = {
             'qixing': '#3b82f6',
@@ -1234,6 +1244,7 @@ def dashboard_strategies_flow_summary():
             'zhuidian': '#f59e0b',
             'sanhe': '#a855f7',
             'lightning': '#facc15',
+            'goldcombo': '#ef4444',
         }
         result = {}
         total_days = 0
@@ -1320,6 +1331,7 @@ def dashboard_ratchet_evolution():
             'zhuidian': '#f59e0b',
             'sanhe': '#a855f7',
             'lightning': '#facc15',
+            'goldcombo': '#ef4444',
         }
         names = {
             'qixing': '七星策略',
@@ -1327,6 +1339,7 @@ def dashboard_ratchet_evolution():
             'zhuidian': '追电策略',
             'sanhe': '三合策略',
             'lightning': '闪电策略',
+            'goldcombo': '黄金组合A',
         }
 
         result = {}

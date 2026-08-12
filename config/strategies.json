@@ -44,5 +44,14 @@
     "version": "R4_m3",
     "data_period": "2024-06 ~ 2026-06",
     "caliber": "2Y 年化(主)+27.34%，5Y 未跑（P2 风险点）"
+  },
+  "goldcombo": {
+    "name": "黄金组合A",
+    "color": "#ef4444",
+    "initial_capital": 10000,
+    "description": "极致恐慌反转模型",
+    "version": "R0_initial",
+    "data_period": "2026-08-12 ~ (待 2Y/5Y 回测)",
+    "caliber": "2Y/年化-主（M01 集成阶段 R0_initial 占位）；5Y 待跑（cron 8/13 启动）"
   }
 }
