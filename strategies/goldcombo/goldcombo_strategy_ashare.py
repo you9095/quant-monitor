@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-[2026-08-14 版本管理] v1 已废弃,保留文件仅为历史回测兼容。新策略在 goldcombo_strategy_ashare_v2.py。
+[2026-08-14 版本管理 v3] v2 已废弃 (Gated Voting),保留文件仅为历史回测兼容。新策略在 goldcombo_strategy_ashare_v3.py。
 下方导入别名让旧 import 路径 (from goldcombo_strategy_ashare import GoldComboStrategy)
-仍可工作,实际类指向 GoldComboRelaxedStrategy (Gated Voting)。
+仍可工作,实际类指向 GoldComboV3_1Strategy (v3 小资金严控版: 5% 硬止损 + 8% 移动止盈 + 价格过滤 [3,90])。
+
+版本备份链:
+- v1 备份: ~/goldcombo_real_backtest/v1_backup/
+- v2 备份: ~/goldcombo_real_backtest/v2_backup/  (sha256 a16653578143b69a11d0f66e17697fcc19a53ee93611dbe78432fa8475bcaaa1)
+- v3 备份: ~/goldcombo_real_backtest/v3/T1_extract/goldcombo_strategy_v3_raw.py  (raw sha256 45af259a1ebae70760d7cd27ded47130daaa7c5b330e3ed7c6df459efd7f9f7e)
 """
-from strategies.goldcombo.goldcombo_strategy_ashare_v2 import GoldComboRelaxedStrategy as GoldComboStrategy
+from strategies.goldcombo.goldcombo_strategy_ashare_v3 import GoldComboV3_1Strategy as GoldComboStrategy
 
 """
 黄金组合 A 回测引擎 v3 — GoldComboStrategy 沪深 A 股版
