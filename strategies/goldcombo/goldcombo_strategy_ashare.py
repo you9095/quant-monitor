@@ -1,16 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-[2026-08-14 版本管理 v3] v2 已废弃 (Gated Voting),保留文件仅为历史回测兼容。新策略在 goldcombo_strategy_ashare_v3.py。
+[2026-08-14 版本管理 v4] v3 已废弃 (小资金严控版),保留文件仅为历史回测兼容。
+本 alias 现在指向 v4 灵活卖点版 (GoldComboV5Strategy: ATR 自适应 + 阶梯移动止盈 + 时间止损)。
+v3 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v3.py (5% 硬止损 + 8% 固定移动止盈)。
+
 下方导入别名让旧 import 路径 (from goldcombo_strategy_ashare import GoldComboStrategy)
-仍可工作,实际类指向 GoldComboV3_1Strategy (v3 小资金严控版: 5% 硬止损 + 8% 移动止盈 + 价格过滤 [3,90])。
+仍可工作,实际类指向 GoldComboV5Strategy (v4 灵活卖点版)。
+
+用户原话 (2026-08-14): "立刻进行回测,只回测两年的,而且需要在股票池里面剔除掉股票价格小于 2 块钱以下的所有股票"
+- "只回测两年的" → run_backtest_2y_v4.py 数据期 2024-08-14 ~ 2026-08-14
+- "剔除 price<2 元股" → 在 run_backtest 数据层按 first_price<2 过滤,不污染策略类 price_min=3.0
 
 版本备份链:
-- v1 备份: ~/goldcombo_real_backtest/v1_backup/
-- v2 备份: ~/goldcombo_real_backtest/v2_backup/  (sha256 a16653578143b69a11d0f66e17697fcc19a53ee93611dbe78432fa8475bcaaa1)
-- v3 备份: ~/goldcombo_real_backtest/v3/T1_extract/goldcombo_strategy_v3_raw.py  (raw sha256 45af259a1ebae70760d7cd27ded47130daaa7c5b330e3ed7c6df459efd7f9f7e)
+- v1 备份: ~/goldcombo_real_backtest/v1_backup/  (git da10a57)
+- v2 备份: ~/goldcombo_real_backtest/v2_backup/  (git 57267e1)
+- v3 备份: ~/goldcombo_real_backtest/v3_backup/  (本次 v3→v4 前新建,4 文件 + sha256)
+- v4 当前: strategies/goldcombo/goldcombo_strategy_ashare_v4.py (GoldComboV5Strategy)
+
+v4 类名 GoldComboV5Strategy (用户命名混乱:文件名"第四版",类名 v5,按 v4 处理)。
 """
-from strategies.goldcombo.goldcombo_strategy_ashare_v3 import GoldComboV3_1Strategy as GoldComboStrategy
+from strategies.goldcombo.goldcombo_strategy_ashare_v4 import GoldComboV5Strategy as GoldComboStrategy
 
 """
 黄金组合 A 回测引擎 v3 — GoldComboStrategy 沪深 A 股版
