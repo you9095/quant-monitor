@@ -1,29 +1,34 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-[2026-08-15 版本管理 v6] v4 已废弃 (灵活卖点版),保留文件仅为历史回测兼容。
-本 alias 现在指向 v6 严控回撤去错杀版 (GoldComboV6Strategy: 5% 硬止损回归 + 新增保本止损 + MACD 高位死叉回归)。
+[2026-08-15 版本管理 v8] v6 已废弃 (严控回撤去错杀版),保留 v6 文件仅为历史回测兼容。
+本 alias 现在指向 v8 EatTheBody 防暴跌50%严控版 (GoldComboV8_EatTheBody: 10% 硬止损 + 15% 移动止盈 + 删除保本/MACD)。
+v6 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v6.py (5% 硬止损回归 + 保本止损 + MACD 高位死叉回归)。
 v4 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v4.py (ATR 自适应 + 阶梯移动止盈 + 时间止损)。
 v3 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v3.py (5% 硬止损 + 8% 固定移动止盈)。
 
 下方导入别名让旧 import 路径 (from goldcombo_strategy_ashare import GoldComboStrategy)
-仍可工作,实际类指向 GoldComboV6Strategy (v6 严控回撤去错杀版)。
+仍可工作,实际类指向 GoldComboV8_EatTheBody (v8 EatTheBody 防暴跌50%严控版)。
 
-用户原话 (2026-08-15): "这是最新版本,把这个替换到黄金组合策略里面,并进行两年回测,看一下实际收益情况怎么样?"
-- "替换到黄金组合策略里面" → 覆盖策略代码, 沿用 v1→v2→v3→v4 版本管理链路
-- "进行两年回测" → run_backtest_2y_v6.py 数据期 2024-08-14 ~ 2026-08-14 (严格只做 2Y, 不跑 5Y)
-- 本任务无额外 price 过滤层要求 (v4 任务特有), 直接用 v6 策略类 price_min=3.0 自身过滤
+用户原话 (2026-08-15): "这是更新后的黄金组合策略,替换掉原先的 V6 版本,针对的还是沪深股市。
+现在跑一次最近 5 年的回测,并把结果发给我。"
+- "替换掉原先的 V6 版本" → 覆盖策略代码, 沿用 v1→v2→v3→v4→v6 版本管理链路
+- "针对的还是沪深股市" → 沪深 A 股池 1950 只 (排除 688xxx 科创 + 300xxx 创业)
+- "现在跑一次最近 5 年的回测" → run_backtest_5y_v8.py 数据期 2021-08-14 ~ 2026-08-14 (严格 5Y, 不跑 2Y)
+- 本任务无额外 price 过滤层要求 (v4 任务特有), 直接用 v8 策略类 price_min=3.0 自身过滤
 
 版本备份链:
-- v1 备份: ~/goldcombo_real_backtest/v1_backup/  (git da10a57)
-- v2 备份: ~/goldcombo_real_backtest/v2_backup/  (git 57267e1)
+- v1 备份: ~/goldcombo_real_backtest/v1_backup/                    (git da10a57)
+- v2 备份: ~/goldcombo_real_backtest/v2_backup/                    (git 57267e1)
 - v3 备份: ~/goldcombo_real_backtest/v3_backup/
-- v4 备份: ~/goldcombo_real_backtest/v4_backup/  (本次 v4→v6 前新建,5 文件 + sha256)
-- v6 当前: strategies/goldcombo/goldcombo_strategy_ashare_v6.py (GoldComboV6Strategy)
+- v4 备份: ~/goldcombo_real_backtest/v4_backup/
+- v6 备份: ~/goldcombo_real_backtest/v8/v6_integration_backup/    (本次新建,6 文件 + sha256)
+- v6 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v6.py (GoldComboV6Strategy, 已废弃但保留)
+- v8 新文件: strategies/goldcombo/goldcombo_strategy_ashare_v8.py  (GoldComboV8_EatTheBody)
 
-v6 类名 GoldComboV6Strategy (用户手动上传 2026-08-15, 严控回撤去错杀版)。
+v8 类名 GoldComboV8_EatTheBody (用户手动上传 2026-08-15, EatTheBody 防暴跌50%严控版)。
 """
-from strategies.goldcombo.goldcombo_strategy_ashare_v6 import GoldComboV6Strategy as GoldComboStrategy
+from strategies.goldcombo.goldcombo_strategy_ashare_v8 import GoldComboV8_EatTheBody as GoldComboStrategy
 
 """
 黄金组合 A 回测引擎 v3 — GoldComboStrategy 沪深 A 股版
