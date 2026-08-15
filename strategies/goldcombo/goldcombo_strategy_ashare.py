@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-[2026-08-15 版本管理 V8final] v8 EatTheBody 已废弃,本 alias 现在指向 V8final 终极版。
-本 alias 现在指向 V8final (GoldComboV8_Final: 10% 硬止损 + 15% 移动止盈 + CCI>120, 同 v8 逻辑)。
+[2026-08-15 版本管理 V9] v8 EatTheBody / V8final 已废弃,本 alias 现在指向 V9 用户原版。
+本 alias 现在指向 V9 (GoldComboV8_Final, 与 V8final 100% 逻辑一致, 仅多 debug 参数 + math.isnan 防护)。
 v6 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v6.py (5% 硬止损回归 + 保本止损 + MACD 高位死叉回归)。
 v4 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v4.py (ATR 自适应 + 阶梯移动止盈 + 时间止损)。
 v3 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v3.py (5% 硬止损 + 8% 固定移动止盈)。
+V8final 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v8final.py (已废弃, 保留 git 历史 commit 67a5f98)。
 
 下方导入别名让旧 import 路径 (from goldcombo_strategy_ashare import GoldComboStrategy)
-仍可工作,实际类指向 GoldComboV8_Final (V8final 终极版)。
+仍可工作,实际类指向 GoldComboV8_Final (V9 用户原版)。
 
-用户原话 (2026-08-15): "这个是修改之后的 V8 源代码,把这个 V8 源代码直接替换上去,
-删除掉原先所有的旧数据,只使用这个 V8 新代码进行最近 5 年的测试。测试时间需要和原先的最近 5 年测试保持一致。"
-- "V8 源代码直接替换上去" → V8final 替换 v8 EatTheBody (策略类更新)
-- "删除掉原先所有的旧数据" → 用户授权清理 v1-v6 的回测产物 (git 历史保留)
-- "只使用这个 V8 新代码" → 只跑 V8final, 旧 baseline 删掉
-- "最近 5 年的测试" + "测试时间需要和原先的最近 5 年测试保持一致" → 5Y 数据期 2021-08-14 ~ 2026-08-14
+用户原话 (2026-08-15): "必须一字不差地用这个类跑股票池子,不准加任何外部 hold/lock"。
+- "必须一字不差地用这个类" → V9 用户原版 (类名 GoldComboV8_Final, 一行都不改)
+- "不准加任何外部 hold/lock" → 不允许任何外部 hold/lock/sl 逻辑 (策略类内部已含 hard_sl/trail_sl)
+- V9 与 V8final 逻辑 100% 一致, 区别仅多 debug 参数 + math.isnan 防护
 
 版本备份链:
 - v1 备份: ~/goldcombo_real_backtest/v1_backup/                    (git da10a57, 已清理)
@@ -24,14 +23,16 @@ v3 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v3.py (5% 硬止
 - v4 备份: ~/goldcombo_real_backtest/v4_backup/                    (已清理)
 - v6 备份: ~/goldcombo_real_backtest/v8_old_eatthebody_backup/v6_integration_backup/    (保留供历史回溯)
 - v8 备份: ~/goldcombo_real_backtest/v8_old_eatthebody_backup/  (旧 v8 EatTheBody 源码已删, 此目录仅保留 v6 集成快照)
+- v8final 备份: ~/goldcombo_real_backtest/v8final/  (subagent #15 跑批产物, 已清理 T4_5y + _v6_monitor_backup)
 - v6 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v6.py (GoldComboV6Strategy, 已废弃但保留 git 历史)
-- V8final 新文件: strategies/goldcombo/goldcombo_strategy_ashare_v8final.py  (GoldComboV8_Final)
+- V8final 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v8final.py  (GoldComboV8_Final, 已废弃, 保留 git 历史 commit 67a5f98)
+- V9 新文件: strategies/goldcombo/goldcombo_strategy_ashare_v9.py  (GoldComboV8_Final 用户原版)
 
-V8final 类名 GoldComboV8_Final (用户手动上传 2026-08-15, V8 终极版)。
-来源: ~/Downloads/股票筛选项目/自己写量化策略和脚本/混元三黄金组合优化V8final.py
-来源 sha256: 8d66c5841183bcd54861767490c1c7be42933c80663301a5a8eb0bfc92cda8c4
+V9 类名 GoldComboV8_Final (用户手动上传 2026-08-15, V9 用户原版, 与 V8final 100% 一致)。
+来源: ~/Downloads/股票筛选项目/自己写量化策略和脚本/混元三黄金组合优化第四版V9.py
+来源 sha256: 32f6813d84c0406fef979e0d3372cd4575dabe90403a21e3df54a0c6a927841f
 """
-from strategies.goldcombo.goldcombo_strategy_ashare_v8final import GoldComboV8_Final as GoldComboStrategy
+from strategies.goldcombo.goldcombo_strategy_ashare_v9 import GoldComboV8_Final as GoldComboStrategy
 
 """
 黄金组合 A 回测引擎 v3 — GoldComboStrategy 沪深 A 股版
