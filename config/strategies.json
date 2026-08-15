@@ -50,8 +50,10 @@
     "color": "#ef4444",
     "initial_capital": 10000,
     "description": "极致恐慌反转模型",
-    "version": "R0_initial",
-    "data_period": "2026-08-12 ~ (待 2Y/5Y 回测)",
-    "caliber": "2Y/年化-主（M01 集成阶段 R0_initial 占位）；5Y 待跑（cron 8/13 启动）"
+    "version": "v6",
+    "data_period": "2021-08-14 ~ 2026-08-14 (5Y)",
+    "caliber": "5Y · 严控回撤去错杀版 (sl_pct=0.05 + breakeven_pct=0.05 + be_stop_pct=0.01 + MACD 高位死叉)",
+    "latest_baseline": "/Users/junze/goldcombo_real_backtest/v6_5y/baseline_ashare_real_5y_v6.json",
+    "last_updated": "2026-08-15"
   }
 }

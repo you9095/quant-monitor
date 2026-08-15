@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI量化 · 五策略监控面板</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="assets/chart.umd.min.js"></script>  <!-- 2026-08-14 v20: CDN 在 ClashX 出口下不可达,改用本地 assets/chart.umd.min.js (205KB) -->
 <style>
 /* ========== CSS变量设计系统 ========== */
 :root {
@@ -37,7 +37,9 @@
   --sanhe-end: #facc15;
   --lightning-start: #eab308;
   --lightning-end: #f97316;
-  /* 黄金组合A（极致恐慌反转）M01 集成 2026-08-12：红（避开 5 现有策略色） */
+  /* 黄金组合A（极致恐慌反转）M01 v6 5Y 集成 2026-08-15：红（避开 5 现有策略色） */
+  /* 2026-08-15: v3 R20_DMI_20 (8%硬止损) → v6_GoldComboV6Strategy_5Y (5%硬止损+保本+MACD高位死叉) */
+  /* source: /Users/junze/goldcombo_real_backtest/v6_5y/baseline_ashare_real_5y_v6.json */
   --goldcombo-start: #ef4444;
   --goldcombo-end: #f87171;
 
@@ -210,7 +212,7 @@ body {
 .action-item.zhuidian { border-left: 3px solid var(--zhuidian-start); }
 .action-item.sanhe { border-left: 3px solid var(--sanhe-start); }
 .action-item.lightning { border-left: 3px solid var(--lightning-start); }
-/* M01 集成 2026-08-12: goldcombo 卡片左色条 */
+/* M01 v6 5Y 集成 2026-08-15: goldcombo 卡片左色条 (v6_GoldComboV6Strategy_5Y) */
 .action-item.goldcombo { border-left: 3px solid var(--goldcombo-start); }
 
 .action-badge {
@@ -312,7 +314,7 @@ body {
 .card-header.zhuidian  { background: #f97316; filter: saturate(0.7) brightness(0.8); }
 .card-header.sanhe     { background: #a855f7; filter: saturate(0.7) brightness(0.8); }
 .card-header.lightning { background: #eab308; filter: saturate(0.7) brightness(0.8); }
-/* M01 集成 2026-08-12: goldcombo 卡片顶部色条 */
+/* M01 v6 5Y 集成 2026-08-15: goldcombo 卡片顶部色条 */
 .card-header.goldcombo { background: #ef4444; filter: saturate(0.7) brightness(0.8); }
 .strategy-card:hover .card-header { filter: none; }
 
@@ -921,7 +923,7 @@ body {
 .trade-card.zhuidian { border-left: 3px solid var(--zhuidian-start); }
 .trade-card.sanhe { border-left: 3px solid var(--sanhe-start); }
 .trade-card.lightning { border-left: 3px solid var(--lightning-start); }
-/* M01 集成 2026-08-12: goldcombo 交易明细左色条 */
+/* M01 v6 5Y 集成 2026-08-15: goldcombo 交易明细左色条 */
 .trade-card.goldcombo { border-left: 3px solid var(--goldcombo-start); }
 .trade-card-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -1147,7 +1149,8 @@ body {
   </div>
 </div>
 
-  <script src="assets/data.js?v=18"></script>  <!-- 2026-08-12 v18: P0 fix totalAsset 用 s.total_asset (不是 s.cash), 让"合计"显示真实总资产 -->
+  <script src="assets/data.js?v=22"></script>  <!-- 2026-08-14 v22: overview端点 L194 live_total_pnl 兜底 + L238 tr 兜底,黄金组合A 真实显示 -->
+  <!-- 2026-08-15 v23: goldcombo v3 R20_DMI_20 → v6 5Y baseline (signals/goldcombo_2026-08-15.json + config/strategies.json v6) -->
   <script>
 // ========== 数据状态（从DataLayer加载） ==========
 let strategiesData = {};
@@ -2159,10 +2162,14 @@ function renderWfaSummaryCards(payload) {
   cardsEl.innerHTML = sidOrder.map(sid => {
     const info = payload.strategies[sid];
     if (!info) return '';
-    const ratio = info.overfit_ratio !== null ? info.overfit_ratio.toFixed(3) : 'N/A';
+    // 2026-08-14 修复:overfit_ratio=null 时不再显示 "N/A",改为根据 health 字段显示真实评估
+    const ratio = info.overfit_ratio !== null && info.overfit_ratio !== undefined
+      ? info.overfit_ratio.toFixed(3)
+      : (info.health === 'severe_overfit' ? '∞ (过拟合)' : (info.oos_return_pct === 0 ? '0.000 (无OOS)' : 'N/A'));
     const oosRet = info.oos_return_pct.toFixed(2);
     const fullRet = info.full_return_pct.toFixed(2);
     const oosDD = info.oos_dd_pct.toFixed(2);
+    const oosSharpe = info.oos_sharpe !== null && info.oos_sharpe !== undefined ? info.oos_sharpe.toFixed(2) : 'N/A';
     return `
       <div class="risk-card" style="text-align:left;border-left:4px solid ${info.health_color}">
         <div class="risk-title" style="font-size:13px">
@@ -2179,6 +2186,9 @@ function renderWfaSummaryCards(payload) {
         </div>
         <div style="font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between">
           <span>OOS 最大回撤</span><span style="color:#94a3b8">${oosDD}%</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between">
+          <span>OOS Sharpe</span><span style="color:#94a3b8">${oosSharpe}</span>
         </div>
       </div>
     `;
