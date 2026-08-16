@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-[2026-08-16 版本管理 V13_PureRight] V12_LeftBuyRightSell 已废弃,本 alias 现在指向 V13_PureRight 用户原版。
-本 alias 现在指向 V13_PureRight (GoldComboV13_PureRight, 纯右侧买点 AND 版: 5 个原始卖点条件全满足才入场 (无投票/无左侧), 卖点仅限 15% 硬止损 + 25% 峰值回撤 + MACD 死叉)。
+[2026-08-16 版本管理 V14_ScaleIn] V13_PureRight 已废弃,本 alias 现在指向 V14_ScaleIn 用户原版。
+本 alias 现在指向 V14_ScaleIn (GoldComboV14_ScaleIn, 左试右加版: 首次半仓 + MA10加仓 + 快卖)。
+- 首次入场 (左试): C3 (MACD零轴下金叉) 必选 + [C4/C7/C8] ≥ 1 → 买半仓 (总资 10%)
+- 加仓 (右确认): 持仓中 + 未加过 + 价格 > MA10 → 买另半仓 (总资 10%) → 加满 20%
+- 离场 4 机制: 20% 硬止损 (V10 精神) + 25% 峰值回撤止盈 + 破 MA10 快离场 + MACD 死叉
+- 加仓状态机: self.added 字段 (V14 内部设计, 不是 subagent 加的外部 lock)
 v6 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v6.py (5% 硬止损回归 + 保本止损 + MACD 高位死叉回归)。
 v4 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v4.py (ATR 自适应 + 阶梯移动止盈 + 时间止损)。
 v3 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v3.py (5% 硬止损 + 8% 固定移动止盈)。
@@ -12,21 +16,24 @@ V7FIXOBV 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v7lock.py 
 V10_HighYield 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v10.py (V10 用户原版, 已废弃, 保留 git 历史 commit f040379)。
 V11_EnergyPeak 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v11.py (V11 用户原版, 已废弃, 保留 git 历史 commit 097062c)。
 V12_LeftBuyRightSell 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v12.py (V12 用户原版, 已废弃, 保留 git 历史 commit 925efd4)。
+V13_PureRight 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v13.py (V13 用户原版, 已废弃, 保留 git 历史 commit 4c0237b)。
 
 下方导入别名让旧 import 路径 (from goldcombo_strategy_ashare import GoldComboStrategy)
-仍可工作,实际类指向 GoldComboV13_PureRight (V13 用户原版)。
+仍可工作,实际类指向 GoldComboV14_ScaleIn (V14 用户原版)。
 
-用户原话 (2026-08-16): "使用 GoldComboV13_PureRight, 类名不得改, 无左侧代码混入"。
-- "不得更改类名" → V13 用户原版 (类名 GoldComboV13_PureRight, 一行都不改)
-- "不得添加任何时间持有锁" → 不允许任何外部 hold/lock/sl 逻辑 (策略类内部已含 hard_sl=0.15 + trail_sl=0.25 + MACD 死叉)
-- "硬性规则全内嵌" → 所有规则 (买入 5 个原始卖点 AND / 卖出 15%硬止损+25%峰值回撤+MACD死叉) 都在类内, 不外置
+用户原话 (2026-08-16): "使用 GoldComboV14_ScaleIn, 5万本金锁死, 1950沪深池, 5Y窗口, 类名不得改, 一字不差"。
+- "不得更改类名" → V14 用户原版 (类名 GoldComboV14_ScaleIn, 一行都不改)
+- "不得添加任何外部 hold/lock/lockday 逻辑" → self.added 是 V14 内部加仓状态机, 不是外部 lock
+- "硬性规则全内嵌" → 所有规则 (买入 C3+≥1 / 加仓站上MA10 / 卖出 4 机制) 都在类内, 不外置
 - "强制本金 setcash(50000.0) 锁死" → 不准改回 1 万, 否则重演 V10 sizing bug
 
-V13_PureRight 与 V12_LeftBuyRightSell 设计哲学差异 (诚实声明):
-- V12_LeftBuyRightSell (左买右卖混合): 买点左侧 C3+≥1 + 卖点右移 破MA20+DMI空方反扑, 跑出 +1.0246% / 9321 笔 / 1850 股 / worst_dd -18.59%
-- V13_PureRight (纯右侧买点 AND, 卖点仅限 3 种): DMI多方(+DI>30,-DI<20,ADX>32) & MACD水上(DIFF>DEA,DIFF>0,DEA>0) & TRIX零上(TRIX>TRMA,TRIX>0) & OBV强势(OBV>MAOBV) & CCI>120
-- 数据可比因: 都跑 1950 只沪深 A 股 5Y, 同 V12 baseline
-- 跑批脚本: ~/goldcombo_real_backtest/v13/T4_5y/run_backtest_5y_v13.py
+V14_ScaleIn 与 V13_PureRight 设计哲学差异 (诚实声明):
+- V13_PureRight (纯右侧买点 AND, 卖点仅限 3 种): 5 个原始买点条件全满足才入场 (无投票/无左侧), 跑出 -0.9685% / 9842 笔 / 1881 股 / worst_dd -11.31%
+- V14_ScaleIn (左试右加): 首次半仓 (C3+≥1) + MA10 站上加满 (右侧确认), 卖点 4 机制 (20%硬止损+25%峰值回撤+破MA10+MACD死叉)
+- 仓位: 首次 5000/只 (10% 半仓) + 加满 10000/只 (20%)
+- 用户原话重点观察: 总收益 (预期接近或超越 V10 的 +1.6%) / 笔数 (应比 V11 的 12063 少, 因 MA10 加仓过滤) / worst DD (预期 ≤ -15%)
+- 数据可比因: 都跑 1950 只沪深 A 股 5Y, 同 V13 baseline
+- 跑批脚本: ~/goldcombo_real_backtest/v14/T4_5y/run_backtest_5y_v14.py
 
 版本备份链:
 - v1 备份: ~/goldcombo_real_backtest/v1_backup/                    (git da10a57, 已清理)
@@ -48,7 +55,7 @@ V13_PureRight 与 V12_LeftBuyRightSell 设计哲学差异 (诚实声明):
 来源 sha256 (V13): ac6fc8e77f55b9078b2c34ef3562b26bf72ba439d99a45318377acc259d0bfb7
 解 RTF 后 sha256 (V13): 5e6d3eea8e6b9b6c1b3f25b7e0a3f6e6a2c8d9e3f4a5b6c7d8e9f0a1b2c3d4e5 (待 commit 后验证)
 """
-from strategies.goldcombo.goldcombo_strategy_ashare_v13 import GoldComboV13_PureRight as GoldComboStrategy
+from strategies.goldcombo.goldcombo_strategy_ashare_v14 import GoldComboV14_ScaleIn as GoldComboStrategy
 import os
 import sys
 import json
