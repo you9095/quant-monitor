@@ -1,7 +1,7 @@
 import backtrader as bt
 import math
 
-class GoldComboV10_HighYield(bt.Strategy):
+class GoldComboV10_PathB(bt.Strategy):
     """
     =========================================================================
     V10 激进左翼高收益版 (用户军令状: 死磕左侧, 追求高收益)
@@ -71,7 +71,7 @@ class GoldComboV10_HighYield(bt.Strategy):
 
 if __name__ == '__main__':
     cerebro = bt.Cerebro()
-    cerebro.addstrategy(GoldComboV10_HighYield)
+    cerebro.addstrategy(GoldComboV10_PathB)
     cerebro.broker.setcash(10000.0)
     cerebro.broker.setcommission(commission=0.001)
     cerebro.broker.set_slippage_perc(perc=0.003)

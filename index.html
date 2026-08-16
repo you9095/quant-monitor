@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI量化 · 五策略监控面板</title>
-<script src="assets/chart.umd.min.js"></script>  <!-- 2026-08-14 v20: CDN 在 ClashX 出口下不可达,改用本地 assets/chart.umd.min.js (205KB) -->
+<script src="assets/chart.umd.min.js"></script>  <!-- 2026-08-16 v28: CDN 在 ClashX 出口下不可达,改用本地 assets/chart.umd.min.js (205KB) (回退 V20 → V10 路径B) -->
 <style>
 /* ========== CSS变量设计系统 ========== */
 :root {
@@ -38,8 +38,8 @@
   --lightning-start: #eab308;
   --lightning-end: #f97316;
   /* 黄金组合A（极致恐慌反转）M01 v11 5Y 集成 2026-08-16：红（避开 5 现有策略色） */
-  /* 2026-08-16: v17_LowFreqBreakout_5Y → v20_NoMA_5Y (零均线数值化版: 卖点剔除所有MA, 用具体数值/ATR/CCI, 60日通道突破 + cooldown 60日禁买 + 4 离场数值化 + 95% 集中持仓) */
-  /* source: /Users/junze/goldcombo_real_backtest/v20/T4_5y/baseline_ashare_real_5y_v20.json */
+  /* 2026-08-16: v20_NoMA_5Y → v10_PathB_5Y (激进左翼 + CCI>200 泡沫顶 + sizing 修正 5000/只: 95% 仓位单只满仓 + 30% 硬止损 (V10 宽容) + 25% 峰值回撤止盈 + CCI>200 泡沫顶离场) */
+  /* source: /Users/junze/goldcombo_real_backtest/v10/T4_5y/baseline_ashare_real_5y_v10.json */
   --goldcombo-start: #ef4444;
   --goldcombo-end: #f87171;
 
@@ -212,7 +212,7 @@ body {
 .action-item.zhuidian { border-left: 3px solid var(--zhuidian-start); }
 .action-item.sanhe { border-left: 3px solid var(--sanhe-start); }
 .action-item.lightning { border-left: 3px solid var(--lightning-start); }
-/* M01 v20 5Y 集成 2026-08-16: goldcombo 卡片左色条 (v20_NoMA_5Y 零均线数值化版) */
+/* M01 v10 5Y 集成 2026-08-16: goldcombo 卡片左色条 (v10_PathB_5Y 激进左翼 + CCI>200 泡沫顶) */
 .action-item.goldcombo { border-left: 3px solid var(--goldcombo-start); }
 
 .action-badge {
@@ -314,7 +314,7 @@ body {
 .card-header.zhuidian  { background: #f97316; filter: saturate(0.7) brightness(0.8); }
 .card-header.sanhe     { background: #a855f7; filter: saturate(0.7) brightness(0.8); }
 .card-header.lightning { background: #eab308; filter: saturate(0.7) brightness(0.8); }
-/* M01 v20 5Y 集成 2026-08-16: goldcombo 卡片顶部色条 */
+/* M01 v10 5Y 集成 2026-08-16: goldcombo 卡片顶部色条 */
 .card-header.goldcombo { background: #ef4444; filter: saturate(0.7) brightness(0.8); }
 .strategy-card:hover .card-header { filter: none; }
 
@@ -923,7 +923,7 @@ body {
 .trade-card.zhuidian { border-left: 3px solid var(--zhuidian-start); }
 .trade-card.sanhe { border-left: 3px solid var(--sanhe-start); }
 .trade-card.lightning { border-left: 3px solid var(--lightning-start); }
-/* M01 v20 5Y 集成 2026-08-16: goldcombo 交易明细左色条 */
+/* M01 v10 5Y 集成 2026-08-16: goldcombo 交易明细左色条 */
 .trade-card.goldcombo { border-left: 3px solid var(--goldcombo-start); }
 .trade-card-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -1150,7 +1150,7 @@ body {
 </div>
 
   <script src="assets/data.js?v=22"></script>  <!-- 2026-08-14 v22: overview端点 L194 live_total_pnl 兜底 + L238 tr 兜底,黄金组合A 真实显示 -->
-  <!-- 2026-08-16 v28: goldcombo v17 → v20_NoMA 零均线数值化版 baseline (signals/goldcombo_2026-08-15.json + config/strategies.json v20) · 5万本金+60日通道突破+cooldown 60日禁买+4离场(15%止损+35%峰值+3*ATR断裂+CCI泡沫破灭)+95%集中持仓 · 零 SMA/MA · cooldown 是 V20 内部冷却机制 -->
+  <!-- 2026-08-16 v29: goldcombo v20 → v10_PathB 激进左翼 + CCI>200 泡沫顶 baseline (signals/goldcombo_2026-08-15.json + config/strategies.json v10) · 5万本金 + 95% 仓位单只满仓 + 30% 硬止损 (V10 宽容) + 25% 峰值回撤止盈 + CCI>200 泡沫顶离场 · V10 是 v1-v20 全部版本年化最优 (+0.3178%/年) -->
   <script>
 // ========== 数据状态（从DataLayer加载） ==========
 let strategiesData = {};
