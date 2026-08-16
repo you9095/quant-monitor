@@ -1,29 +1,31 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-[2026-08-16 版本管理 V10_HighYield] V7FIXOBV (V7LOCK v3 修复 OBV bug) 已废弃,本 alias 现在指向 V10_HighYield 用户原版。
-本 alias 现在指向 V10_HighYield (GoldComboV10_HighYield, 激进左侧抄底 C3 必选 + 投票≥1 极敏感, 与 V7FIXOBV 右侧主升追击 设计哲学完全不同)。
+[2026-08-16 版本管理 V11_EnergyPeak] V10_HighYield 已废弃,本 alias 现在指向 V11_EnergyPeak 用户原版。
+本 alias 现在指向 V11_EnergyPeak (GoldComboV11_EnergyPeak, 激进左侧抄底 + 能量衰竭离场 (CCI 5日前>100 现<80 破MA10),
+与 V10_HighYield 的 CCI>200 泡沫顶离场 设计哲学不同)。
 v6 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v6.py (5% 硬止损回归 + 保本止损 + MACD 高位死叉回归)。
 v4 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v4.py (ATR 自适应 + 阶梯移动止盈 + 时间止损)。
 v3 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v3.py (5% 硬止损 + 8% 固定移动止盈)。
 V8final 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v8final.py (已废弃, 保留 git 历史 commit 67a5f98)。
 V9 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v9.py (已废弃, 保留 git 历史 commit c514fdd)。
 V7FIXOBV 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v7lock.py (V7LOCK v3 修复 OBV bug, 已废弃, 保留 git 历史 commit 40b73a4)。
+V10_HighYield 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v10.py (V10 用户原版, 已废弃, 保留 git 历史 commit f040379)。
 
 下方导入别名让旧 import 路径 (from goldcombo_strategy_ashare import GoldComboStrategy)
-仍可工作,实际类指向 GoldComboV10_HighYield (V10 用户原版)。
+仍可工作,实际类指向 GoldComboV11_EnergyPeak (V11 用户原版)。
 
-用户原话 (2026-08-16): "用上方 GoldComboV10_HighYield 替换旧类, 死磕左侧, 追求高收益, 不加任何外部 hold/lock。
-硬性规则写在代码头, 无任何外部依赖"。
-- "不得更改类名" → V10 用户原版 (类名 GoldComboV10_HighYield, 一行都不改)
-- "不得添加任何时间持有锁" → 不允许任何外部 hold/lock/sl 逻辑 (策略类内部已含 hard_sl=0.30 + trail_sl=0.25 + cci_bubble=200)
-- "硬性规则全内嵌" → 所有规则 (买入 C3 必选 + 投票≥1 / 卖出 30%硬止损+25%峰值回撤+CCI>200泡沫顶) 都在类内, 不外置
+用户原话 (2026-08-16): "丢弃 V10 的 1万本金配置, 使用上方 GoldComboV11_EnergyPeak, setcash(50000.0) 锁死"。
+- "不得更改类名" → V11 用户原版 (类名 GoldComboV11_EnergyPeak, 一行都不改)
+- "不得添加任何时间持有锁" → 不允许任何外部 hold/lock/sl 逻辑 (策略类内部已含 hard_sl=0.15 + trail_sl=0.20 + cci_peak=100/cci_fall=80 能量衰竭)
+- "硬性规则全内嵌" → 所有规则 (买入 C3 必选 + 投票≥1 / 卖出 15%硬止损+20%峰值回撤+CCI能量衰竭离场) 都在类内, 不外置
+- "强制本金 setcash(50000.0) 锁死" → 不准改回 1 万, 否则重演 V10 sizing bug
 
-V10_HighYield 与 V7FIXOBV 设计哲学差异 (诚实声明):
-- V7FIXOBV (右侧主升浪追击): 5 强势信号 (DMI 多方 + MACD 水上 + TRIX 零上 + OBV 强势 + CCI 强势) ≥3 投票, 追击已启动趋势 → 跑出 -1.0586% / 7586 笔 / 794 股 / worst_dd -69.13%
-- V10_HighYield (激进左侧抄底): C3 低位金叉必选 + [C4 BOLL 开口 / C7 CCI<-70 / C8 DMI 空方] ≥1 投票 (极敏感), 抓反弹起点, 容忍主跌浪, 不早下车
-- 数据可比因: 都跑 1950 只沪深 A 股 5Y, 同 V7FIXOBV 5Y baseline
-- 跑批脚本: ~/goldcombo_real_backtest/v10/T4_5y/run_backtest_5y_v10.py
+V11_EnergyPeak 与 V10_HighYield 设计哲学差异 (诚实声明):
+- V10_HighYield (激进左侧抄底 + CCI>200 泡沫顶): C3 低位金叉必选 + [C4/C7/C8] ≥1 投票, 离场 30%硬止损+25%峰值回撤+CCI>200泡沫顶 → 路径 B (5000/只) 跑出 +1.5991% / 5598 笔 / 1436 股 / worst_dd -15.79%
+- V11_EnergyPeak (激进左侧抄底 + 能量衰竭离场): C3 低位金叉必选 + [C4/C7/C8] ≥1 投票 (同 V10), 离场 15%硬止损 (改严) + 20%峰值回撤 (改严) + 能量衰竭离场 (CCI 5日前>100 现<80 破MA10)
+- 数据可比因: 都跑 1950 只沪深 A 股 5Y, 同 V10 路径 B 5Y baseline
+- 跑批脚本: ~/goldcombo_real_backtest/v11/T4_5y/run_backtest_5y_v11.py
 
 版本备份链:
 - v1 备份: ~/goldcombo_real_backtest/v1_backup/                    (git da10a57, 已清理)
@@ -37,12 +39,13 @@ V10_HighYield 与 V7FIXOBV 设计哲学差异 (诚实声明):
 - V8final 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v8final.py  (GoldComboV8_Final, 已废弃, 保留 git 历史 commit 67a5f98)
 - V9 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v9.py  (GoldComboV8_Final, 已废弃, 保留 git 历史 commit c514fdd)
 - V7LOCK/V7FIXOBV 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v7lock.py  (V7LOCK v3 修复 OBV bug, 已废弃, 保留 git 历史 commit 40b73a4)
-- V10_HighYield 新文件: strategies/goldcombo/goldcombo_strategy_ashare_v10.py  (GoldComboV10_HighYield 用户原版, 一字不差)
+|V10_HighYield 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v10.py  (GoldComboV10_HighYield 用户原版, 已废弃, 保留 git 历史 commit f040379)
+|V11_EnergyPeak 新文件: strategies/goldcombo/goldcombo_strategy_ashare_v11.py  (GoldComboV11_EnergyPeak 用户原版, 一字不差)
 
-来源 sha256: d311c85ea03f3c20fd30d8ebb0c50629804412cfdf6379334df04a445a0deed0
-解 RTF 后 sha256: cd6d828ae20431c5f13b6ab4870d7195db41bfe926bbd4020583206abce9f8b0
+来源 sha256 (V11): 6ceb76b0f1c633b8dfa673ed5b6ff16c62da3ba5c87666781335d49702b5ac8a
+解 RTF 后 sha256 (V11): fa77395a495b3dbb6b5afec02227ac835be3e511ad3457c7f4ae4bf3279e39e8
 """
-from strategies.goldcombo.goldcombo_strategy_ashare_v10 import GoldComboV10_HighYield as GoldComboStrategy
+from strategies.goldcombo.goldcombo_strategy_ashare_v11 import GoldComboV11_EnergyPeak as GoldComboStrategy
 import os
 import sys
 import json
