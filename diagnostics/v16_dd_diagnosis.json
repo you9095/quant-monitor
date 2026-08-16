@@ -1,0 +1,57 @@
+{
+  "stage": "Stage 1: V16 -70% DD stock sample diagnosis",
+  "sampling_rule": "user: \"-70% DD stocks\"; fallback expanded to ≤ -60% to reach 3 candidates (only 2 exist at ≤ -70%)",
+  "random_seed": 42,
+  "strict_70_count": 2,
+  "sample_size": 3,
+  "stocks_sampled": [
+    {
+      "code": "000755",
+      "dd": -73.4941
+    },
+    {
+      "code": "601007",
+      "dd": -72.3481
+    },
+    {
+      "code": "002059",
+      "dd": -61.5282
+    }
+  ],
+  "per_stock_jump_analysis": [
+    {
+      "code": "000755",
+      "dd_pct": -73.4941,
+      "return_pct": -59.0666,
+      "csv_rows": 1205,
+      "jumps_ge_20": 0,
+      "jumps_ge_30_not_limited": 0,
+      "jumps_ge_30_details": [],
+      "all_jumps_top10": []
+    },
+    {
+      "code": "601007",
+      "dd_pct": -72.3481,
+      "return_pct": -58.6732,
+      "csv_rows": 1210,
+      "jumps_ge_20": 0,
+      "jumps_ge_30_not_limited": 0,
+      "jumps_ge_30_details": [],
+      "all_jumps_top10": []
+    },
+    {
+      "code": "002059",
+      "dd_pct": -61.5282,
+      "return_pct": -52.5966,
+      "csv_rows": 1210,
+      "jumps_ge_20": 0,
+      "jumps_ge_30_not_limited": 0,
+      "jumps_ge_30_details": [],
+      "all_jumps_top10": []
+    }
+  ],
+  "verdict_summary": {
+    "all_3_have_30pct_unlimited_jump": false,
+    "count_with_30pct_unlimited_jump": 0
+  }
+}

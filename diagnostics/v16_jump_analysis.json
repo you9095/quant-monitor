@@ -1,0 +1,23 @@
+[
+  {
+    "code": "000428",
+    "worst_dd": -61.0464,
+    "final_return_pct": -47.0981,
+    "jump_count": 0,
+    "jumps": []
+  },
+  {
+    "code": "002059",
+    "worst_dd": -61.5282,
+    "final_return_pct": -52.5966,
+    "jump_count": 0,
+    "jumps": []
+  },
+  {
+    "code": "000756",
+    "worst_dd": -65.5415,
+    "final_return_pct": -41.5423,
+    "jump_count": 0,
+    "jumps": []
+  }
+]

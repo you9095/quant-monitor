@@ -1,0 +1,18 @@
+{
+  "sample_codes": [
+    "000428",
+    "002059",
+    "000756"
+  ],
+  "sample_jumps_count": [
+    0,
+    0,
+    0
+  ],
+  "strict_pollution_events": 0,
+  "weak_pollution_events": 0,
+  "pollution_signals": [],
+  "weak_signals": [],
+  "verified": false,
+  "note": "V16 整体 worst_dd=-73.49% 实际来自单股 000755 三特索道 (DD=-73.49%) 和 601007 金陵饭店 (DD=-72.35%)"
+}

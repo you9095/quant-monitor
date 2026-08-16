@@ -1,0 +1,97 @@
+[
+  {
+    "code": "000428",
+    "max_drawdown_pct": -61.0464,
+    "return_pct": -47.0981
+  },
+  {
+    "code": "002059",
+    "max_drawdown_pct": -61.5282,
+    "return_pct": -52.5966
+  },
+  {
+    "code": "000756",
+    "max_drawdown_pct": -65.5415,
+    "return_pct": -41.5423
+  },
+  {
+    "code": "002923",
+    "max_drawdown_pct": -62.9725,
+    "return_pct": -57.9085
+  },
+  {
+    "code": "000788",
+    "max_drawdown_pct": -63.662,
+    "return_pct": -36.5983
+  },
+  {
+    "code": "000430",
+    "max_drawdown_pct": -60.703,
+    "return_pct": -59.449
+  },
+  {
+    "code": "600662",
+    "max_drawdown_pct": -60.5505,
+    "return_pct": -59.6664
+  },
+  {
+    "code": "002963",
+    "max_drawdown_pct": -63.1253,
+    "return_pct": -57.5227
+  },
+  {
+    "code": "600279",
+    "max_drawdown_pct": -62.3782,
+    "return_pct": -62.3782
+  },
+  {
+    "code": "002302",
+    "max_drawdown_pct": -60.5937,
+    "return_pct": -60.5937
+  },
+  {
+    "code": "002578",
+    "max_drawdown_pct": -62.7337,
+    "return_pct": -62.1774
+  },
+  {
+    "code": "601007",
+    "max_drawdown_pct": -72.3481,
+    "return_pct": -58.6732
+  },
+  {
+    "code": "003016",
+    "max_drawdown_pct": -62.5599,
+    "return_pct": -62.5599
+  },
+  {
+    "code": "002333",
+    "max_drawdown_pct": -68.3932,
+    "return_pct": -61.4186
+  },
+  {
+    "code": "002723",
+    "max_drawdown_pct": -60.4717,
+    "return_pct": -57.2475
+  },
+  {
+    "code": "000905",
+    "max_drawdown_pct": -63.0883,
+    "return_pct": -59.8431
+  },
+  {
+    "code": "000957",
+    "max_drawdown_pct": -63.0598,
+    "return_pct": -19.6856
+  },
+  {
+    "code": "000755",
+    "max_drawdown_pct": -73.4941,
+    "return_pct": -59.0666
+  },
+  {
+    "code": "001209",
+    "max_drawdown_pct": -68.0213,
+    "return_pct": -68.0213
+  }
+]

@@ -1,0 +1,402 @@
+[
+  {
+    "code": "600118",
+    "max_jump_pct": 10.0079744816587,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 16.52,
+    "price_max": 121.51
+  },
+  {
+    "code": "000795",
+    "max_jump_pct": 10.810810810810821,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 3.67,
+    "price_max": 14.34
+  },
+  {
+    "code": "000404",
+    "max_jump_pct": 12.958435207823968,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 2.58,
+    "price_max": 9.55
+  },
+  {
+    "code": "600436",
+    "max_jump_pct": 10.359440030268633,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 106.43,
+    "price_max": 469.08
+  },
+  {
+    "code": "002162",
+    "max_jump_pct": 10.140845070422545,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 2.61,
+    "price_max": 8.49
+  },
+  {
+    "code": "002084",
+    "max_jump_pct": 10.144927536231874,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 2.1,
+    "price_max": 6.71
+  },
+  {
+    "code": "002038",
+    "max_jump_pct": 10.052910052910057,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 5.02,
+    "price_max": 15.56
+  },
+  {
+    "code": "000905",
+    "max_jump_pct": 10.583941605839406,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 5.17,
+    "price_max": 15.9
+  },
+  {
+    "code": "600419",
+    "max_jump_pct": 10.3568320278503,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 6.75,
+    "price_max": 19.9
+  },
+  {
+    "code": "000761",
+    "max_jump_pct": 10.074626865671641,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 2.14,
+    "price_max": 6.34
+  },
+  {
+    "code": "600233",
+    "max_jump_pct": 10.031746031746021,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 7.82,
+    "price_max": 22.13
+  },
+  {
+    "code": "600433",
+    "max_jump_pct": -10.693069306930694,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 2.35,
+    "price_max": 5.7
+  },
+  {
+    "code": "600960",
+    "max_jump_pct": -10.106382978723403,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 2.53,
+    "price_max": 6.34
+  },
+  {
+    "code": "002869",
+    "max_jump_pct": 10.23550724637682,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 10.65,
+    "price_max": 37.45
+  },
+  {
+    "code": "000700",
+    "max_jump_pct": 12.39436619718311,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 2.79,
+    "price_max": 17.8
+  },
+  {
+    "code": "003002",
+    "max_jump_pct": 10.907335907335916,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 9.01,
+    "price_max": 34.41
+  },
+  {
+    "code": "002548",
+    "max_jump_pct": -10.026385224274403,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 3.31,
+    "price_max": 8.69
+  },
+  {
+    "code": "000426",
+    "max_jump_pct": 10.089020771513349,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 5.41,
+    "price_max": 68.8
+  },
+  {
+    "code": "000421",
+    "max_jump_pct": 10.775047258979212,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 3.61,
+    "price_max": 9.5
+  },
+  {
+    "code": "000716",
+    "max_jump_pct": 10.410958904109599,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 2.81,
+    "price_max": 10.63
+  },
+  {
+    "code": "002027",
+    "max_jump_pct": 10.923076923076923,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 3.06,
+    "price_max": 8.36
+  },
+  {
+    "code": "002057",
+    "max_jump_pct": 10.70686070686072,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 5.44,
+    "price_max": 13.8
+  },
+  {
+    "code": "002762",
+    "max_jump_pct": -10.233393177737886,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 4.27,
+    "price_max": 15.19
+  },
+  {
+    "code": "003042",
+    "max_jump_pct": 10.065851364063954,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 10.75,
+    "price_max": 34.9
+  },
+  {
+    "code": "000409",
+    "max_jump_pct": 10.052356020942398,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 4.52,
+    "price_max": 16.02
+  },
+  {
+    "code": "002922",
+    "max_jump_pct": 10.769230769230772,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 9.09,
+    "price_max": 48.08
+  },
+  {
+    "code": "001366",
+    "max_jump_pct": 10.235131396957113,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 8.84,
+    "price_max": 21.73
+  },
+  {
+    "code": "600361",
+    "max_jump_pct": 10.571923743500873,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 3.18,
+    "price_max": 8.05
+  },
+  {
+    "code": "600149",
+    "max_jump_pct": 10.074626865671641,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 3.07,
+    "price_max": 7.41
+  },
+  {
+    "code": "600305",
+    "max_jump_pct": 10.265700483091805,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 6.31,
+    "price_max": 16.88
+  },
+  {
+    "code": "002543",
+    "max_jump_pct": 11.989100817438702,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 3.98,
+    "price_max": 13.6
+  },
+  {
+    "code": "002031",
+    "max_jump_pct": 10.136986301369856,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 1.64,
+    "price_max": 10.99
+  },
+  {
+    "code": "002603",
+    "max_jump_pct": -10.626434896687433,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 12.04,
+    "price_max": 50.16
+  },
+  {
+    "code": "002999",
+    "max_jump_pct": 10.583941605839406,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 4.69,
+    "price_max": 12.01
+  },
+  {
+    "code": "002168",
+    "max_jump_pct": 10.144927536231874,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 1.97,
+    "price_max": 6.69
+  },
+  {
+    "code": "600671",
+    "max_jump_pct": 5.048859934853429,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 5.85,
+    "price_max": 22.76
+  },
+  {
+    "code": "600858",
+    "max_jump_pct": -10.181311018131096,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 3.57,
+    "price_max": 7.48
+  },
+  {
+    "code": "000029",
+    "max_jump_pct": -9.379727685325259,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 6.53,
+    "price_max": 33.55
+  },
+  {
+    "code": "600511",
+    "max_jump_pct": 10.470409711684356,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 21.12,
+    "price_max": 40.24
+  },
+  {
+    "code": "600662",
+    "max_jump_pct": 10.628019323671507,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 3.45,
+    "price_max": 7.73
+  },
+  {
+    "code": "000987",
+    "max_jump_pct": 10.815047021943581,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 4.34,
+    "price_max": 11.56
+  },
+  {
+    "code": "600295",
+    "max_jump_pct": -13.100081366965007,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 6.6,
+    "price_max": 19.01
+  },
+  {
+    "code": "002549",
+    "max_jump_pct": 10.112359550561798,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 4.65,
+    "price_max": 28.47
+  },
+  {
+    "code": "002340",
+    "max_jump_pct": 10.04304160688666,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 3.9,
+    "price_max": 13.46
+  },
+  {
+    "code": "000972",
+    "max_jump_pct": -10.081743869209813,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 1.7,
+    "price_max": 5.17
+  },
+  {
+    "code": "002008",
+    "max_jump_pct": 10.221835580687262,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 14.02,
+    "price_max": 152.8
+  },
+  {
+    "code": "601838",
+    "max_jump_pct": 9.684361549497845,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 6.77,
+    "price_max": 19.15
+  },
+  {
+    "code": "600521",
+    "max_jump_pct": 10.135135135135151,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 10.83,
+    "price_max": 26.91
+  },
+  {
+    "code": "002332",
+    "max_jump_pct": 10.077519379844952,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 6.75,
+    "price_max": 14.18
+  },
+  {
+    "code": "000713",
+    "max_jump_pct": 10.091743119266058,
+    "big_jump_count": 0,
+    "big_jumps": [],
+    "price_min": 5.07,
+    "price_max": 11.66
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "deep_dd_stocks": [
+    {
+      "code": "000755",
+      "max_drawdown_pct": -73.4941,
+      "return_pct": -59.0666
+    },
+    {
+      "code": "601007",
+      "max_drawdown_pct": -72.3481,
+      "return_pct": -58.6732
+    }
+  ],
+  "strict_pollution_events": [],
+  "note": "V16 全池只有 2 只股票触发 DD <= -70%, 全部纳入分析"
+}
