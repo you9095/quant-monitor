@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-[2026-08-16 版本管理 V11_EnergyPeak] V10_HighYield 已废弃,本 alias 现在指向 V11_EnergyPeak 用户原版。
-本 alias 现在指向 V11_EnergyPeak (GoldComboV11_EnergyPeak, 激进左侧抄底 + 能量衰竭离场 (CCI 5日前>100 现<80 破MA10),
+[2026-08-16 版本管理 V12_LeftBuyRightSell] V11_EnergyPeak 已废弃,本 alias 现在指向 V12_LeftBuyRightSell 用户原版。
+本 alias 现在指向 V12_LeftBuyRightSell (GoldComboV12_LeftBuyRightSell, 左买右卖混合版: 买点左侧 C3+≥1 + 卖点右移 破MA20+DMI空方反扑,
 与 V10_HighYield 的 CCI>200 泡沫顶离场 设计哲学不同)。
 v6 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v6.py (5% 硬止损回归 + 保本止损 + MACD 高位死叉回归)。
 v4 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v4.py (ATR 自适应 + 阶梯移动止盈 + 时间止损)。
@@ -45,7 +45,7 @@ V11_EnergyPeak 与 V10_HighYield 设计哲学差异 (诚实声明):
 来源 sha256 (V11): 6ceb76b0f1c633b8dfa673ed5b6ff16c62da3ba5c87666781335d49702b5ac8a
 解 RTF 后 sha256 (V11): fa77395a495b3dbb6b5afec02227ac835be3e511ad3457c7f4ae4bf3279e39e8
 """
-from strategies.goldcombo.goldcombo_strategy_ashare_v11 import GoldComboV11_EnergyPeak as GoldComboStrategy
+from strategies.goldcombo.goldcombo_strategy_ashare_v12 import GoldComboV12_LeftBuyRightSell as GoldComboStrategy
 import os
 import sys
 import json
