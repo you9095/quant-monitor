@@ -50,10 +50,10 @@
     "color": "#ef4444",
     "initial_capital": 10000,
     "description": "极致恐慌反转模型",
-    "version": "v17",
+    "version": "v20",
     "data_period": "2021-08-14 ~ 2026-08-14 (5Y)",
-    "caliber": "5Y · V14 ScaleIn 左试右加版 (首次半仓 + MA10加仓 + 快卖) · setcash(50000.0) + half_pct=0.10 + 20% 硬止损 + 25% 峰值回撤 + 破 MA10 快离场 + MACD 死叉",
-    "latest_baseline": "/Users/junze/goldcombo_real_backtest/v17/T4_5y/baseline_ashare_real_5y_v17.json",
+    "caliber": "5Y · V20 NoMA 零均线数值化版 (卖点剔除所有MA, 用具体数值/ATR/CCI) · setcash(50000.0) + 60日通道突破入场 + 4离场 (15%止损+35%峰值+3*ATR断裂+CCI泡沫破灭) + cooldown 60日禁买 + 95%集中持仓",
+    "latest_baseline": "/Users/junze/goldcombo_real_backtest/v20/T4_5y/baseline_ashare_real_5y_v20.json",
     "last_updated": "2026-08-16"
   }
 }
