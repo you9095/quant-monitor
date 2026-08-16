@@ -50,10 +50,10 @@
     "color": "#ef4444",
     "initial_capital": 10000,
     "description": "极致恐慌反转模型",
-    "version": "v11",
+    "version": "v12",
     "data_period": "2021-08-14 ~ 2026-08-14 (5Y)",
     "caliber": "5Y · V11 EnergyPeak 能量衰竭离场版 (setcash=50000 + 15% 硬止损 + 20% 峰值回撤 + CCI 5日前>100 现<80 破MA10)",
-    "latest_baseline": "/Users/junze/goldcombo_real_backtest/v11/T4_5y/baseline_ashare_real_5y_v11.json",
+    "latest_baseline": "/Users/junze/goldcombo_real_backtest/v12/T4_5y/baseline_ashare_real_5y_v12.json",
     "last_updated": "2026-08-16"
   }
 }
