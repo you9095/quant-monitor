@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-[2026-08-16 版本管理 V16_ChannelBreakout] V14_ScaleIn 已废弃,本 alias 现在指向 V16_ChannelBreakout 用户原版。
-本 alias 现在指向 V16_ChannelBreakout (GoldComboV16_ChannelBreakout, 范式革命版: 通道突破 + ATR 头寸, 摒弃 MACD/CCI)。
+[2026-08-16 版本管理 V17_LowFreqBreakout] V16_ChannelBreakout 已废弃,本 alias 现在指向 V17_LowFreqBreakout 用户原版。
+本 alias 现在指向 V17_LowFreqBreakout (GoldComboV17_LowFreqBreakout, 范式革命 2.0: 长周期 120/60/20 + 集中持仓 95%)。
 - 首次入场 (左试): C3 (MACD零轴下金叉) 必选 + [C4/C7/C8] ≥ 1 → 买半仓 (总资 10%)
 - 加仓 (右确认): 持仓中 + 未加过 + 价格 > MA10 → 买另半仓 (总资 10%) → 加满 20%
 - 离场 4 机制: 20% 硬止损 (V10 精神) + 25% 峰值回撤止盈 + 破 MA10 快离场 + MACD 死叉
@@ -13,27 +13,36 @@ v3 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v3.py (5% 硬止
 V8final 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v8final.py (已废弃, 保留 git 历史 commit 67a5f98)。
 V9 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v9.py (已废弃, 保留 git 历史 commit c514fdd)。
 V7FIXOBV 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v7lock.py (V7LOCK v3 修复 OBV bug, 已废弃, 保留 git 历史 commit 40b73a4)。
+V16 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v16.py (GoldComboV16_ChannelBreakout 范式革命版, 已废弃但保留 git 历史 commit 4f1345b)。
 V10_HighYield 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v10.py (V10 用户原版, 已废弃, 保留 git 历史 commit f040379)。
 V11_EnergyPeak 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v11.py (V11 用户原版, 已废弃, 保留 git 历史 commit 097062c)。
 V12_LeftBuyRightSell 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v12.py (V12 用户原版, 已废弃, 保留 git 历史 commit 925efd4)。
 V13_PureRight 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v13.py (V13 用户原版, 已废弃, 保留 git 历史 commit 4c0237b)。
 
 下方导入别名让旧 import 路径 (from goldcombo_strategy_ashare import GoldComboStrategy)
-仍可工作,实际类指向 GoldComboV16_ChannelBreakout (V16 用户原版)。
+仍可工作,实际类指向 GoldComboV17_LowFreqBreakout (V17 用户原版)。
 
 用户原话 (2026-08-16): "新的策略 开始回测"。
-- "使用 V16_ChannelBreakout" → V16 用户原版 (类名 GoldComboV16_ChannelBreakout, 一行都不改)
-- "不得添加任何外部 hold/lock/lockday 逻辑" → V16 内部纯 ATR + 通道突破, 无外部 lock
-- "硬性规则全内嵌" → 所有规则 (突破 20日高 + 50MA 向上入场 / 跌破 10日低 OR 2*ATR 离场 / ATR 定仓) 都在类内, 不外置
+- "使用 V17_LowFreqBreakout" → V17 用户原版 (类名 GoldComboV17_LowFreqBreakout, 一行都不改)
+- "不得添加任何外部 hold/lock/lockday 逻辑" → V17 内部纯 4 指标 (Highest 120 + SMA 20/60/120) + 集中持仓 95%, 无外部 lock
+- "硬性规则全内嵌" → 所有规则 (半年突破 + MA多头序入场 / 15%硬止损 + 20%峰值回撤 + 破MA20离场 / 95%集中持仓) 都在类内, 不外置
 - "强制本金 setcash(50000.0) 锁死" → 不准改回 1 万, 否则重演 V10 sizing bug
 
-V16_ChannelBreakout 与 V14_ScaleIn 设计哲学差异 (诚实声明):
-- V14_ScaleIn (左试右加): 首次半仓 (C3+≥1) + MA10 站上加满 (右侧确认), 卖点 4 机制 (20%硬止损+25%峰值回撤+破MA10+MACD死叉), 跑出 -0.3366% / 14871 笔 / 1874 股 / worst_dd -16.82%
-- V16_ChannelBreakout (范式革命, 摒弃 MACD/CCI/DMI, 改用 4 指标): 突破 20日最高价(-1) + 50日 SMA 向上入场, 跌破 10日最低价(-1) OR 成本回撤 2*ATR 离场, ATR 波动率定仓 (size = 2% × cash / (ATR × 100) × 100)
-- 仓位: ATR 自适应 (波动大买少, 波动小买多), 不再用固定 5000/10000 半仓机制
-- 用户原话重点观察 (沿用 V14 惯例): 总收益 / 笔数 / worst DD
-- 数据可比因: 都跑 1950 只沪深 A 股 5Y, 同 V14 baseline
-- 跑批脚本: ~/goldcombo_real_backtest/v16/T4_5y/run_backtest_5y_v16.py
+V17_LowFreqBreakout 与 V16_ChannelBreakout 设计哲学差异 (诚实声明):
+- V16_ChannelBreakout (范式革命 1.0, 短周期 + ATR 头寸): 突破 20日最高价(-1) + 50日 SMA 向上入场, 跌破 10日最低价(-1) OR 成本回撤 2*ATR 离场, ATR 波动率定仓 (size = 2% × cash / (ATR × 100) × 100), 跑出 -4.9108% / 29078 笔 / 1916 股 / worst_dd -73.49% (v1-v16 最差)
+- V17_LowFreqBreakout (范式革命 2.0, 长周期 + 集中持仓): 突破 120日最高价(-1) + MA20>MA60>MA120 多头序入场, 15%硬止损 + 20%峰值回撤 + 收盘价<MA20 离场, 95% 集中持仓 (per_pos_pct=0.95)
+- 仓位: V17 用 95% 集中 (单只满仓), V16 用 ATR 自适应分仓 (波动大买少, 波动小买多)
+- 用户原话重点观察 (沿用 V16 惯例): 总收益 / 笔数 / worst DD
+- 用户原话底线目标 (V17 特有): 年化>30% & 5年<1000笔 (低频高收益)
+- 数据可比因: 都跑 1950 只沪深 A 股 5Y, 同 V16 baseline
+- 跑批脚本: ~/goldcombo_real_backtest/v17/T4_5y/run_backtest_5y_v17.py
+
+V17 抛弃 V16 短周期指标 (诚实声明):
+- ❌ 不准用 20日 唐奇安突破入场 (V17 改 120日半年突破, 严格 6 倍)
+- ❌ 不准用 10日 唐奇安跌破离场 (V17 改收盘价 < MA20 短期生命线跌破)
+- ❌ 不准用 50MA 向上入场过滤 (V17 改 MA20>MA60>MA120 多头序)
+- ❌ 不准用 ATR 头寸定仓 (V17 改 95% 集中持仓, 单只满仓)
+- ✅ V17 仅用 4 极简指标: Highest(120)/SMA(20)/SMA(60)/SMA(120)
 
 版本备份链:
 - v1 备份: ~/goldcombo_real_backtest/v1_backup/                    (git da10a57, 已清理)
@@ -52,11 +61,13 @@ V16_ChannelBreakout 与 V14_ScaleIn 设计哲学差异 (诚实声明):
 - V12_LeftBuyRightSell 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v12.py  (GoldComboV12_LeftBuyRightSell 用户原版, 已废弃, 保留 git 历史 commit 925efd4)
 - V13_PureRight 新文件: strategies/goldcombo/goldcombo_strategy_ashare_v13.py  (GoldComboV13_PureRight 用户原版, 一字不差, 含 MyOBV 自定义类)
 - V14_ScaleIn 新文件: strategies/goldcombo/goldcombo_strategy_ashare_v14.py  (GoldComboV14_ScaleIn 用户原版, 已废弃, 保留 git 历史 commit c27d509)
+- V16_ChannelBreakout 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v16.py  (GoldComboV16_ChannelBreakout 范式革命 1.0, 已废弃, 保留 git 历史 commit 4f1345b)
+- V17_LowFreqBreakout 新文件: strategies/goldcombo/goldcombo_strategy_ashare_v17.py  (GoldComboV17_LowFreqBreakout 用户原版, 一字不差, 范式革命 2.0 长周期 + 集中持仓 95%)
 
-来源 sha256 (V16): 65dac3f0f445e3aec5162e13e8ce60ff010f0d248c3ca078e7c5ca1d78242652
-解 RTF 后 sha256 (V16): a8ab136b14dd52a9a243c34dae31fe951207cefe7d2edfa07c4510b92576db99 (V16 写入项目 + clean.txt 一致, 一字不差)
+来源 sha256 (V17): f5ad37f33dbdda8c36a16587d36f9c38127d8ee0de84d897da2aa359947a71bd
+解 RTF 后 sha256 (V17): 50b10dde71fc9b64ec4757d508ad30a4b1028c7577f02894e28c9b265398cc17 (V17 写入项目 + clean.txt 一致, 一字不差)
 """
-from strategies.goldcombo.goldcombo_strategy_ashare_v16 import GoldComboV16_ChannelBreakout as GoldComboStrategy
+from strategies.goldcombo.goldcombo_strategy_ashare_v17 import GoldComboV17_LowFreqBreakout as GoldComboStrategy
 import os
 import sys
 import json
