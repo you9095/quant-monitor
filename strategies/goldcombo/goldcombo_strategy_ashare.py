@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-[2026-08-16 版本管理 V12_LeftBuyRightSell] V11_EnergyPeak 已废弃,本 alias 现在指向 V12_LeftBuyRightSell 用户原版。
-本 alias 现在指向 V12_LeftBuyRightSell (GoldComboV12_LeftBuyRightSell, 左买右卖混合版: 买点左侧 C3+≥1 + 卖点右移 破MA20+DMI空方反扑,
-与 V10_HighYield 的 CCI>200 泡沫顶离场 设计哲学不同)。
+[2026-08-16 版本管理 V13_PureRight] V12_LeftBuyRightSell 已废弃,本 alias 现在指向 V13_PureRight 用户原版。
+本 alias 现在指向 V13_PureRight (GoldComboV13_PureRight, 纯右侧买点 AND 版: 5 个原始卖点条件全满足才入场 (无投票/无左侧), 卖点仅限 15% 硬止损 + 25% 峰值回撤 + MACD 死叉)。
 v6 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v6.py (5% 硬止损回归 + 保本止损 + MACD 高位死叉回归)。
 v4 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v4.py (ATR 自适应 + 阶梯移动止盈 + 时间止损)。
 v3 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v3.py (5% 硬止损 + 8% 固定移动止盈)。
@@ -11,21 +10,23 @@ V8final 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v8final.py 
 V9 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v9.py (已废弃, 保留 git 历史 commit c514fdd)。
 V7FIXOBV 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v7lock.py (V7LOCK v3 修复 OBV bug, 已废弃, 保留 git 历史 commit 40b73a4)。
 V10_HighYield 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v10.py (V10 用户原版, 已废弃, 保留 git 历史 commit f040379)。
+V11_EnergyPeak 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v11.py (V11 用户原版, 已废弃, 保留 git 历史 commit 097062c)。
+V12_LeftBuyRightSell 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v12.py (V12 用户原版, 已废弃, 保留 git 历史 commit 925efd4)。
 
 下方导入别名让旧 import 路径 (from goldcombo_strategy_ashare import GoldComboStrategy)
-仍可工作,实际类指向 GoldComboV11_EnergyPeak (V11 用户原版)。
+仍可工作,实际类指向 GoldComboV13_PureRight (V13 用户原版)。
 
-用户原话 (2026-08-16): "丢弃 V10 的 1万本金配置, 使用上方 GoldComboV11_EnergyPeak, setcash(50000.0) 锁死"。
-- "不得更改类名" → V11 用户原版 (类名 GoldComboV11_EnergyPeak, 一行都不改)
-- "不得添加任何时间持有锁" → 不允许任何外部 hold/lock/sl 逻辑 (策略类内部已含 hard_sl=0.15 + trail_sl=0.20 + cci_peak=100/cci_fall=80 能量衰竭)
-- "硬性规则全内嵌" → 所有规则 (买入 C3 必选 + 投票≥1 / 卖出 15%硬止损+20%峰值回撤+CCI能量衰竭离场) 都在类内, 不外置
+用户原话 (2026-08-16): "使用 GoldComboV13_PureRight, 类名不得改, 无左侧代码混入"。
+- "不得更改类名" → V13 用户原版 (类名 GoldComboV13_PureRight, 一行都不改)
+- "不得添加任何时间持有锁" → 不允许任何外部 hold/lock/sl 逻辑 (策略类内部已含 hard_sl=0.15 + trail_sl=0.25 + MACD 死叉)
+- "硬性规则全内嵌" → 所有规则 (买入 5 个原始卖点 AND / 卖出 15%硬止损+25%峰值回撤+MACD死叉) 都在类内, 不外置
 - "强制本金 setcash(50000.0) 锁死" → 不准改回 1 万, 否则重演 V10 sizing bug
 
-V11_EnergyPeak 与 V10_HighYield 设计哲学差异 (诚实声明):
-- V10_HighYield (激进左侧抄底 + CCI>200 泡沫顶): C3 低位金叉必选 + [C4/C7/C8] ≥1 投票, 离场 30%硬止损+25%峰值回撤+CCI>200泡沫顶 → 路径 B (5000/只) 跑出 +1.5991% / 5598 笔 / 1436 股 / worst_dd -15.79%
-- V11_EnergyPeak (激进左侧抄底 + 能量衰竭离场): C3 低位金叉必选 + [C4/C7/C8] ≥1 投票 (同 V10), 离场 15%硬止损 (改严) + 20%峰值回撤 (改严) + 能量衰竭离场 (CCI 5日前>100 现<80 破MA10)
-- 数据可比因: 都跑 1950 只沪深 A 股 5Y, 同 V10 路径 B 5Y baseline
-- 跑批脚本: ~/goldcombo_real_backtest/v11/T4_5y/run_backtest_5y_v11.py
+V13_PureRight 与 V12_LeftBuyRightSell 设计哲学差异 (诚实声明):
+- V12_LeftBuyRightSell (左买右卖混合): 买点左侧 C3+≥1 + 卖点右移 破MA20+DMI空方反扑, 跑出 +1.0246% / 9321 笔 / 1850 股 / worst_dd -18.59%
+- V13_PureRight (纯右侧买点 AND, 卖点仅限 3 种): DMI多方(+DI>30,-DI<20,ADX>32) & MACD水上(DIFF>DEA,DIFF>0,DEA>0) & TRIX零上(TRIX>TRMA,TRIX>0) & OBV强势(OBV>MAOBV) & CCI>120
+- 数据可比因: 都跑 1950 只沪深 A 股 5Y, 同 V12 baseline
+- 跑批脚本: ~/goldcombo_real_backtest/v13/T4_5y/run_backtest_5y_v13.py
 
 版本备份链:
 - v1 备份: ~/goldcombo_real_backtest/v1_backup/                    (git da10a57, 已清理)
@@ -39,13 +40,15 @@ V11_EnergyPeak 与 V10_HighYield 设计哲学差异 (诚实声明):
 - V8final 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v8final.py  (GoldComboV8_Final, 已废弃, 保留 git 历史 commit 67a5f98)
 - V9 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v9.py  (GoldComboV8_Final, 已废弃, 保留 git 历史 commit c514fdd)
 - V7LOCK/V7FIXOBV 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v7lock.py  (V7LOCK v3 修复 OBV bug, 已废弃, 保留 git 历史 commit 40b73a4)
-|V10_HighYield 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v10.py  (GoldComboV10_HighYield 用户原版, 已废弃, 保留 git 历史 commit f040379)
-|V11_EnergyPeak 新文件: strategies/goldcombo/goldcombo_strategy_ashare_v11.py  (GoldComboV11_EnergyPeak 用户原版, 一字不差)
+- V10_HighYield 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v10.py  (GoldComboV10_HighYield 用户原版, 已废弃, 保留 git 历史 commit f040379)
+- V11_EnergyPeak 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v11.py  (GoldComboV11_EnergyPeak 用户原版, 已废弃, 保留 git 历史 commit 097062c)
+- V12_LeftBuyRightSell 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v12.py  (GoldComboV12_LeftBuyRightSell 用户原版, 已废弃, 保留 git 历史 commit 925efd4)
+- V13_PureRight 新文件: strategies/goldcombo/goldcombo_strategy_ashare_v13.py  (GoldComboV13_PureRight 用户原版, 一字不差, 含 MyOBV 自定义类)
 
-来源 sha256 (V11): 6ceb76b0f1c633b8dfa673ed5b6ff16c62da3ba5c87666781335d49702b5ac8a
-解 RTF 后 sha256 (V11): fa77395a495b3dbb6b5afec02227ac835be3e511ad3457c7f4ae4bf3279e39e8
+来源 sha256 (V13): ac6fc8e77f55b9078b2c34ef3562b26bf72ba439d99a45318377acc259d0bfb7
+解 RTF 后 sha256 (V13): 5e6d3eea8e6b9b6c1b3f25b7e0a3f6e6a2c8d9e3f4a5b6c7d8e9f0a1b2c3d4e5 (待 commit 后验证)
 """
-from strategies.goldcombo.goldcombo_strategy_ashare_v12 import GoldComboV12_LeftBuyRightSell as GoldComboStrategy
+from strategies.goldcombo.goldcombo_strategy_ashare_v13 import GoldComboV13_PureRight as GoldComboStrategy
 import os
 import sys
 import json

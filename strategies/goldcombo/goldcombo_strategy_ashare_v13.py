@@ -1,0 +1,87 @@
+import backtrader as bt
+import math  # 用户原版缺 import math, math.isnan 需要 (非外部 hold/lock, 仅修复 Python 内置引用)
+
+# 自定义 OBV (修复 bt.ind.OBV 不存在)
+class MyOBV(bt.Indicator):
+    lines = ('obv',)
+    def __init__(self):
+        self.lines.obv = bt.ind.SumN(
+            bt.Cmp(self.data.close, self.data.close(-1)) * self.data.volume, period=1
+        )
+
+class GoldComboV13_PureRight(bt.Strategy):
+    """
+    =========================================================================
+    V13 纯右侧全满足版 (执行用户方向1 fallback: 放弃左侧, 原始卖点组转买点 AND)
+    -------------------------------------------------------------------------
+    【硬性规则】
+    1. 价格过滤: >3.0 元
+    2. 买入(全满足AND): DMI多方(+DI>30,-DI<20,ADX>32) & MACD水上(DIFF>DEA,DIFF>0,DEA>0)
+       & TRIX零上(TRIX>TRMA,TRIX>0) & OBV强势(OBV>MAOBV) & CCI>120
+    3. 卖出 A: 成本 -15% 硬止损
+    4. 卖出 B: 峰值回撤 25% 离场
+    5. 卖出 C: MACD 死叉 (DIFF下穿DEA) 离场
+    6. 仓位: 单票 10% 总资 (5万=5000/只)
+    =========================================================================
+    """
+    params = dict(
+        price_min=3.0, per_pos_pct=0.10,
+        hard_sl=0.15, trail_sl=0.25,
+    )
+
+    def __init__(self):
+        self.macd = bt.ind.MACD(period_me1=12, period_me2=26, period_signal=9)
+        self.cci = bt.ind.CCI(period=14)
+        self.plus_di = bt.ind.PlusDI(period=14)
+        self.minus_di = bt.ind.MinusDI(period=14)
+        self.adx = bt.ind.ADX(period=14)
+        self.trix = bt.ind.TRIX(period=12)
+        self.trma = bt.ind.SMA(self.trix, period=9)
+        self.obv = MyOBV(self.data)
+        self.maobv = bt.ind.SMA(self.obv, period=30)
+        
+        self.entry_price = None
+        self.highest_since_entry = 0.0
+
+    def notify_order(self, order):
+        if order.status in [order.Completed] and order.isbuy():
+            self.entry_price = order.executed.price
+            self.highest_since_entry = order.executed.price
+
+    def next(self):
+        price = self.data.close[0]
+        if price < self.p.price_min: return
+        if math.isnan(self.macd.macd[0]) or math.isnan(self.obv.obv[0]): return
+
+        if self.position:
+            if price > self.highest_since_entry:
+                self.highest_since_entry = price
+            if price < self.entry_price * (1.0 - self.p.hard_sl):
+                self.close(); return
+            if price < self.highest_since_entry * (1.0 - self.p.trail_sl):
+                self.close(); return
+            if (self.macd.macd[0] < self.macd.signal[0]) and \
+               (self.macd.macd[-1] >= self.macd.signal[-1]):
+                self.close(); return
+        else:
+            # 规则2: 原始卖点组全满足 (严格 AND)
+            s_dmi = (self.plus_di[0] > 30) and (self.minus_di[0] < 20) and (self.adx[0] > 32)
+            s_macd = (self.macd.macd[0] > self.macd.signal[0]) and \
+                     (self.macd.macd[0] > 0) and (self.macd.signal[0] > 0)
+            s_trix = (self.trix[0] > self.trma[0]) and (self.trix[0] > 0)
+            s_obv = (self.obv.obv[0] > self.maobv[0])
+            s_cci = (self.cci[0] > 120)
+
+            if s_dmi and s_macd and s_trix and s_obv and s_cci:
+                cash_to_use = self.broker.getcash() * self.p.per_pos_pct
+                size = int(cash_to_use / (price * 100)) * 100
+                if size > 0:
+                    self.buy(size=size)
+
+if __name__ == '__main__':
+    cerebro = bt.Cerebro()
+    cerebro.addstrategy(GoldComboV13_PureRight)
+    cerebro.broker.setcash(50000.0)  # 锁死 5 万
+    cerebro.broker.setcommission(commission=0.001)
+    cerebro.broker.set_slippage_perc(perc=0.003)
+    cerebro.run()
