@@ -1,20 +1,29 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-[2026-08-15 版本管理 V9] v8 EatTheBody / V8final 已废弃,本 alias 现在指向 V9 用户原版。
-本 alias 现在指向 V9 (GoldComboV8_Final, 与 V8final 100% 逻辑一致, 仅多 debug 参数 + math.isnan 防护)。
+[2026-08-16 版本管理 V10_HighYield] V7FIXOBV (V7LOCK v3 修复 OBV bug) 已废弃,本 alias 现在指向 V10_HighYield 用户原版。
+本 alias 现在指向 V10_HighYield (GoldComboV10_HighYield, 激进左侧抄底 C3 必选 + 投票≥1 极敏感, 与 V7FIXOBV 右侧主升追击 设计哲学完全不同)。
 v6 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v6.py (5% 硬止损回归 + 保本止损 + MACD 高位死叉回归)。
 v4 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v4.py (ATR 自适应 + 阶梯移动止盈 + 时间止损)。
 v3 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v3.py (5% 硬止损 + 8% 固定移动止盈)。
 V8final 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v8final.py (已废弃, 保留 git 历史 commit 67a5f98)。
+V9 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v9.py (已废弃, 保留 git 历史 commit c514fdd)。
+V7FIXOBV 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v7lock.py (V7LOCK v3 修复 OBV bug, 已废弃, 保留 git 历史 commit 40b73a4)。
 
 下方导入别名让旧 import 路径 (from goldcombo_strategy_ashare import GoldComboStrategy)
-仍可工作,实际类指向 GoldComboV8_Final (V9 用户原版)。
+仍可工作,实际类指向 GoldComboV10_HighYield (V10 用户原版)。
 
-用户原话 (2026-08-15): "必须一字不差地用这个类跑股票池子,不准加任何外部 hold/lock"。
-- "必须一字不差地用这个类" → V9 用户原版 (类名 GoldComboV8_Final, 一行都不改)
-- "不准加任何外部 hold/lock" → 不允许任何外部 hold/lock/sl 逻辑 (策略类内部已含 hard_sl/trail_sl)
-- V9 与 V8final 逻辑 100% 一致, 区别仅多 debug 参数 + math.isnan 防护
+用户原话 (2026-08-16): "用上方 GoldComboV10_HighYield 替换旧类, 死磕左侧, 追求高收益, 不加任何外部 hold/lock。
+硬性规则写在代码头, 无任何外部依赖"。
+- "不得更改类名" → V10 用户原版 (类名 GoldComboV10_HighYield, 一行都不改)
+- "不得添加任何时间持有锁" → 不允许任何外部 hold/lock/sl 逻辑 (策略类内部已含 hard_sl=0.30 + trail_sl=0.25 + cci_bubble=200)
+- "硬性规则全内嵌" → 所有规则 (买入 C3 必选 + 投票≥1 / 卖出 30%硬止损+25%峰值回撤+CCI>200泡沫顶) 都在类内, 不外置
+
+V10_HighYield 与 V7FIXOBV 设计哲学差异 (诚实声明):
+- V7FIXOBV (右侧主升浪追击): 5 强势信号 (DMI 多方 + MACD 水上 + TRIX 零上 + OBV 强势 + CCI 强势) ≥3 投票, 追击已启动趋势 → 跑出 -1.0586% / 7586 笔 / 794 股 / worst_dd -69.13%
+- V10_HighYield (激进左侧抄底): C3 低位金叉必选 + [C4 BOLL 开口 / C7 CCI<-70 / C8 DMI 空方] ≥1 投票 (极敏感), 抓反弹起点, 容忍主跌浪, 不早下车
+- 数据可比因: 都跑 1950 只沪深 A 股 5Y, 同 V7FIXOBV 5Y baseline
+- 跑批脚本: ~/goldcombo_real_backtest/v10/T4_5y/run_backtest_5y_v10.py
 
 版本备份链:
 - v1 备份: ~/goldcombo_real_backtest/v1_backup/                    (git da10a57, 已清理)
@@ -26,40 +35,14 @@ V8final 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v8final.py 
 - v8final 备份: ~/goldcombo_real_backtest/v8final/  (subagent #15 跑批产物, 已清理 T4_5y + _v6_monitor_backup)
 - v6 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v6.py (GoldComboV6Strategy, 已废弃但保留 git 历史)
 - V8final 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v8final.py  (GoldComboV8_Final, 已废弃, 保留 git 历史 commit 67a5f98)
-- V9 新文件: strategies/goldcombo/goldcombo_strategy_ashare_v9.py  (GoldComboV8_Final 用户原版)
+- V9 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v9.py  (GoldComboV8_Final, 已废弃, 保留 git 历史 commit c514fdd)
+- V7LOCK/V7FIXOBV 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v7lock.py  (V7LOCK v3 修复 OBV bug, 已废弃, 保留 git 历史 commit 40b73a4)
+- V10_HighYield 新文件: strategies/goldcombo/goldcombo_strategy_ashare_v10.py  (GoldComboV10_HighYield 用户原版, 一字不差)
 
-V9 类名 GoldComboV8_Final (用户手动上传 2026-08-15, V9 用户原版, 与 V8final 100% 一致)。
-来源: ~/Downloads/股票筛选项目/自己写量化策略和脚本/混元三黄金组合优化第四版V9.py
-来源 sha256: 32f6813d84c0406fef979e0d3372cd4575dabe90403a21e3df54a0c6a927841f
+来源 sha256: d311c85ea03f3c20fd30d8ebb0c50629804412cfdf6379334df04a445a0deed0
+解 RTF 后 sha256: cd6d828ae20431c5f13b6ab4870d7195db41bfe926bbd4020583206abce9f8b0
 """
-from strategies.goldcombo.goldcombo_strategy_ashare_v9 import GoldComboV8_Final as GoldComboStrategy
-
-"""
-黄金组合 A 回测引擎 v3 — GoldComboStrategy 沪深 A 股版
-====================================================================
-- 数据源: /Users/junze/quant-monitor-local/data/ashare_kline/ (沪深 A 股 CSV)
-- 数据池: 沪深 A 股 (排除科创板 688xxx + 创业板 30xxxx) ≥ 2500 只
-- 起始资金: 100000.0
-- 佣金: 0.001
-- 滑点: 0.001
-- 数据期: 2Y (2024-08-13 ~ 2026-08-13) + 5Y (2021-08-13 ~ 2026-08-13)
-- 策略: 4 指标共振 (MACD金叉<0, BOLL扩口, CCI<-100, -DI>30 +DI<10)
-- 兜底: 8% 止损 / 4 指标反转平仓
-
-v3 与 v2 (goldcombo_strategy.py) 唯一差异:
-  - KLINE_DIR: /Users/junze/qixing_data/etf_kline → /Users/junze/quant-monitor-local/data/ashare_kline
-  - POOL: ETF 38 → A 股池 (从 ashare_pool.json 动态加载)
-  - 列名: 兼容 A 股 CSV 格式 (date/open/high/low/close/volume)
-
-回测日期陷阱规避:
-- 用所有 A 股交易日交集 (set.intersection)
-- 回撤算法: cummax-based (correct drawdown)
-
-数据期内可用 A 股过滤: min_rows >= 200 (2Y) / 1000 (5Y)
-
-2026-08-13: 用户 P0 纠正 — 黄金组合 A 是沪深 A 股策略 (排除科创+创业),
-            不是 ETF 池策略。改数据源, 重跑棘轮。
-"""
+from strategies.goldcombo.goldcombo_strategy_ashare_v10 import GoldComboV10_HighYield as GoldComboStrategy
 import os
 import sys
 import json
