@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-[2026-08-16 版本管理 V17_LowFreqBreakout] V16_ChannelBreakout 已废弃,本 alias 现在指向 V17_LowFreqBreakout 用户原版。
-本 alias 现在指向 V17_LowFreqBreakout (GoldComboV17_LowFreqBreakout, 范式革命 2.0: 长周期 120/60/20 + 集中持仓 95%)。
+[2026-08-16 版本管理 V20_NoMA] V17_LowFreqBreakout 已废弃,本 alias 现在指向 V20_NoMA 用户原版 (零均线数值化版)。
+本 alias 现在指向 V20_NoMA (GoldComboV20_NoMA, 零均线数值化版: 卖点剔除所有MA, 用具体数值/ATR/CCI, cooldown 60日内部冷却)。
 - 首次入场 (左试): C3 (MACD零轴下金叉) 必选 + [C4/C7/C8] ≥ 1 → 买半仓 (总资 10%)
 - 加仓 (右确认): 持仓中 + 未加过 + 价格 > MA10 → 买另半仓 (总资 10%) → 加满 20%
 - 离场 4 机制: 20% 硬止损 (V10 精神) + 25% 峰值回撤止盈 + 破 MA10 快离场 + MACD 死叉
@@ -62,12 +62,13 @@ V17 抛弃 V16 短周期指标 (诚实声明):
 - V13_PureRight 新文件: strategies/goldcombo/goldcombo_strategy_ashare_v13.py  (GoldComboV13_PureRight 用户原版, 一字不差, 含 MyOBV 自定义类)
 - V14_ScaleIn 新文件: strategies/goldcombo/goldcombo_strategy_ashare_v14.py  (GoldComboV14_ScaleIn 用户原版, 已废弃, 保留 git 历史 commit c27d509)
 - V16_ChannelBreakout 文件保留: strategies/goldcombo/goldcombo_strategy_ashare_v16.py  (GoldComboV16_ChannelBreakout 范式革命 1.0, 已废弃, 保留 git 历史 commit 4f1345b)
-- V17_LowFreqBreakout 新文件: strategies/goldcombo/goldcombo_strategy_ashare_v17.py  (GoldComboV17_LowFreqBreakout 用户原版, 一字不差, 范式革命 2.0 长周期 + 集中持仓 95%)
+- V20_NoMA 新文件: strategies/goldcombo/goldcombo_strategy_ashare_v20.py  (GoldComboV20_NoMA 用户原版, 一字不差, 零均线数值化版: 卖点剔除所有MA, 用具体数值/ATR/CCI, cooldown 60日禁买)
 
-来源 sha256 (V17): f5ad37f33dbdda8c36a16587d36f9c38127d8ee0de84d897da2aa359947a71bd
-解 RTF 后 sha256 (V17): 50b10dde71fc9b64ec4757d508ad30a4b1028c7577f02894e28c9b265398cc17 (V17 写入项目 + clean.txt 一致, 一字不差)
+来源 sha256 (V20): 9021d4fb1537abb33d519fc85d1b9b5bc8249ef554c4e47d6d15ab256087fde2 (用户上传 RTF)
+V20 写入项目 sha256: c0b6c9b52a5f5596a05482cedcb9a3f63bc89d1787d4e58c28f1beb29e73373b
+V17_LowFreqBreakout 旧类保留: strategies/goldcombo/goldcombo_strategy_ashare_v17.py (已废弃, 保留 git 历史 commit e2d105b)
 """
-from strategies.goldcombo.goldcombo_strategy_ashare_v17 import GoldComboV17_LowFreqBreakout as GoldComboStrategy
+from strategies.goldcombo.goldcombo_strategy_ashare_v20 import GoldComboV20_NoMA as GoldComboStrategy
 import os
 import sys
 import json
