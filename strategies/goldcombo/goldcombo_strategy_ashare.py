@@ -1,7 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-[2026-08-16 版本管理 V20_NoMA] V17_LowFreqBreakout 已废弃,本 alias 现在指向 V20_NoMA 用户原版 (零均线数值化版)。
+[2026-08-17 版本管理 V22_MultiAssetRotation] V21b_AssetRot 已废弃,本 alias 现在指向 V22_MultiAssetRotation 用户原版 (多资产轮动版: 60日动量排序 + 60日突破确认 + top_n=3 + 20日调仓)。
+V21b_AssetRot 资产轮动修正版 (single-asset 突破) 5Y 跑批 -0.0674% / 51 笔 / 0.00% DD (策略 + 选股双重止损过早触发)。
+V22_MultiAssetRotation (用户原版, 多资产轮动: 60日动量 + 60日突破 + top_n=3) 替代 V21b 资产轮动修正版, 8416B 217 行 Python (纯 .py 不再 RTF), 类名 MultiAssetRotation:
+- 设计哲学: 多资产轮动 — 多标的混合池 (股票 + ETF + 转债), 60日动量排序 + 60日突破确认, 每 20 交易日调仓, 持有 top_n=3 最强标的
+- 15 个参数: momentum_period=60/break_period=60/top_n=3/rebalance_days=20/invest_pct=0.90/hard_sl=0.15/trail_sl=0.20(用户原话锁死)/atr_period=14/atr_multi=3.0/cci_peak=100/cci_fall=80/cool_days=60/use_market_filter=False/market_data_name='ETF:510300'/ma_period=200
+- 多资产支持: CB:xxx → 可转债 (每手 10 张), 其他 → 股票/ETF (每手 100 股)
+- 入场: 多标的 ROC > 0 + 收盘 > 60日高 (动量 + 突破双确认)
+- 离场 5 机制: 硬止损 + 峰值回撤 + ATR动态 + CCI衰竭 + 调仓卖出 (不在 top_n 即卖)
+- 仓位: 90% 总资 / 3 只 = 30% 每只
+- 可选 MA200 市场过滤 (默认关闭)
+- 数据防火墙: math.isnan 防护 (ROC/High_n/ATR/CCI)
+
+V22 类名锁定: MultiAssetRotation (一字不差, 多资产轮动版)
+用户原话: '更新策略, 开始五年回测'
+
+一字不差, 不加任何外部 hold/lock (cooldown 是 V22 内部冷却机制)。
+
+来源: ~/Downloads/股票筛选项目/自己写量化策略和脚本/deepseek_goldcombo-python_v22-20260817.py
+sha256: f42801c808ed4fafdbcce30e667b4647fbefa78a762b85a190c96034a53858f9
+
+[历史 alias 链 — 2026-08-16 V20_NoMA] V17_LowFreqBreakout 已废弃,本 alias 之前指向 V20_NoMA 用户原版 (零均线数值化版)。
 本 alias 现在指向 V10 路径B (GoldComboV10_PathB, V10_HighYield 激进左翼 sizing 修正 5000/只: 95% 仓位单只满仓 + 30% 硬止损 (V10 宽容) + 25% 峰值回撤止盈 + CCI>200 泡沫顶离场)。
 - 首次入场 (左试): C3 (MACD零轴下金叉) 必选 + [C4/C7/C8] ≥ 1 → 买半仓 (总资 10%)
 - 加仓 (右确认): 持仓中 + 未加过 + 价格 > MA10 → 买另半仓 (总资 10%) → 加满 20%
@@ -70,7 +90,7 @@ V17 抛弃 V16 短周期指标 (诚实声明):
 V20 写入项目 sha256: c0b6c9b52a5f5596a05482cedcb9a3f63bc89d1787d4e58c28f1beb29e73373b
 V17_LowFreqBreakout 旧类保留: strategies/goldcombo/goldcombo_strategy_ashare_v17.py (已废弃, 保留 git 历史 commit e2d105b)
 """
-from strategies.goldcombo.goldcombo_strategy_ashare_v21b import GoldComboV21b_AssetRot as GoldComboStrategy  # V10 暂时禁用 (V21b 资产轮动修正版替换, 2026-08-17)
+from strategies.goldcombo.goldcombo_strategy_ashare_v22 import MultiAssetRotation as GoldComboStrategy  # V21b 暂时禁用 (V22 多资产轮动版替换, 2026-08-17)
 import os
 import sys
 import json
