@@ -70,7 +70,7 @@ V17 抛弃 V16 短周期指标 (诚实声明):
 V20 写入项目 sha256: c0b6c9b52a5f5596a05482cedcb9a3f63bc89d1787d4e58c28f1beb29e73373b
 V17_LowFreqBreakout 旧类保留: strategies/goldcombo/goldcombo_strategy_ashare_v17.py (已废弃, 保留 git 历史 commit e2d105b)
 """
-from strategies.goldcombo.goldcombo_strategy_ashare_v10 import GoldComboV10_PathB as GoldComboStrategy
+from strategies.goldcombo.goldcombo_strategy_ashare_v21b import GoldComboV21b_AssetRot as GoldComboStrategy  # V10 暂时禁用 (V21b 资产轮动修正版替换, 2026-08-17)
 import os
 import sys
 import json
