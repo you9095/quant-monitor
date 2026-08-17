@@ -1,0 +1,59 @@
+{
+  "_comment": "策略配置 + 三层标签（version / data_period / caliber）。v2.0 (2026-06-24) 同步最新棘轮基线",
+  "qixing": {
+    "name": "七星策略",
+    "color": "#3b82f6",
+    "initial_capital": 10000,
+    "description": "创业板动量策略",
+    "version": "R120_breadth_0.353_holdings_1",
+    "data_period": "2024-06-12 ~ 2026-06-12",
+    "caliber": "2Y 年化(主)，含交易费，单持仓；5Y 年化仅+1.92%（牛熊差异）"
+  },
+  "r32": {
+    "name": "三驾马车",
+    "color": "#10b981",
+    "initial_capital": 10000,
+    "description": "行业轮动棘轮策略",
+    "version": "R35_rebal_15",
+    "data_period": "2024-06 ~ 2026-06",
+    "caliber": "2Y 年化(主)，半月调仓，含交易费，硬约束回撤 ≤ -20%"
+  },
+  "zhuidian": {
+    "name": "追电策略",
+    "color": "#f59e0b",
+    "initial_capital": 10000,
+    "description": "跨境ETF动量轮动",
+    "version": "R17_score_max_38",
+    "data_period": "2024-06 ~ 2026-06",
+    "caliber": "2Y 年化(主)+103.18%，5Y 年化+32.65%（牛熊差异，窗口期爆发力）"
+  },
+  "sanhe": {
+    "name": "三合策略",
+    "color": "#a855f7",
+    "initial_capital": 10000,
+    "description": "三策略融合+波动率倒数加权",
+    "version": "R44_weekly_h4_cap2418",
+    "data_period": "2021-06 ~ 2026-06",
+    "caliber": "2Y 年化(主)+35.80% / 5Y 年化(副)+23.18%"
+  },
+  "lightning": {
+    "name": "闪电策略",
+    "color": "#facc15",
+    "initial_capital": 10000,
+    "description": "3日动量+4只跨境+止盈止损",
+    "version": "R4_m3",
+    "data_period": "2024-06 ~ 2026-06",
+    "caliber": "2Y 年化(主)+27.34%，5Y 未跑（P2 风险点）"
+  },
+  "goldcombo": {
+    "name": "黄金组合A",
+    "color": "#ef4444",
+    "initial_capital": 10000,
+    "description": "极致恐慌反转模型",
+    "version": "v6",
+    "data_period": "2021-08-14 ~ 2026-08-14 (5Y)",
+    "caliber": "5Y · 严控回撤去错杀版 (sl_pct=0.05 + breakeven_pct=0.05 + be_stop_pct=0.01 + MACD 高位死叉)",
+    "latest_baseline": "/Users/junze/goldcombo_real_backtest/v6_5y/baseline_ashare_real_5y_v6.json",
+    "last_updated": "2026-08-15"
+  }
+}

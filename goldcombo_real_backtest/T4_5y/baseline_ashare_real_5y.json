@@ -1,0 +1,255 @@
+{
+  "strategy_id": "goldcombo",
+  "strategy_name": "黄金组合A · 沪深 A 股 (排除科创+创业)",
+  "data_period": "5Y",
+  "data_window": {
+    "start": "2021-08-14",
+    "end": "2026-08-14"
+  },
+  "pool_size": 1950,
+  "pool_filter": "exclude 688xxx 科创 + 300xxx 创业, 600/601/603/605/000/002 only",
+  "engine": "backtrader 1.9.78.123 真实回测 (非闭式估算代理)",
+  "generated_at": "2026-08-14T20:33:51.267611",
+  "elapsed_seconds": 773.4,
+  "config": {
+    "initial_capital": 10000.0,
+    "effective_capital": 975000.0,
+    "capital_per_stock": 500.0,
+    "commission": 0.001,
+    "slippage": 0.001,
+    "stop_loss_pct": 0.08
+  },
+  "real_metrics": {
+    "total_return_pct": -0.002,
+    "annualized_return_pct": -0.0004,
+    "avg_per_stock_return_pct": -0.002,
+    "max_drawdown_pct_avg": -0.0026,
+    "max_drawdown_pct_worst": -5.0954,
+    "sharpe_ratio_avg": -0.0002,
+    "trade_count": 1,
+    "closed_trades": 1,
+    "win_count": 0,
+    "loss_count": 1,
+    "win_rate_pct": 0.0,
+    "success_count": 1950,
+    "failed_count": 0,
+    "error_count": 0
+  },
+  "individual_stock_results_sample": [
+    {
+      "code": "000010",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0,
+      "win_count": 0,
+      "loss_count": 0
+    },
+    {
+      "code": "000011",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0,
+      "win_count": 0,
+      "loss_count": 0
+    },
+    {
+      "code": "000012",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0,
+      "win_count": 0,
+      "loss_count": 0
+    },
+    {
+      "code": "000014",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0,
+      "win_count": 0,
+      "loss_count": 0
+    },
+    {
+      "code": "000016",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0,
+      "win_count": 0,
+      "loss_count": 0
+    },
+    {
+      "code": "000017",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0,
+      "win_count": 0,
+      "loss_count": 0
+    },
+    {
+      "code": "000019",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0,
+      "win_count": 0,
+      "loss_count": 0
+    },
+    {
+      "code": "000020",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0,
+      "win_count": 0,
+      "loss_count": 0
+    },
+    {
+      "code": "000021",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0,
+      "win_count": 0,
+      "loss_count": 0
+    },
+    {
+      "code": "000025",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0,
+      "win_count": 0,
+      "loss_count": 0
+    },
+    {
+      "code": "000026",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0,
+      "win_count": 0,
+      "loss_count": 0
+    },
+    {
+      "code": "000027",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0,
+      "win_count": 0,
+      "loss_count": 0
+    },
+    {
+      "code": "000028",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0,
+      "win_count": 0,
+      "loss_count": 0
+    },
+    {
+      "code": "000029",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0,
+      "win_count": 0,
+      "loss_count": 0
+    },
+    {
+      "code": "000030",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0,
+      "win_count": 0,
+      "loss_count": 0
+    },
+    {
+      "code": "000031",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0,
+      "win_count": 0,
+      "loss_count": 0
+    },
+    {
+      "code": "000032",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0,
+      "win_count": 0,
+      "loss_count": 0
+    },
+    {
+      "code": "000034",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0,
+      "win_count": 0,
+      "loss_count": 0
+    },
+    {
+      "code": "000035",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0,
+      "win_count": 0,
+      "loss_count": 0
+    },
+    {
+      "code": "000036",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0,
+      "win_count": 0,
+      "loss_count": 0
+    }
+  ],
+  "traded_stocks_full": [
+    {
+      "code": "002697",
+      "final_value": 480.38,
+      "return_pct": -3.924,
+      "max_drawdown_pct": -5.0954,
+      "sharpe_ratio": -0.2981,
+      "trade_count": 1,
+      "win_count": 0,
+      "loss_count": 1
+    }
+  ],
+  "failed_codes_sample": [],
+  "error_codes_sample": [],
+  "honest_declaration": "这是 backtrader 真实回测, 非闭式估算代理 (区别于 goldcombo_strategy_ashare.py vectorized numpy 模拟). 与 ratchet_final_baseline_ashare.json 数据期/口径不同, 不可直接比较. Sharpe/Drawdown 为单股 backtrader analyzer 输出后等权平均, 组合级 Sharpe/Drawdown 需要 portfolio-level equity curve (本脚本未实现)."
+}

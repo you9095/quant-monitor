@@ -1,0 +1,6570 @@
+{
+  "strategy_id": "goldcombo",
+  "strategy_version": "V7FIXOBV (GoldComboV7_Locked + MyOBV 用户原版 OBV 修复版, 2026-08-15)",
+  "strategy_name": "黄金组合A · 沪深 A 股 (排除科创+创业) · V7FIXOBV 锁死修复版",
+  "data_period": "5Y",
+  "data_window": {
+    "start": "2021-08-14",
+    "end": "2026-08-14"
+  },
+  "pool_size": 1950,
+  "pool_filter": "exclude 688xxx 科创 + 300xxx 创业 (沪深 600/601/603/605/000/002 only)",
+  "engine": "backtrader 1.9.78.123 真实回测",
+  "generated_at": "2026-08-15T23:50:11.417992",
+  "elapsed_seconds": 722.8,
+  "entry_logic": "5 强势信号 ≥ 3 投票 (DMI 多方 + MACD 水上 + TRIX 零上 + OBV 强势 (MyOBV 自定义) + CCI 强势)",
+  "exit_logic": "8% 硬止损 + 15% 峰值回撤止盈 + MACD 高位死叉",
+  "config": {
+    "initial_capital": 10000.0,
+    "effective_capital": 975000.0,
+    "capital_per_stock": 500.0,
+    "vote_min": 3,
+    "price_min": 3.0,
+    "cash_pct": 0.95,
+    "hard_sl": 0.08,
+    "trail_sl": 0.15,
+    "commission": 0.001,
+    "slippage": 0.003,
+    "obv_implementation": "用户自定义 MyOBV 类 (同文件内嵌, bt.ind.SumN(bt.Cmp(...)*volume, period=1))"
+  },
+  "real_metrics": {
+    "total_return_pct": -1.0586,
+    "annualized_return_pct": -0.2126,
+    "avg_per_stock_return_pct": -1.0586,
+    "max_drawdown_pct_avg": -8.702,
+    "max_drawdown_pct_worst": -69.1272,
+    "sharpe_ratio_avg": -0.0324,
+    "trade_count": 7586,
+    "success_count": 1950,
+    "failed_count": 0,
+    "error_count": 0,
+    "traded_stocks_count": 794
+  },
+  "individual_stock_results_sample": [
+    {
+      "code": "000010",
+      "final_value": 536.2,
+      "return_pct": 7.2408,
+      "max_drawdown_pct": -5.923,
+      "sharpe_ratio": 0.1742,
+      "trade_count": 17
+    },
+    {
+      "code": "000011",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0
+    },
+    {
+      "code": "000012",
+      "final_value": 448.95,
+      "return_pct": -10.2108,
+      "max_drawdown_pct": -17.2497,
+      "sharpe_ratio": -0.2832,
+      "trade_count": 4
+    },
+    {
+      "code": "000014",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0
+    },
+    {
+      "code": "000016",
+      "final_value": 498.27,
+      "return_pct": -0.3453,
+      "max_drawdown_pct": -37.7295,
+      "sharpe_ratio": 0.087,
+      "trade_count": 10
+    },
+    {
+      "code": "000017",
+      "final_value": 384.28,
+      "return_pct": -23.1434,
+      "max_drawdown_pct": -23.5576,
+      "sharpe_ratio": -0.7447,
+      "trade_count": 6
+    },
+    {
+      "code": "000019",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0
+    },
+    {
+      "code": "000020",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0
+    },
+    {
+      "code": "000021",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0
+    },
+    {
+      "code": "000025",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0
+    },
+    {
+      "code": "000026",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0
+    },
+    {
+      "code": "000027",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0
+    },
+    {
+      "code": "000028",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0
+    },
+    {
+      "code": "000029",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0
+    },
+    {
+      "code": "000030",
+      "final_value": 500.94,
+      "return_pct": 0.1882,
+      "max_drawdown_pct": -12.8806,
+      "sharpe_ratio": 0.0467,
+      "trade_count": 12
+    },
+    {
+      "code": "000031",
+      "final_value": 388.11,
+      "return_pct": -22.3783,
+      "max_drawdown_pct": -33.6823,
+      "sharpe_ratio": -0.2042,
+      "trade_count": 19
+    },
+    {
+      "code": "000032",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0
+    },
+    {
+      "code": "000034",
+      "final_value": 500.0,
+      "return_pct": 0.0,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.0,
+      "trade_count": 0
+    },
+    {
+      "code": "000035",
+      "final_value": 459.74,
+      "return_pct": -8.0512,
+      "max_drawdown_pct": -21.2916,
+      "sharpe_ratio": -0.1847,
+      "trade_count": 7
+    },
+    {
+      "code": "000036",
+      "final_value": 697.1,
+      "return_pct": 39.4194,
+      "max_drawdown_pct": -18.4929,
+      "sharpe_ratio": 0.4689,
+      "trade_count": 15
+    }
+  ],
+  "traded_stocks_full": [
+    {
+      "code": "000010",
+      "final_value": 536.2,
+      "return_pct": 7.2408,
+      "max_drawdown_pct": -5.923,
+      "sharpe_ratio": 0.1742,
+      "trade_count": 17
+    },
+    {
+      "code": "000012",
+      "final_value": 448.95,
+      "return_pct": -10.2108,
+      "max_drawdown_pct": -17.2497,
+      "sharpe_ratio": -0.2832,
+      "trade_count": 4
+    },
+    {
+      "code": "000016",
+      "final_value": 498.27,
+      "return_pct": -0.3453,
+      "max_drawdown_pct": -37.7295,
+      "sharpe_ratio": 0.087,
+      "trade_count": 10
+    },
+    {
+      "code": "000017",
+      "final_value": 384.28,
+      "return_pct": -23.1434,
+      "max_drawdown_pct": -23.5576,
+      "sharpe_ratio": -0.7447,
+      "trade_count": 6
+    },
+    {
+      "code": "000030",
+      "final_value": 500.94,
+      "return_pct": 0.1882,
+      "max_drawdown_pct": -12.8806,
+      "sharpe_ratio": 0.0467,
+      "trade_count": 12
+    },
+    {
+      "code": "000031",
+      "final_value": 388.11,
+      "return_pct": -22.3783,
+      "max_drawdown_pct": -33.6823,
+      "sharpe_ratio": -0.2042,
+      "trade_count": 19
+    },
+    {
+      "code": "000035",
+      "final_value": 459.74,
+      "return_pct": -8.0512,
+      "max_drawdown_pct": -21.2916,
+      "sharpe_ratio": -0.1847,
+      "trade_count": 7
+    },
+    {
+      "code": "000036",
+      "final_value": 697.1,
+      "return_pct": 39.4194,
+      "max_drawdown_pct": -18.4929,
+      "sharpe_ratio": 0.4689,
+      "trade_count": 15
+    },
+    {
+      "code": "000042",
+      "final_value": 560.62,
+      "return_pct": 12.1236,
+      "max_drawdown_pct": -9.2476,
+      "sharpe_ratio": 0.2992,
+      "trade_count": 3
+    },
+    {
+      "code": "000055",
+      "final_value": 380.69,
+      "return_pct": -23.8612,
+      "max_drawdown_pct": -33.396,
+      "sharpe_ratio": -0.3824,
+      "trade_count": 13
+    },
+    {
+      "code": "000056",
+      "final_value": 215.99,
+      "return_pct": -56.8026,
+      "max_drawdown_pct": -56.8026,
+      "sharpe_ratio": -0.432,
+      "trade_count": 6
+    },
+    {
+      "code": "000059",
+      "final_value": 447.49,
+      "return_pct": -10.5016,
+      "max_drawdown_pct": -15.1106,
+      "sharpe_ratio": -0.4,
+      "trade_count": 1
+    },
+    {
+      "code": "000060",
+      "final_value": 480.26,
+      "return_pct": -3.9484,
+      "max_drawdown_pct": -9.5836,
+      "sharpe_ratio": -0.0581,
+      "trade_count": 9
+    },
+    {
+      "code": "000068",
+      "final_value": 353.06,
+      "return_pct": -29.3882,
+      "max_drawdown_pct": -30.652,
+      "sharpe_ratio": -0.3743,
+      "trade_count": 22
+    },
+    {
+      "code": "000069",
+      "final_value": 498.55,
+      "return_pct": -0.2904,
+      "max_drawdown_pct": -6.4243,
+      "sharpe_ratio": 0.0394,
+      "trade_count": 1
+    },
+    {
+      "code": "000070",
+      "final_value": 443.78,
+      "return_pct": -11.2445,
+      "max_drawdown_pct": -11.2445,
+      "sharpe_ratio": -0.8192,
+      "trade_count": 1
+    },
+    {
+      "code": "000078",
+      "final_value": 384.94,
+      "return_pct": -23.0124,
+      "max_drawdown_pct": -35.747,
+      "sharpe_ratio": -0.1532,
+      "trade_count": 18
+    },
+    {
+      "code": "000088",
+      "final_value": 445.73,
+      "return_pct": -10.8537,
+      "max_drawdown_pct": -12.7943,
+      "sharpe_ratio": -0.4845,
+      "trade_count": 6
+    },
+    {
+      "code": "000090",
+      "final_value": 487.58,
+      "return_pct": -2.4836,
+      "max_drawdown_pct": -26.1918,
+      "sharpe_ratio": 0.0241,
+      "trade_count": 15
+    },
+    {
+      "code": "000100",
+      "final_value": 379.61,
+      "return_pct": -24.0786,
+      "max_drawdown_pct": -25.4771,
+      "sharpe_ratio": -0.7672,
+      "trade_count": 8
+    },
+    {
+      "code": "000401",
+      "final_value": 527.36,
+      "return_pct": 5.4728,
+      "max_drawdown_pct": -15.1533,
+      "sharpe_ratio": 0.1584,
+      "trade_count": 7
+    },
+    {
+      "code": "000402",
+      "final_value": 295.01,
+      "return_pct": -40.9975,
+      "max_drawdown_pct": -41.0078,
+      "sharpe_ratio": -0.6795,
+      "trade_count": 8
+    },
+    {
+      "code": "000404",
+      "final_value": 382.06,
+      "return_pct": -23.5886,
+      "max_drawdown_pct": -28.1565,
+      "sharpe_ratio": -0.535,
+      "trade_count": 7
+    },
+    {
+      "code": "000407",
+      "final_value": 357.28,
+      "return_pct": -28.5442,
+      "max_drawdown_pct": -31.9342,
+      "sharpe_ratio": -0.4065,
+      "trade_count": 17
+    },
+    {
+      "code": "000410",
+      "final_value": 506.25,
+      "return_pct": 1.2496,
+      "max_drawdown_pct": -3.4141,
+      "sharpe_ratio": 0.1066,
+      "trade_count": 1
+    },
+    {
+      "code": "000415",
+      "final_value": 553.15,
+      "return_pct": 10.629,
+      "max_drawdown_pct": -20.273,
+      "sharpe_ratio": 0.2053,
+      "trade_count": 12
+    },
+    {
+      "code": "000417",
+      "final_value": 420.73,
+      "return_pct": -15.854,
+      "max_drawdown_pct": -22.5622,
+      "sharpe_ratio": -0.3982,
+      "trade_count": 5
+    },
+    {
+      "code": "000419",
+      "final_value": 449.93,
+      "return_pct": -10.0137,
+      "max_drawdown_pct": -38.7494,
+      "sharpe_ratio": -0.0738,
+      "trade_count": 6
+    },
+    {
+      "code": "000420",
+      "final_value": 427.79,
+      "return_pct": -14.441,
+      "max_drawdown_pct": -29.6546,
+      "sharpe_ratio": -0.1867,
+      "trade_count": 12
+    },
+    {
+      "code": "000421",
+      "final_value": 464.68,
+      "return_pct": -7.0632,
+      "max_drawdown_pct": -24.8175,
+      "sharpe_ratio": -0.1016,
+      "trade_count": 4
+    },
+    {
+      "code": "000425",
+      "final_value": 519.66,
+      "return_pct": 3.9312,
+      "max_drawdown_pct": -4.5877,
+      "sharpe_ratio": 0.2029,
+      "trade_count": 3
+    },
+    {
+      "code": "000428",
+      "final_value": 344.7,
+      "return_pct": -31.0608,
+      "max_drawdown_pct": -38.5815,
+      "sharpe_ratio": -0.3115,
+      "trade_count": 10
+    },
+    {
+      "code": "000429",
+      "final_value": 512.93,
+      "return_pct": 2.5855,
+      "max_drawdown_pct": -5.4021,
+      "sharpe_ratio": 0.1967,
+      "trade_count": 2
+    },
+    {
+      "code": "000430",
+      "final_value": 500.42,
+      "return_pct": 0.0832,
+      "max_drawdown_pct": -0.5562,
+      "sharpe_ratio": 0.0467,
+      "trade_count": 1
+    },
+    {
+      "code": "000488",
+      "final_value": 273.42,
+      "return_pct": -45.3168,
+      "max_drawdown_pct": -45.3168,
+      "sharpe_ratio": -1.3012,
+      "trade_count": 6
+    },
+    {
+      "code": "000498",
+      "final_value": 488.26,
+      "return_pct": -2.3472,
+      "max_drawdown_pct": -3.527,
+      "sharpe_ratio": -0.3446,
+      "trade_count": 1
+    },
+    {
+      "code": "000506",
+      "final_value": 392.09,
+      "return_pct": -21.5829,
+      "max_drawdown_pct": -27.1134,
+      "sharpe_ratio": -0.3091,
+      "trade_count": 12
+    },
+    {
+      "code": "000507",
+      "final_value": 495.12,
+      "return_pct": -0.9755,
+      "max_drawdown_pct": -7.5565,
+      "sharpe_ratio": -0.0217,
+      "trade_count": 2
+    },
+    {
+      "code": "000509",
+      "final_value": 308.98,
+      "return_pct": -38.2049,
+      "max_drawdown_pct": -40.3484,
+      "sharpe_ratio": -0.6442,
+      "trade_count": 12
+    },
+    {
+      "code": "000510",
+      "final_value": 465.97,
+      "return_pct": -6.8064,
+      "max_drawdown_pct": -8.3186,
+      "sharpe_ratio": -0.0469,
+      "trade_count": 5
+    },
+    {
+      "code": "000514",
+      "final_value": 607.25,
+      "return_pct": 21.4491,
+      "max_drawdown_pct": -29.5218,
+      "sharpe_ratio": 0.2854,
+      "trade_count": 23
+    },
+    {
+      "code": "000517",
+      "final_value": 390.3,
+      "return_pct": -21.9402,
+      "max_drawdown_pct": -21.9402,
+      "sharpe_ratio": -0.1104,
+      "trade_count": 1
+    },
+    {
+      "code": "000518",
+      "final_value": 393.75,
+      "return_pct": -21.2494,
+      "max_drawdown_pct": -31.2893,
+      "sharpe_ratio": -0.1442,
+      "trade_count": 13
+    },
+    {
+      "code": "000520",
+      "final_value": 440.49,
+      "return_pct": -11.9015,
+      "max_drawdown_pct": -40.0656,
+      "sharpe_ratio": 0.0041,
+      "trade_count": 19
+    },
+    {
+      "code": "000521",
+      "final_value": 456.6,
+      "return_pct": -8.6802,
+      "max_drawdown_pct": -19.7207,
+      "sharpe_ratio": -0.0701,
+      "trade_count": 7
+    },
+    {
+      "code": "000523",
+      "final_value": 341.01,
+      "return_pct": -31.797,
+      "max_drawdown_pct": -32.7433,
+      "sharpe_ratio": -0.4294,
+      "trade_count": 19
+    },
+    {
+      "code": "000525",
+      "final_value": 487.36,
+      "return_pct": -2.5288,
+      "max_drawdown_pct": -4.8428,
+      "sharpe_ratio": -0.2649,
+      "trade_count": 1
+    },
+    {
+      "code": "000530",
+      "final_value": 579.4,
+      "return_pct": 15.8799,
+      "max_drawdown_pct": -39.0964,
+      "sharpe_ratio": 0.2464,
+      "trade_count": 23
+    },
+    {
+      "code": "000533",
+      "final_value": 575.8,
+      "return_pct": 15.16,
+      "max_drawdown_pct": -7.8854,
+      "sharpe_ratio": 0.2501,
+      "trade_count": 18
+    },
+    {
+      "code": "000536",
+      "final_value": 759.98,
+      "return_pct": 51.9964,
+      "max_drawdown_pct": -15.9948,
+      "sharpe_ratio": 0.498,
+      "trade_count": 11
+    },
+    {
+      "code": "000552",
+      "final_value": 371.07,
+      "return_pct": -25.7852,
+      "max_drawdown_pct": -27.9008,
+      "sharpe_ratio": -0.455,
+      "trade_count": 15
+    },
+    {
+      "code": "000554",
+      "final_value": 593.62,
+      "return_pct": 18.7234,
+      "max_drawdown_pct": -11.5502,
+      "sharpe_ratio": 0.2935,
+      "trade_count": 8
+    },
+    {
+      "code": "000557",
+      "final_value": 448.97,
+      "return_pct": -10.2063,
+      "max_drawdown_pct": -23.4562,
+      "sharpe_ratio": -0.2178,
+      "trade_count": 6
+    },
+    {
+      "code": "000558",
+      "final_value": 426.88,
+      "return_pct": -14.6249,
+      "max_drawdown_pct": -30.3054,
+      "sharpe_ratio": -0.0221,
+      "trade_count": 17
+    },
+    {
+      "code": "000559",
+      "final_value": 718.82,
+      "return_pct": 43.7638,
+      "max_drawdown_pct": -8.2391,
+      "sharpe_ratio": 0.628,
+      "trade_count": 11
+    },
+    {
+      "code": "000560",
+      "final_value": 322.98,
+      "return_pct": -35.4049,
+      "max_drawdown_pct": -38.4535,
+      "sharpe_ratio": -0.3051,
+      "trade_count": 15
+    },
+    {
+      "code": "000563",
+      "final_value": 412.32,
+      "return_pct": -17.5368,
+      "max_drawdown_pct": -27.5137,
+      "sharpe_ratio": -0.1935,
+      "trade_count": 10
+    },
+    {
+      "code": "000564",
+      "final_value": 396.05,
+      "return_pct": -20.7897,
+      "max_drawdown_pct": -33.4071,
+      "sharpe_ratio": -0.2785,
+      "trade_count": 1
+    },
+    {
+      "code": "000565",
+      "final_value": 555.84,
+      "return_pct": 11.1687,
+      "max_drawdown_pct": -13.2842,
+      "sharpe_ratio": 0.2831,
+      "trade_count": 7
+    },
+    {
+      "code": "000566",
+      "final_value": 420.59,
+      "return_pct": -15.8822,
+      "max_drawdown_pct": -24.6548,
+      "sharpe_ratio": -0.2394,
+      "trade_count": 7
+    },
+    {
+      "code": "000570",
+      "final_value": 495.25,
+      "return_pct": -0.9505,
+      "max_drawdown_pct": -15.5148,
+      "sharpe_ratio": 0.036,
+      "trade_count": 4
+    },
+    {
+      "code": "000571",
+      "final_value": 654.86,
+      "return_pct": 30.9717,
+      "max_drawdown_pct": -17.7422,
+      "sharpe_ratio": 0.3606,
+      "trade_count": 11
+    },
+    {
+      "code": "000572",
+      "final_value": 668.56,
+      "return_pct": 33.711,
+      "max_drawdown_pct": -15.0443,
+      "sharpe_ratio": 0.405,
+      "trade_count": 14
+    },
+    {
+      "code": "000573",
+      "final_value": 422.93,
+      "return_pct": -15.4134,
+      "max_drawdown_pct": -37.9858,
+      "sharpe_ratio": -0.0481,
+      "trade_count": 15
+    },
+    {
+      "code": "000589",
+      "final_value": 395.45,
+      "return_pct": -20.9102,
+      "max_drawdown_pct": -27.3673,
+      "sharpe_ratio": -0.5275,
+      "trade_count": 6
+    },
+    {
+      "code": "000591",
+      "final_value": 465.59,
+      "return_pct": -6.8819,
+      "max_drawdown_pct": -12.5012,
+      "sharpe_ratio": -0.2774,
+      "trade_count": 3
+    },
+    {
+      "code": "000592",
+      "final_value": 1040.7,
+      "return_pct": 108.1394,
+      "max_drawdown_pct": -18.4761,
+      "sharpe_ratio": 0.6933,
+      "trade_count": 8
+    },
+    {
+      "code": "000595",
+      "final_value": 838.14,
+      "return_pct": 67.6289,
+      "max_drawdown_pct": -26.0049,
+      "sharpe_ratio": 0.5394,
+      "trade_count": 24
+    },
+    {
+      "code": "000597",
+      "final_value": 544.18,
+      "return_pct": 8.8365,
+      "max_drawdown_pct": -12.8565,
+      "sharpe_ratio": 0.2402,
+      "trade_count": 4
+    },
+    {
+      "code": "000598",
+      "final_value": 461.18,
+      "return_pct": -7.7642,
+      "max_drawdown_pct": -9.6438,
+      "sharpe_ratio": -0.4014,
+      "trade_count": 6
+    },
+    {
+      "code": "000599",
+      "final_value": 518.52,
+      "return_pct": 3.7035,
+      "max_drawdown_pct": -23.5258,
+      "sharpe_ratio": 0.1249,
+      "trade_count": 8
+    },
+    {
+      "code": "000600",
+      "final_value": 455.35,
+      "return_pct": -8.9296,
+      "max_drawdown_pct": -26.4763,
+      "sharpe_ratio": -0.0763,
+      "trade_count": 6
+    },
+    {
+      "code": "000601",
+      "final_value": 429.54,
+      "return_pct": -14.0917,
+      "max_drawdown_pct": -38.6648,
+      "sharpe_ratio": -0.219,
+      "trade_count": 13
+    },
+    {
+      "code": "000605",
+      "final_value": 484.3,
+      "return_pct": -3.1408,
+      "max_drawdown_pct": -3.1408,
+      "sharpe_ratio": -0.7308,
+      "trade_count": 1
+    },
+    {
+      "code": "000607",
+      "final_value": 436.61,
+      "return_pct": -12.6789,
+      "max_drawdown_pct": -39.3063,
+      "sharpe_ratio": -0.0368,
+      "trade_count": 19
+    },
+    {
+      "code": "000608",
+      "final_value": 382.14,
+      "return_pct": -23.5726,
+      "max_drawdown_pct": -29.0757,
+      "sharpe_ratio": 0.0032,
+      "trade_count": 11
+    },
+    {
+      "code": "000609",
+      "final_value": 947.82,
+      "return_pct": 89.5633,
+      "max_drawdown_pct": -35.4815,
+      "sharpe_ratio": 0.8671,
+      "trade_count": 8
+    },
+    {
+      "code": "000612",
+      "final_value": 489.03,
+      "return_pct": -2.1949,
+      "max_drawdown_pct": -5.81,
+      "sharpe_ratio": -0.1268,
+      "trade_count": 2
+    },
+    {
+      "code": "000615",
+      "final_value": 558.88,
+      "return_pct": 11.7763,
+      "max_drawdown_pct": -15.656,
+      "sharpe_ratio": 0.2595,
+      "trade_count": 10
+    },
+    {
+      "code": "000617",
+      "final_value": 534.31,
+      "return_pct": 6.8628,
+      "max_drawdown_pct": -33.8933,
+      "sharpe_ratio": 0.172,
+      "trade_count": 6
+    },
+    {
+      "code": "000619",
+      "final_value": 645.07,
+      "return_pct": 29.0146,
+      "max_drawdown_pct": -27.0635,
+      "sharpe_ratio": 0.386,
+      "trade_count": 9
+    },
+    {
+      "code": "000620",
+      "final_value": 463.32,
+      "return_pct": -7.335,
+      "max_drawdown_pct": -26.3121,
+      "sharpe_ratio": 0.0397,
+      "trade_count": 9
+    },
+    {
+      "code": "000626",
+      "final_value": 553.16,
+      "return_pct": 10.6312,
+      "max_drawdown_pct": -10.8087,
+      "sharpe_ratio": 0.3277,
+      "trade_count": 1
+    },
+    {
+      "code": "000629",
+      "final_value": 647.61,
+      "return_pct": 29.5225,
+      "max_drawdown_pct": -23.667,
+      "sharpe_ratio": 0.3656,
+      "trade_count": 15
+    },
+    {
+      "code": "000630",
+      "final_value": 353.41,
+      "return_pct": -29.3175,
+      "max_drawdown_pct": -29.3175,
+      "sharpe_ratio": -0.3649,
+      "trade_count": 13
+    },
+    {
+      "code": "000659",
+      "final_value": 489.58,
+      "return_pct": -2.0832,
+      "max_drawdown_pct": -8.7813,
+      "sharpe_ratio": 0.0632,
+      "trade_count": 13
+    },
+    {
+      "code": "000663",
+      "final_value": 592.0,
+      "return_pct": 18.4001,
+      "max_drawdown_pct": -5.761,
+      "sharpe_ratio": 0.5108,
+      "trade_count": 1
+    },
+    {
+      "code": "000665",
+      "final_value": 522.89,
+      "return_pct": 4.5786,
+      "max_drawdown_pct": -36.3469,
+      "sharpe_ratio": 0.1378,
+      "trade_count": 12
+    },
+    {
+      "code": "000669",
+      "final_value": 623.71,
+      "return_pct": 24.7424,
+      "max_drawdown_pct": -8.035,
+      "sharpe_ratio": 0.5656,
+      "trade_count": 5
+    },
+    {
+      "code": "000677",
+      "final_value": 484.88,
+      "return_pct": -3.0234,
+      "max_drawdown_pct": -39.4327,
+      "sharpe_ratio": 0.0889,
+      "trade_count": 20
+    },
+    {
+      "code": "000678",
+      "final_value": 427.5,
+      "return_pct": -14.5004,
+      "max_drawdown_pct": -17.1686,
+      "sharpe_ratio": -0.693,
+      "trade_count": 3
+    },
+    {
+      "code": "000679",
+      "final_value": 443.04,
+      "return_pct": -11.3928,
+      "max_drawdown_pct": -16.8848,
+      "sharpe_ratio": -0.1382,
+      "trade_count": 7
+    },
+    {
+      "code": "000680",
+      "final_value": 420.61,
+      "return_pct": -15.8772,
+      "max_drawdown_pct": -18.8998,
+      "sharpe_ratio": -0.7019,
+      "trade_count": 6
+    },
+    {
+      "code": "000683",
+      "final_value": 575.0,
+      "return_pct": 14.9992,
+      "max_drawdown_pct": -6.6799,
+      "sharpe_ratio": 0.4731,
+      "trade_count": 1
+    },
+    {
+      "code": "000690",
+      "final_value": 479.39,
+      "return_pct": -4.1216,
+      "max_drawdown_pct": -13.3424,
+      "sharpe_ratio": -0.0045,
+      "trade_count": 11
+    },
+    {
+      "code": "000691",
+      "final_value": 610.49,
+      "return_pct": 22.0972,
+      "max_drawdown_pct": -15.1521,
+      "sharpe_ratio": 0.3355,
+      "trade_count": 18
+    },
+    {
+      "code": "000692",
+      "final_value": 380.31,
+      "return_pct": -23.9384,
+      "max_drawdown_pct": -35.9232,
+      "sharpe_ratio": -0.2252,
+      "trade_count": 15
+    },
+    {
+      "code": "000698",
+      "final_value": 405.91,
+      "return_pct": -18.8174,
+      "max_drawdown_pct": -18.8425,
+      "sharpe_ratio": -0.3298,
+      "trade_count": 13
+    },
+    {
+      "code": "000700",
+      "final_value": 522.44,
+      "return_pct": 4.4871,
+      "max_drawdown_pct": -14.5144,
+      "sharpe_ratio": 0.1376,
+      "trade_count": 12
+    },
+    {
+      "code": "000701",
+      "final_value": 509.08,
+      "return_pct": 1.8153,
+      "max_drawdown_pct": -32.1411,
+      "sharpe_ratio": 0.1022,
+      "trade_count": 7
+    },
+    {
+      "code": "000702",
+      "final_value": 467.44,
+      "return_pct": -6.5112,
+      "max_drawdown_pct": -7.4666,
+      "sharpe_ratio": -0.3076,
+      "trade_count": 1
+    },
+    {
+      "code": "000711",
+      "final_value": 810.56,
+      "return_pct": 62.1127,
+      "max_drawdown_pct": -5.7528,
+      "sharpe_ratio": 0.5993,
+      "trade_count": 5
+    },
+    {
+      "code": "000715",
+      "final_value": 605.31,
+      "return_pct": 21.062,
+      "max_drawdown_pct": -25.924,
+      "sharpe_ratio": 0.2833,
+      "trade_count": 26
+    },
+    {
+      "code": "000716",
+      "final_value": 402.62,
+      "return_pct": -19.4762,
+      "max_drawdown_pct": -33.6333,
+      "sharpe_ratio": -0.1795,
+      "trade_count": 7
+    },
+    {
+      "code": "000717",
+      "final_value": 285.29,
+      "return_pct": -42.942,
+      "max_drawdown_pct": -45.1545,
+      "sharpe_ratio": -0.4631,
+      "trade_count": 8
+    },
+    {
+      "code": "000735",
+      "final_value": 495.39,
+      "return_pct": -0.9224,
+      "max_drawdown_pct": -0.9224,
+      "sharpe_ratio": -0.6312,
+      "trade_count": 1
+    },
+    {
+      "code": "000750",
+      "final_value": 473.09,
+      "return_pct": -5.3817,
+      "max_drawdown_pct": -34.0895,
+      "sharpe_ratio": -0.0277,
+      "trade_count": 21
+    },
+    {
+      "code": "000751",
+      "final_value": 319.59,
+      "return_pct": -36.0822,
+      "max_drawdown_pct": -36.0822,
+      "sharpe_ratio": -0.7027,
+      "trade_count": 12
+    },
+    {
+      "code": "000752",
+      "final_value": 428.41,
+      "return_pct": -14.3181,
+      "max_drawdown_pct": -19.381,
+      "sharpe_ratio": -0.4587,
+      "trade_count": 3
+    },
+    {
+      "code": "000753",
+      "final_value": 353.83,
+      "return_pct": -29.2346,
+      "max_drawdown_pct": -43.3684,
+      "sharpe_ratio": -0.5535,
+      "trade_count": 9
+    },
+    {
+      "code": "000755",
+      "final_value": 470.99,
+      "return_pct": -5.8023,
+      "max_drawdown_pct": -52.9878,
+      "sharpe_ratio": 0.0366,
+      "trade_count": 17
+    },
+    {
+      "code": "000757",
+      "final_value": 410.52,
+      "return_pct": -17.8967,
+      "max_drawdown_pct": -30.7373,
+      "sharpe_ratio": -0.2248,
+      "trade_count": 10
+    },
+    {
+      "code": "000758",
+      "final_value": 495.21,
+      "return_pct": -0.9579,
+      "max_drawdown_pct": -9.048,
+      "sharpe_ratio": 0.0015,
+      "trade_count": 3
+    },
+    {
+      "code": "000759",
+      "final_value": 469.36,
+      "return_pct": -6.1289,
+      "max_drawdown_pct": -25.2269,
+      "sharpe_ratio": -0.0522,
+      "trade_count": 7
+    },
+    {
+      "code": "000761",
+      "final_value": 363.92,
+      "return_pct": -27.2161,
+      "max_drawdown_pct": -30.0762,
+      "sharpe_ratio": -0.5314,
+      "trade_count": 15
+    },
+    {
+      "code": "000766",
+      "final_value": 506.09,
+      "return_pct": 1.2184,
+      "max_drawdown_pct": -11.9807,
+      "sharpe_ratio": 0.0732,
+      "trade_count": 3
+    },
+    {
+      "code": "000767",
+      "final_value": 381.66,
+      "return_pct": -23.6679,
+      "max_drawdown_pct": -34.5995,
+      "sharpe_ratio": -0.1672,
+      "trade_count": 13
+    },
+    {
+      "code": "000778",
+      "final_value": 391.03,
+      "return_pct": -21.7936,
+      "max_drawdown_pct": -38.2805,
+      "sharpe_ratio": -0.4523,
+      "trade_count": 22
+    },
+    {
+      "code": "000782",
+      "final_value": 444.0,
+      "return_pct": -11.1991,
+      "max_drawdown_pct": -32.4337,
+      "sharpe_ratio": -0.1409,
+      "trade_count": 7
+    },
+    {
+      "code": "000783",
+      "final_value": 482.58,
+      "return_pct": -3.4832,
+      "max_drawdown_pct": -5.2096,
+      "sharpe_ratio": -0.3934,
+      "trade_count": 2
+    },
+    {
+      "code": "000785",
+      "final_value": 446.82,
+      "return_pct": -10.6366,
+      "max_drawdown_pct": -32.2142,
+      "sharpe_ratio": -0.0403,
+      "trade_count": 13
+    },
+    {
+      "code": "000790",
+      "final_value": 458.71,
+      "return_pct": -8.2573,
+      "max_drawdown_pct": -12.3915,
+      "sharpe_ratio": -0.0918,
+      "trade_count": 13
+    },
+    {
+      "code": "000791",
+      "final_value": 495.21,
+      "return_pct": -0.9576,
+      "max_drawdown_pct": -2.7284,
+      "sharpe_ratio": -0.0997,
+      "trade_count": 1
+    },
+    {
+      "code": "000793",
+      "final_value": 405.38,
+      "return_pct": -18.9242,
+      "max_drawdown_pct": -26.7972,
+      "sharpe_ratio": -0.0739,
+      "trade_count": 1
+    },
+    {
+      "code": "000796",
+      "final_value": 592.3,
+      "return_pct": 18.4601,
+      "max_drawdown_pct": -8.7858,
+      "sharpe_ratio": 0.2867,
+      "trade_count": 13
+    },
+    {
+      "code": "000797",
+      "final_value": 523.89,
+      "return_pct": 4.7782,
+      "max_drawdown_pct": -30.6737,
+      "sharpe_ratio": 0.1508,
+      "trade_count": 15
+    },
+    {
+      "code": "000802",
+      "final_value": 747.25,
+      "return_pct": 49.45,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.6859,
+      "trade_count": 5
+    },
+    {
+      "code": "000803",
+      "final_value": 577.35,
+      "return_pct": 15.4696,
+      "max_drawdown_pct": -11.9164,
+      "sharpe_ratio": 0.2979,
+      "trade_count": 6
+    },
+    {
+      "code": "000809",
+      "final_value": 357.59,
+      "return_pct": -28.4825,
+      "max_drawdown_pct": -32.4428,
+      "sharpe_ratio": -0.4137,
+      "trade_count": 14
+    },
+    {
+      "code": "000812",
+      "final_value": 508.03,
+      "return_pct": 1.6054,
+      "max_drawdown_pct": -62.2121,
+      "sharpe_ratio": 0.1282,
+      "trade_count": 28
+    },
+    {
+      "code": "000813",
+      "final_value": 461.17,
+      "return_pct": -7.767,
+      "max_drawdown_pct": -17.6758,
+      "sharpe_ratio": 0.0567,
+      "trade_count": 20
+    },
+    {
+      "code": "000816",
+      "final_value": 349.11,
+      "return_pct": -30.1771,
+      "max_drawdown_pct": -38.2753,
+      "sharpe_ratio": -0.3705,
+      "trade_count": 18
+    },
+    {
+      "code": "000839",
+      "final_value": 386.24,
+      "return_pct": -22.7514,
+      "max_drawdown_pct": -34.2797,
+      "sharpe_ratio": -0.1738,
+      "trade_count": 6
+    },
+    {
+      "code": "000859",
+      "final_value": 378.38,
+      "return_pct": -24.323,
+      "max_drawdown_pct": -25.4526,
+      "sharpe_ratio": -0.7804,
+      "trade_count": 3
+    },
+    {
+      "code": "000862",
+      "final_value": 513.26,
+      "return_pct": 2.652,
+      "max_drawdown_pct": -8.8611,
+      "sharpe_ratio": 0.1252,
+      "trade_count": 1
+    },
+    {
+      "code": "000863",
+      "final_value": 353.55,
+      "return_pct": -29.2897,
+      "max_drawdown_pct": -41.1403,
+      "sharpe_ratio": -0.4344,
+      "trade_count": 9
+    },
+    {
+      "code": "000868",
+      "final_value": 462.75,
+      "return_pct": -7.4507,
+      "max_drawdown_pct": -14.7452,
+      "sharpe_ratio": -0.1504,
+      "trade_count": 6
+    },
+    {
+      "code": "000875",
+      "final_value": 488.53,
+      "return_pct": -2.2931,
+      "max_drawdown_pct": -5.4998,
+      "sharpe_ratio": -0.1419,
+      "trade_count": 2
+    },
+    {
+      "code": "000882",
+      "final_value": 445.42,
+      "return_pct": -10.9166,
+      "max_drawdown_pct": -18.5249,
+      "sharpe_ratio": -0.3605,
+      "trade_count": 1
+    },
+    {
+      "code": "000883",
+      "final_value": 456.22,
+      "return_pct": -8.7558,
+      "max_drawdown_pct": -22.252,
+      "sharpe_ratio": -0.1534,
+      "trade_count": 14
+    },
+    {
+      "code": "000886",
+      "final_value": 447.89,
+      "return_pct": -10.4224,
+      "max_drawdown_pct": -20.9208,
+      "sharpe_ratio": -0.2359,
+      "trade_count": 5
+    },
+    {
+      "code": "000889",
+      "final_value": 388.15,
+      "return_pct": -22.3707,
+      "max_drawdown_pct": -24.3678,
+      "sharpe_ratio": -0.4043,
+      "trade_count": 6
+    },
+    {
+      "code": "000890",
+      "final_value": 424.32,
+      "return_pct": -15.1368,
+      "max_drawdown_pct": -35.6466,
+      "sharpe_ratio": -0.0689,
+      "trade_count": 16
+    },
+    {
+      "code": "000892",
+      "final_value": 580.84,
+      "return_pct": 16.1687,
+      "max_drawdown_pct": -14.944,
+      "sharpe_ratio": 0.2515,
+      "trade_count": 17
+    },
+    {
+      "code": "000897",
+      "final_value": 314.16,
+      "return_pct": -37.1684,
+      "max_drawdown_pct": -37.1684,
+      "sharpe_ratio": -0.3,
+      "trade_count": 1
+    },
+    {
+      "code": "000898",
+      "final_value": 292.74,
+      "return_pct": -41.4522,
+      "max_drawdown_pct": -42.0882,
+      "sharpe_ratio": -0.5686,
+      "trade_count": 6
+    },
+    {
+      "code": "000899",
+      "final_value": 558.5,
+      "return_pct": 11.6992,
+      "max_drawdown_pct": -14.9172,
+      "sharpe_ratio": 0.2752,
+      "trade_count": 2
+    },
+    {
+      "code": "000900",
+      "final_value": 415.63,
+      "return_pct": -16.8749,
+      "max_drawdown_pct": -18.9211,
+      "sharpe_ratio": -0.3472,
+      "trade_count": 15
+    },
+    {
+      "code": "000903",
+      "final_value": 425.07,
+      "return_pct": -14.9869,
+      "max_drawdown_pct": -32.3365,
+      "sharpe_ratio": 0.0012,
+      "trade_count": 14
+    },
+    {
+      "code": "000926",
+      "final_value": 381.87,
+      "return_pct": -23.6262,
+      "max_drawdown_pct": -33.3188,
+      "sharpe_ratio": -0.1895,
+      "trade_count": 11
+    },
+    {
+      "code": "000927",
+      "final_value": 322.65,
+      "return_pct": -35.4704,
+      "max_drawdown_pct": -36.674,
+      "sharpe_ratio": -0.3511,
+      "trade_count": 4
+    },
+    {
+      "code": "000928",
+      "final_value": 521.0,
+      "return_pct": 4.1992,
+      "max_drawdown_pct": -10.6529,
+      "sharpe_ratio": 0.1599,
+      "trade_count": 2
+    },
+    {
+      "code": "000931",
+      "final_value": 401.15,
+      "return_pct": -19.7703,
+      "max_drawdown_pct": -19.7703,
+      "sharpe_ratio": -0.9639,
+      "trade_count": 4
+    },
+    {
+      "code": "000932",
+      "final_value": 626.83,
+      "return_pct": 25.3655,
+      "max_drawdown_pct": -11.5358,
+      "sharpe_ratio": 0.4019,
+      "trade_count": 19
+    },
+    {
+      "code": "000937",
+      "final_value": 402.53,
+      "return_pct": -19.4936,
+      "max_drawdown_pct": -33.9465,
+      "sharpe_ratio": -0.2125,
+      "trade_count": 6
+    },
+    {
+      "code": "000949",
+      "final_value": 715.72,
+      "return_pct": 43.1437,
+      "max_drawdown_pct": -12.435,
+      "sharpe_ratio": 0.4921,
+      "trade_count": 22
+    },
+    {
+      "code": "000950",
+      "final_value": 613.85,
+      "return_pct": 22.7701,
+      "max_drawdown_pct": -5.1949,
+      "sharpe_ratio": 0.3652,
+      "trade_count": 15
+    },
+    {
+      "code": "000953",
+      "final_value": 767.08,
+      "return_pct": 53.4168,
+      "max_drawdown_pct": -18.4429,
+      "sharpe_ratio": 0.6032,
+      "trade_count": 11
+    },
+    {
+      "code": "000955",
+      "final_value": 491.38,
+      "return_pct": -1.7238,
+      "max_drawdown_pct": -23.983,
+      "sharpe_ratio": 0.0538,
+      "trade_count": 11
+    },
+    {
+      "code": "000958",
+      "final_value": 712.18,
+      "return_pct": 42.4354,
+      "max_drawdown_pct": -34.4397,
+      "sharpe_ratio": 0.4568,
+      "trade_count": 20
+    },
+    {
+      "code": "000959",
+      "final_value": 463.5,
+      "return_pct": -7.2996,
+      "max_drawdown_pct": -14.5601,
+      "sharpe_ratio": -0.1227,
+      "trade_count": 12
+    },
+    {
+      "code": "000965",
+      "final_value": 779.58,
+      "return_pct": 55.9163,
+      "max_drawdown_pct": -34.8875,
+      "sharpe_ratio": 0.4927,
+      "trade_count": 19
+    },
+    {
+      "code": "000966",
+      "final_value": 445.48,
+      "return_pct": -10.9048,
+      "max_drawdown_pct": -16.7507,
+      "sharpe_ratio": -0.4164,
+      "trade_count": 2
+    },
+    {
+      "code": "000967",
+      "final_value": 509.66,
+      "return_pct": 1.9315,
+      "max_drawdown_pct": -9.9766,
+      "sharpe_ratio": 0.0893,
+      "trade_count": 14
+    },
+    {
+      "code": "000972",
+      "final_value": 442.11,
+      "return_pct": -11.5774,
+      "max_drawdown_pct": -26.7806,
+      "sharpe_ratio": -0.0493,
+      "trade_count": 17
+    },
+    {
+      "code": "000973",
+      "final_value": 719.03,
+      "return_pct": 43.8063,
+      "max_drawdown_pct": -31.4329,
+      "sharpe_ratio": 0.4979,
+      "trade_count": 18
+    },
+    {
+      "code": "000980",
+      "final_value": 482.96,
+      "return_pct": -3.4071,
+      "max_drawdown_pct": -27.0987,
+      "sharpe_ratio": 0.0234,
+      "trade_count": 10
+    },
+    {
+      "code": "000981",
+      "final_value": 668.65,
+      "return_pct": 33.7303,
+      "max_drawdown_pct": -9.1084,
+      "sharpe_ratio": 0.4323,
+      "trade_count": 3
+    },
+    {
+      "code": "001213",
+      "final_value": 410.42,
+      "return_pct": -17.9151,
+      "max_drawdown_pct": -25.3544,
+      "sharpe_ratio": -0.496,
+      "trade_count": 13
+    },
+    {
+      "code": "001227",
+      "final_value": 389.41,
+      "return_pct": -22.118,
+      "max_drawdown_pct": -22.118,
+      "sharpe_ratio": -0.4844,
+      "trade_count": 2
+    },
+    {
+      "code": "001267",
+      "final_value": 570.22,
+      "return_pct": 14.0448,
+      "max_drawdown_pct": -15.9282,
+      "sharpe_ratio": 0.3817,
+      "trade_count": 1
+    },
+    {
+      "code": "001896",
+      "final_value": 430.26,
+      "return_pct": -13.9482,
+      "max_drawdown_pct": -13.9482,
+      "sharpe_ratio": -0.4241,
+      "trade_count": 3
+    },
+    {
+      "code": "002004",
+      "final_value": 394.05,
+      "return_pct": -21.1906,
+      "max_drawdown_pct": -23.6625,
+      "sharpe_ratio": -0.5488,
+      "trade_count": 13
+    },
+    {
+      "code": "002010",
+      "final_value": 412.74,
+      "return_pct": -17.4524,
+      "max_drawdown_pct": -17.4524,
+      "sharpe_ratio": -0.7456,
+      "trade_count": 5
+    },
+    {
+      "code": "002024",
+      "final_value": 477.61,
+      "return_pct": -4.4776,
+      "max_drawdown_pct": -4.5285,
+      "sharpe_ratio": -0.5727,
+      "trade_count": 1
+    },
+    {
+      "code": "002027",
+      "final_value": 449.6,
+      "return_pct": -10.0792,
+      "max_drawdown_pct": -11.3569,
+      "sharpe_ratio": -0.7331,
+      "trade_count": 1
+    },
+    {
+      "code": "002031",
+      "final_value": 665.83,
+      "return_pct": 33.1652,
+      "max_drawdown_pct": -24.0862,
+      "sharpe_ratio": 0.4025,
+      "trade_count": 11
+    },
+    {
+      "code": "002033",
+      "final_value": 470.68,
+      "return_pct": -5.8649,
+      "max_drawdown_pct": -5.8649,
+      "sharpe_ratio": -0.8639,
+      "trade_count": 1
+    },
+    {
+      "code": "002035",
+      "final_value": 490.42,
+      "return_pct": -1.9168,
+      "max_drawdown_pct": -5.7245,
+      "sharpe_ratio": -0.204,
+      "trade_count": 1
+    },
+    {
+      "code": "002042",
+      "final_value": 422.18,
+      "return_pct": -15.5644,
+      "max_drawdown_pct": -31.723,
+      "sharpe_ratio": -0.222,
+      "trade_count": 16
+    },
+    {
+      "code": "002044",
+      "final_value": 527.46,
+      "return_pct": 5.4927,
+      "max_drawdown_pct": -13.6883,
+      "sharpe_ratio": 0.1689,
+      "trade_count": 4
+    },
+    {
+      "code": "002047",
+      "final_value": 596.71,
+      "return_pct": 19.3424,
+      "max_drawdown_pct": -10.527,
+      "sharpe_ratio": 0.2741,
+      "trade_count": 15
+    },
+    {
+      "code": "002052",
+      "final_value": 609.61,
+      "return_pct": 21.9229,
+      "max_drawdown_pct": -15.2028,
+      "sharpe_ratio": 0.4855,
+      "trade_count": 2
+    },
+    {
+      "code": "002060",
+      "final_value": 397.65,
+      "return_pct": -20.4705,
+      "max_drawdown_pct": -60.0073,
+      "sharpe_ratio": -0.1577,
+      "trade_count": 22
+    },
+    {
+      "code": "002061",
+      "final_value": 379.9,
+      "return_pct": -24.0203,
+      "max_drawdown_pct": -34.602,
+      "sharpe_ratio": -0.3632,
+      "trade_count": 15
+    },
+    {
+      "code": "002062",
+      "final_value": 450.2,
+      "return_pct": -9.9602,
+      "max_drawdown_pct": -34.9569,
+      "sharpe_ratio": -0.0424,
+      "trade_count": 15
+    },
+    {
+      "code": "002065",
+      "final_value": 628.87,
+      "return_pct": 25.7737,
+      "max_drawdown_pct": -5.745,
+      "sharpe_ratio": 0.6512,
+      "trade_count": 1
+    },
+    {
+      "code": "002067",
+      "final_value": 481.59,
+      "return_pct": -3.6811,
+      "max_drawdown_pct": -6.6732,
+      "sharpe_ratio": 0.0323,
+      "trade_count": 19
+    },
+    {
+      "code": "002069",
+      "final_value": 369.38,
+      "return_pct": -26.1246,
+      "max_drawdown_pct": -40.4982,
+      "sharpe_ratio": -0.3153,
+      "trade_count": 17
+    },
+    {
+      "code": "002072",
+      "final_value": 506.84,
+      "return_pct": 1.3672,
+      "max_drawdown_pct": -12.5566,
+      "sharpe_ratio": 0.0751,
+      "trade_count": 4
+    },
+    {
+      "code": "002075",
+      "final_value": 489.86,
+      "return_pct": -2.0274,
+      "max_drawdown_pct": -21.2468,
+      "sharpe_ratio": 0.014,
+      "trade_count": 10
+    },
+    {
+      "code": "002076",
+      "final_value": 452.35,
+      "return_pct": -9.5304,
+      "max_drawdown_pct": -28.5177,
+      "sharpe_ratio": -0.0072,
+      "trade_count": 4
+    },
+    {
+      "code": "002081",
+      "final_value": 345.96,
+      "return_pct": -30.8089,
+      "max_drawdown_pct": -35.1206,
+      "sharpe_ratio": -0.6578,
+      "trade_count": 14
+    },
+    {
+      "code": "002082",
+      "final_value": 483.82,
+      "return_pct": -3.2355,
+      "max_drawdown_pct": -5.4209,
+      "sharpe_ratio": -0.3196,
+      "trade_count": 1
+    },
+    {
+      "code": "002083",
+      "final_value": 445.03,
+      "return_pct": -10.9935,
+      "max_drawdown_pct": -23.4106,
+      "sharpe_ratio": -0.1795,
+      "trade_count": 12
+    },
+    {
+      "code": "002084",
+      "final_value": 368.08,
+      "return_pct": -26.3844,
+      "max_drawdown_pct": -39.1369,
+      "sharpe_ratio": -0.1926,
+      "trade_count": 20
+    },
+    {
+      "code": "002085",
+      "final_value": 509.49,
+      "return_pct": 1.8984,
+      "max_drawdown_pct": -3.5547,
+      "sharpe_ratio": 0.1384,
+      "trade_count": 1
+    },
+    {
+      "code": "002086",
+      "final_value": 318.75,
+      "return_pct": -36.2494,
+      "max_drawdown_pct": -51.0934,
+      "sharpe_ratio": -0.2975,
+      "trade_count": 9
+    },
+    {
+      "code": "002092",
+      "final_value": 512.92,
+      "return_pct": 2.5836,
+      "max_drawdown_pct": -9.5946,
+      "sharpe_ratio": 0.1203,
+      "trade_count": 5
+    },
+    {
+      "code": "002094",
+      "final_value": 735.02,
+      "return_pct": 47.0033,
+      "max_drawdown_pct": -35.36,
+      "sharpe_ratio": 0.4357,
+      "trade_count": 13
+    },
+    {
+      "code": "002105",
+      "final_value": 529.32,
+      "return_pct": 5.8632,
+      "max_drawdown_pct": -11.2337,
+      "sharpe_ratio": 0.201,
+      "trade_count": 3
+    },
+    {
+      "code": "002107",
+      "final_value": 425.82,
+      "return_pct": -14.8361,
+      "max_drawdown_pct": -14.8361,
+      "sharpe_ratio": -0.861,
+      "trade_count": 3
+    },
+    {
+      "code": "002108",
+      "final_value": 371.66,
+      "return_pct": -25.6683,
+      "max_drawdown_pct": -26.1338,
+      "sharpe_ratio": -0.8145,
+      "trade_count": 12
+    },
+    {
+      "code": "002109",
+      "final_value": 356.8,
+      "return_pct": -28.64,
+      "max_drawdown_pct": -28.64,
+      "sharpe_ratio": -0.8869,
+      "trade_count": 8
+    },
+    {
+      "code": "002110",
+      "final_value": 498.03,
+      "return_pct": -0.3942,
+      "max_drawdown_pct": -24.7181,
+      "sharpe_ratio": 0.046,
+      "trade_count": 14
+    },
+    {
+      "code": "002114",
+      "final_value": 477.3,
+      "return_pct": -4.54,
+      "max_drawdown_pct": -4.9413,
+      "sharpe_ratio": -0.6587,
+      "trade_count": 1
+    },
+    {
+      "code": "002115",
+      "final_value": 570.52,
+      "return_pct": 14.1042,
+      "max_drawdown_pct": -7.184,
+      "sharpe_ratio": 0.3535,
+      "trade_count": 3
+    },
+    {
+      "code": "002116",
+      "final_value": 551.57,
+      "return_pct": 10.3131,
+      "max_drawdown_pct": -5.8048,
+      "sharpe_ratio": 0.4262,
+      "trade_count": 1
+    },
+    {
+      "code": "002121",
+      "final_value": 467.44,
+      "return_pct": -6.5128,
+      "max_drawdown_pct": -13.0097,
+      "sharpe_ratio": -0.1798,
+      "trade_count": 4
+    },
+    {
+      "code": "002122",
+      "final_value": 349.84,
+      "return_pct": -30.0323,
+      "max_drawdown_pct": -55.3424,
+      "sharpe_ratio": -0.287,
+      "trade_count": 14
+    },
+    {
+      "code": "002124",
+      "final_value": 338.18,
+      "return_pct": -32.3644,
+      "max_drawdown_pct": -37.0408,
+      "sharpe_ratio": -0.5232,
+      "trade_count": 8
+    },
+    {
+      "code": "002127",
+      "final_value": 362.21,
+      "return_pct": -27.557,
+      "max_drawdown_pct": -27.557,
+      "sharpe_ratio": -0.5786,
+      "trade_count": 8
+    },
+    {
+      "code": "002131",
+      "final_value": 995.32,
+      "return_pct": 99.0636,
+      "max_drawdown_pct": -17.3889,
+      "sharpe_ratio": 0.8436,
+      "trade_count": 8
+    },
+    {
+      "code": "002132",
+      "final_value": 414.34,
+      "return_pct": -17.1314,
+      "max_drawdown_pct": -31.1566,
+      "sharpe_ratio": -0.1439,
+      "trade_count": 12
+    },
+    {
+      "code": "002133",
+      "final_value": 405.36,
+      "return_pct": -18.9284,
+      "max_drawdown_pct": -30.3115,
+      "sharpe_ratio": -0.1132,
+      "trade_count": 18
+    },
+    {
+      "code": "002135",
+      "final_value": 442.57,
+      "return_pct": -11.4853,
+      "max_drawdown_pct": -11.4853,
+      "sharpe_ratio": -0.4073,
+      "trade_count": 6
+    },
+    {
+      "code": "002137",
+      "final_value": 512.18,
+      "return_pct": 2.4368,
+      "max_drawdown_pct": -4.9967,
+      "sharpe_ratio": 0.1528,
+      "trade_count": 1
+    },
+    {
+      "code": "002141",
+      "final_value": 404.57,
+      "return_pct": -19.0868,
+      "max_drawdown_pct": -43.2796,
+      "sharpe_ratio": -0.3177,
+      "trade_count": 11
+    },
+    {
+      "code": "002145",
+      "final_value": 437.11,
+      "return_pct": -12.5781,
+      "max_drawdown_pct": -16.6443,
+      "sharpe_ratio": -0.1977,
+      "trade_count": 7
+    },
+    {
+      "code": "002146",
+      "final_value": 305.58,
+      "return_pct": -38.885,
+      "max_drawdown_pct": -39.8638,
+      "sharpe_ratio": -0.414,
+      "trade_count": 2
+    },
+    {
+      "code": "002148",
+      "final_value": 487.11,
+      "return_pct": -2.5787,
+      "max_drawdown_pct": -6.7122,
+      "sharpe_ratio": -0.1971,
+      "trade_count": 2
+    },
+    {
+      "code": "002154",
+      "final_value": 390.61,
+      "return_pct": -21.8786,
+      "max_drawdown_pct": -30.7201,
+      "sharpe_ratio": -0.3221,
+      "trade_count": 15
+    },
+    {
+      "code": "002157",
+      "final_value": 353.43,
+      "return_pct": -29.3141,
+      "max_drawdown_pct": -29.3141,
+      "sharpe_ratio": -0.5038,
+      "trade_count": 10
+    },
+    {
+      "code": "002160",
+      "final_value": 586.97,
+      "return_pct": 17.3947,
+      "max_drawdown_pct": -16.4109,
+      "sharpe_ratio": 0.2656,
+      "trade_count": 21
+    },
+    {
+      "code": "002161",
+      "final_value": 570.18,
+      "return_pct": 14.0362,
+      "max_drawdown_pct": -16.5854,
+      "sharpe_ratio": 0.2679,
+      "trade_count": 5
+    },
+    {
+      "code": "002162",
+      "final_value": 476.06,
+      "return_pct": -4.7881,
+      "max_drawdown_pct": -18.0557,
+      "sharpe_ratio": 0.0169,
+      "trade_count": 13
+    },
+    {
+      "code": "002164",
+      "final_value": 545.79,
+      "return_pct": 9.1584,
+      "max_drawdown_pct": -5.3789,
+      "sharpe_ratio": 0.243,
+      "trade_count": 4
+    },
+    {
+      "code": "002165",
+      "final_value": 357.82,
+      "return_pct": -28.4356,
+      "max_drawdown_pct": -29.8854,
+      "sharpe_ratio": -0.9519,
+      "trade_count": 8
+    },
+    {
+      "code": "002168",
+      "final_value": 548.56,
+      "return_pct": 9.7113,
+      "max_drawdown_pct": -25.5241,
+      "sharpe_ratio": 0.1958,
+      "trade_count": 19
+    },
+    {
+      "code": "002169",
+      "final_value": 638.68,
+      "return_pct": 27.7367,
+      "max_drawdown_pct": -28.4996,
+      "sharpe_ratio": 0.445,
+      "trade_count": 4
+    },
+    {
+      "code": "002170",
+      "final_value": 532.69,
+      "return_pct": 6.5384,
+      "max_drawdown_pct": -15.6041,
+      "sharpe_ratio": 0.183,
+      "trade_count": 8
+    },
+    {
+      "code": "002172",
+      "final_value": 343.59,
+      "return_pct": -31.2829,
+      "max_drawdown_pct": -31.667,
+      "sharpe_ratio": -0.4165,
+      "trade_count": 10
+    },
+    {
+      "code": "002175",
+      "final_value": 509.04,
+      "return_pct": 1.808,
+      "max_drawdown_pct": -45.5839,
+      "sharpe_ratio": 0.1367,
+      "trade_count": 19
+    },
+    {
+      "code": "002177",
+      "final_value": 673.58,
+      "return_pct": 34.7167,
+      "max_drawdown_pct": -20.3445,
+      "sharpe_ratio": 0.3921,
+      "trade_count": 16
+    },
+    {
+      "code": "002178",
+      "final_value": 717.62,
+      "return_pct": 43.5241,
+      "max_drawdown_pct": -32.7126,
+      "sharpe_ratio": 0.4114,
+      "trade_count": 24
+    },
+    {
+      "code": "002181",
+      "final_value": 1439.51,
+      "return_pct": 187.9024,
+      "max_drawdown_pct": -6.9316,
+      "sharpe_ratio": 0.8404,
+      "trade_count": 23
+    },
+    {
+      "code": "002183",
+      "final_value": 578.56,
+      "return_pct": 15.7114,
+      "max_drawdown_pct": -22.8721,
+      "sharpe_ratio": 0.2694,
+      "trade_count": 13
+    },
+    {
+      "code": "002187",
+      "final_value": 521.8,
+      "return_pct": 4.3608,
+      "max_drawdown_pct": -13.9968,
+      "sharpe_ratio": 0.1543,
+      "trade_count": 2
+    },
+    {
+      "code": "002188",
+      "final_value": 677.65,
+      "return_pct": 35.5292,
+      "max_drawdown_pct": -33.2568,
+      "sharpe_ratio": 0.4173,
+      "trade_count": 23
+    },
+    {
+      "code": "002201",
+      "final_value": 489.31,
+      "return_pct": -2.1384,
+      "max_drawdown_pct": -2.1384,
+      "sharpe_ratio": -0.2583,
+      "trade_count": 1
+    },
+    {
+      "code": "002204",
+      "final_value": 794.24,
+      "return_pct": 58.8472,
+      "max_drawdown_pct": -30.0416,
+      "sharpe_ratio": 0.5181,
+      "trade_count": 23
+    },
+    {
+      "code": "002206",
+      "final_value": 411.04,
+      "return_pct": -17.793,
+      "max_drawdown_pct": -21.9422,
+      "sharpe_ratio": -0.2702,
+      "trade_count": 6
+    },
+    {
+      "code": "002207",
+      "final_value": 499.42,
+      "return_pct": -0.116,
+      "max_drawdown_pct": -17.2069,
+      "sharpe_ratio": 0.0333,
+      "trade_count": 1
+    },
+    {
+      "code": "002208",
+      "final_value": 475.54,
+      "return_pct": -4.892,
+      "max_drawdown_pct": -6.2471,
+      "sharpe_ratio": -0.282,
+      "trade_count": 1
+    },
+    {
+      "code": "002210",
+      "final_value": 441.13,
+      "return_pct": -11.7738,
+      "max_drawdown_pct": -33.1412,
+      "sharpe_ratio": -0.0306,
+      "trade_count": 5
+    },
+    {
+      "code": "002211",
+      "final_value": 396.68,
+      "return_pct": -20.6635,
+      "max_drawdown_pct": -25.3314,
+      "sharpe_ratio": -0.1594,
+      "trade_count": 14
+    },
+    {
+      "code": "002215",
+      "final_value": 478.71,
+      "return_pct": -4.2575,
+      "max_drawdown_pct": -4.2575,
+      "sharpe_ratio": -0.7538,
+      "trade_count": 1
+    },
+    {
+      "code": "002217",
+      "final_value": 452.83,
+      "return_pct": -9.4344,
+      "max_drawdown_pct": -22.9554,
+      "sharpe_ratio": -0.0612,
+      "trade_count": 12
+    },
+    {
+      "code": "002218",
+      "final_value": 614.46,
+      "return_pct": 22.8919,
+      "max_drawdown_pct": -28.0163,
+      "sharpe_ratio": 0.2983,
+      "trade_count": 22
+    },
+    {
+      "code": "002219",
+      "final_value": 476.21,
+      "return_pct": -4.7578,
+      "max_drawdown_pct": -28.5744,
+      "sharpe_ratio": 0.0448,
+      "trade_count": 9
+    },
+    {
+      "code": "002224",
+      "final_value": 432.11,
+      "return_pct": -13.5783,
+      "max_drawdown_pct": -22.5236,
+      "sharpe_ratio": -0.2066,
+      "trade_count": 12
+    },
+    {
+      "code": "002225",
+      "final_value": 631.99,
+      "return_pct": 26.3982,
+      "max_drawdown_pct": -15.6562,
+      "sharpe_ratio": 0.3564,
+      "trade_count": 24
+    },
+    {
+      "code": "002226",
+      "final_value": 586.54,
+      "return_pct": 17.3085,
+      "max_drawdown_pct": -0.6773,
+      "sharpe_ratio": 0.3705,
+      "trade_count": 4
+    },
+    {
+      "code": "002228",
+      "final_value": 541.97,
+      "return_pct": 8.3931,
+      "max_drawdown_pct": -11.2336,
+      "sharpe_ratio": 0.1831,
+      "trade_count": 5
+    },
+    {
+      "code": "002235",
+      "final_value": 556.97,
+      "return_pct": 11.3947,
+      "max_drawdown_pct": -15.742,
+      "sharpe_ratio": 0.3068,
+      "trade_count": 5
+    },
+    {
+      "code": "002239",
+      "final_value": 395.08,
+      "return_pct": -20.9848,
+      "max_drawdown_pct": -28.2352,
+      "sharpe_ratio": -0.1742,
+      "trade_count": 15
+    },
+    {
+      "code": "002244",
+      "final_value": 666.94,
+      "return_pct": 33.3873,
+      "max_drawdown_pct": -8.0122,
+      "sharpe_ratio": 0.7853,
+      "trade_count": 3
+    },
+    {
+      "code": "002247",
+      "final_value": 449.02,
+      "return_pct": -10.1964,
+      "max_drawdown_pct": -16.0169,
+      "sharpe_ratio": -0.0007,
+      "trade_count": 4
+    },
+    {
+      "code": "002249",
+      "final_value": 513.12,
+      "return_pct": 2.625,
+      "max_drawdown_pct": -11.9872,
+      "sharpe_ratio": 0.1083,
+      "trade_count": 5
+    },
+    {
+      "code": "002251",
+      "final_value": 432.85,
+      "return_pct": -13.4297,
+      "max_drawdown_pct": -20.5484,
+      "sharpe_ratio": -0.2773,
+      "trade_count": 7
+    },
+    {
+      "code": "002255",
+      "final_value": 582.88,
+      "return_pct": 16.5753,
+      "max_drawdown_pct": -2.3839,
+      "sharpe_ratio": 0.5708,
+      "trade_count": 1
+    },
+    {
+      "code": "002256",
+      "final_value": 405.67,
+      "return_pct": -18.865,
+      "max_drawdown_pct": -32.0872,
+      "sharpe_ratio": -0.042,
+      "trade_count": 8
+    },
+    {
+      "code": "002270",
+      "final_value": 530.96,
+      "return_pct": 6.1928,
+      "max_drawdown_pct": -6.3639,
+      "sharpe_ratio": 0.2702,
+      "trade_count": 1
+    },
+    {
+      "code": "002277",
+      "final_value": 633.39,
+      "return_pct": 26.6789,
+      "max_drawdown_pct": -21.3819,
+      "sharpe_ratio": 0.3356,
+      "trade_count": 18
+    },
+    {
+      "code": "002278",
+      "final_value": 443.49,
+      "return_pct": -11.3016,
+      "max_drawdown_pct": -13.9082,
+      "sharpe_ratio": -0.4438,
+      "trade_count": 1
+    },
+    {
+      "code": "002279",
+      "final_value": 478.6,
+      "return_pct": -4.2792,
+      "max_drawdown_pct": -5.7935,
+      "sharpe_ratio": -0.2592,
+      "trade_count": 2
+    },
+    {
+      "code": "002283",
+      "final_value": 477.08,
+      "return_pct": -4.5837,
+      "max_drawdown_pct": -15.1708,
+      "sharpe_ratio": -0.1401,
+      "trade_count": 3
+    },
+    {
+      "code": "002285",
+      "final_value": 413.45,
+      "return_pct": -17.31,
+      "max_drawdown_pct": -19.4102,
+      "sharpe_ratio": -0.0305,
+      "trade_count": 12
+    },
+    {
+      "code": "002289",
+      "final_value": 483.51,
+      "return_pct": -3.2985,
+      "max_drawdown_pct": -10.2257,
+      "sharpe_ratio": -0.0301,
+      "trade_count": 7
+    },
+    {
+      "code": "002291",
+      "final_value": 478.57,
+      "return_pct": -4.2864,
+      "max_drawdown_pct": -8.3636,
+      "sharpe_ratio": -0.2619,
+      "trade_count": 1
+    },
+    {
+      "code": "002292",
+      "final_value": 493.07,
+      "return_pct": -1.3864,
+      "max_drawdown_pct": -1.3864,
+      "sharpe_ratio": -0.4221,
+      "trade_count": 1
+    },
+    {
+      "code": "002298",
+      "final_value": 517.16,
+      "return_pct": 3.432,
+      "max_drawdown_pct": -14.2853,
+      "sharpe_ratio": 0.1296,
+      "trade_count": 3
+    },
+    {
+      "code": "002301",
+      "final_value": 479.3,
+      "return_pct": -4.14,
+      "max_drawdown_pct": -4.14,
+      "sharpe_ratio": -0.5577,
+      "trade_count": 1
+    },
+    {
+      "code": "002303",
+      "final_value": 470.57,
+      "return_pct": -5.8858,
+      "max_drawdown_pct": -18.1863,
+      "sharpe_ratio": 0.0547,
+      "trade_count": 12
+    },
+    {
+      "code": "002305",
+      "final_value": 426.43,
+      "return_pct": -14.7144,
+      "max_drawdown_pct": -27.8032,
+      "sharpe_ratio": -0.0826,
+      "trade_count": 6
+    },
+    {
+      "code": "002306",
+      "final_value": 329.23,
+      "return_pct": -34.1548,
+      "max_drawdown_pct": -48.734,
+      "sharpe_ratio": -0.2114,
+      "trade_count": 19
+    },
+    {
+      "code": "002307",
+      "final_value": 437.89,
+      "return_pct": -12.4214,
+      "max_drawdown_pct": -17.0714,
+      "sharpe_ratio": -0.1644,
+      "trade_count": 8
+    },
+    {
+      "code": "002309",
+      "final_value": 476.75,
+      "return_pct": -4.6501,
+      "max_drawdown_pct": -22.9647,
+      "sharpe_ratio": 0.0156,
+      "trade_count": 9
+    },
+    {
+      "code": "002310",
+      "final_value": 488.65,
+      "return_pct": -2.2704,
+      "max_drawdown_pct": -14.6268,
+      "sharpe_ratio": 0.0707,
+      "trade_count": 3
+    },
+    {
+      "code": "002314",
+      "final_value": 297.89,
+      "return_pct": -40.4216,
+      "max_drawdown_pct": -62.1066,
+      "sharpe_ratio": -0.31,
+      "trade_count": 14
+    },
+    {
+      "code": "002328",
+      "final_value": 552.98,
+      "return_pct": 10.5959,
+      "max_drawdown_pct": -12.0129,
+      "sharpe_ratio": 0.3224,
+      "trade_count": 4
+    },
+    {
+      "code": "002329",
+      "final_value": 475.75,
+      "return_pct": -4.8497,
+      "max_drawdown_pct": -25.1019,
+      "sharpe_ratio": 0.0282,
+      "trade_count": 11
+    },
+    {
+      "code": "002330",
+      "final_value": 459.5,
+      "return_pct": -8.1003,
+      "max_drawdown_pct": -8.1003,
+      "sharpe_ratio": -0.2112,
+      "trade_count": 3
+    },
+    {
+      "code": "002337",
+      "final_value": 472.93,
+      "return_pct": -5.4147,
+      "max_drawdown_pct": -16.0768,
+      "sharpe_ratio": -0.0284,
+      "trade_count": 9
+    },
+    {
+      "code": "002342",
+      "final_value": 402.61,
+      "return_pct": -19.478,
+      "max_drawdown_pct": -25.8488,
+      "sharpe_ratio": -0.3253,
+      "trade_count": 11
+    },
+    {
+      "code": "002344",
+      "final_value": 449.79,
+      "return_pct": -10.0413,
+      "max_drawdown_pct": -10.0413,
+      "sharpe_ratio": -0.1887,
+      "trade_count": 12
+    },
+    {
+      "code": "002345",
+      "final_value": 766.25,
+      "return_pct": 53.2494,
+      "max_drawdown_pct": -10.9244,
+      "sharpe_ratio": 0.5656,
+      "trade_count": 14
+    },
+    {
+      "code": "002347",
+      "final_value": 545.84,
+      "return_pct": 9.1686,
+      "max_drawdown_pct": -29.2303,
+      "sharpe_ratio": 0.191,
+      "trade_count": 17
+    },
+    {
+      "code": "002348",
+      "final_value": 510.2,
+      "return_pct": 2.0406,
+      "max_drawdown_pct": -16.2341,
+      "sharpe_ratio": 0.144,
+      "trade_count": 18
+    },
+    {
+      "code": "002354",
+      "final_value": 654.04,
+      "return_pct": 30.8071,
+      "max_drawdown_pct": -30.0235,
+      "sharpe_ratio": 0.3502,
+      "trade_count": 19
+    },
+    {
+      "code": "002355",
+      "final_value": 463.29,
+      "return_pct": -7.3426,
+      "max_drawdown_pct": -16.8729,
+      "sharpe_ratio": -0.1685,
+      "trade_count": 4
+    },
+    {
+      "code": "002356",
+      "final_value": 512.86,
+      "return_pct": 2.5729,
+      "max_drawdown_pct": -18.8444,
+      "sharpe_ratio": 0.1117,
+      "trade_count": 14
+    },
+    {
+      "code": "002358",
+      "final_value": 547.18,
+      "return_pct": 9.436,
+      "max_drawdown_pct": -21.6127,
+      "sharpe_ratio": 0.205,
+      "trade_count": 19
+    },
+    {
+      "code": "002361",
+      "final_value": 427.89,
+      "return_pct": -14.4228,
+      "max_drawdown_pct": -30.2548,
+      "sharpe_ratio": -0.1549,
+      "trade_count": 15
+    },
+    {
+      "code": "002366",
+      "final_value": 511.57,
+      "return_pct": 2.3147,
+      "max_drawdown_pct": -9.531,
+      "sharpe_ratio": 0.1046,
+      "trade_count": 7
+    },
+    {
+      "code": "002369",
+      "final_value": 446.75,
+      "return_pct": -10.6507,
+      "max_drawdown_pct": -41.8098,
+      "sharpe_ratio": -0.0332,
+      "trade_count": 11
+    },
+    {
+      "code": "002370",
+      "final_value": 337.95,
+      "return_pct": -32.409,
+      "max_drawdown_pct": -35.8308,
+      "sharpe_ratio": -0.7324,
+      "trade_count": 9
+    },
+    {
+      "code": "002374",
+      "final_value": 729.27,
+      "return_pct": 45.8549,
+      "max_drawdown_pct": -42.8029,
+      "sharpe_ratio": 0.4401,
+      "trade_count": 18
+    },
+    {
+      "code": "002375",
+      "final_value": 525.07,
+      "return_pct": 5.014,
+      "max_drawdown_pct": -14.186,
+      "sharpe_ratio": 0.1415,
+      "trade_count": 19
+    },
+    {
+      "code": "002377",
+      "final_value": 423.07,
+      "return_pct": -15.3854,
+      "max_drawdown_pct": -20.568,
+      "sharpe_ratio": -0.0805,
+      "trade_count": 15
+    },
+    {
+      "code": "002379",
+      "final_value": 421.91,
+      "return_pct": -15.6182,
+      "max_drawdown_pct": -31.0488,
+      "sharpe_ratio": -0.2339,
+      "trade_count": 9
+    },
+    {
+      "code": "002382",
+      "final_value": 476.38,
+      "return_pct": -4.7232,
+      "max_drawdown_pct": -4.7232,
+      "sharpe_ratio": -0.6404,
+      "trade_count": 1
+    },
+    {
+      "code": "002385",
+      "final_value": 428.6,
+      "return_pct": -14.2806,
+      "max_drawdown_pct": -17.724,
+      "sharpe_ratio": -0.365,
+      "trade_count": 5
+    },
+    {
+      "code": "002386",
+      "final_value": 463.21,
+      "return_pct": -7.3589,
+      "max_drawdown_pct": -7.9071,
+      "sharpe_ratio": -0.1989,
+      "trade_count": 2
+    },
+    {
+      "code": "002388",
+      "final_value": 463.64,
+      "return_pct": -7.2719,
+      "max_drawdown_pct": -39.3594,
+      "sharpe_ratio": -0.0242,
+      "trade_count": 8
+    },
+    {
+      "code": "002390",
+      "final_value": 409.73,
+      "return_pct": -18.0545,
+      "max_drawdown_pct": -19.8597,
+      "sharpe_ratio": -0.4653,
+      "trade_count": 14
+    },
+    {
+      "code": "002391",
+      "final_value": 500.61,
+      "return_pct": 0.1222,
+      "max_drawdown_pct": -10.6164,
+      "sharpe_ratio": 0.0338,
+      "trade_count": 2
+    },
+    {
+      "code": "002392",
+      "final_value": 582.26,
+      "return_pct": 16.4511,
+      "max_drawdown_pct": -6.2665,
+      "sharpe_ratio": 0.3369,
+      "trade_count": 17
+    },
+    {
+      "code": "002397",
+      "final_value": 382.35,
+      "return_pct": -23.5291,
+      "max_drawdown_pct": -31.0428,
+      "sharpe_ratio": -0.3926,
+      "trade_count": 13
+    },
+    {
+      "code": "002398",
+      "final_value": 429.57,
+      "return_pct": -14.0864,
+      "max_drawdown_pct": -17.4115,
+      "sharpe_ratio": -0.4327,
+      "trade_count": 4
+    },
+    {
+      "code": "002400",
+      "final_value": 449.33,
+      "return_pct": -10.1342,
+      "max_drawdown_pct": -10.1342,
+      "sharpe_ratio": -0.8263,
+      "trade_count": 2
+    },
+    {
+      "code": "002408",
+      "final_value": 512.52,
+      "return_pct": 2.5033,
+      "max_drawdown_pct": -9.8525,
+      "sharpe_ratio": 0.1185,
+      "trade_count": 2
+    },
+    {
+      "code": "002413",
+      "final_value": 498.38,
+      "return_pct": -0.3246,
+      "max_drawdown_pct": -14.1013,
+      "sharpe_ratio": 0.048,
+      "trade_count": 5
+    },
+    {
+      "code": "002418",
+      "final_value": 350.22,
+      "return_pct": -29.957,
+      "max_drawdown_pct": -29.957,
+      "sharpe_ratio": -0.324,
+      "trade_count": 15
+    },
+    {
+      "code": "002419",
+      "final_value": 459.57,
+      "return_pct": -8.0863,
+      "max_drawdown_pct": -9.715,
+      "sharpe_ratio": -0.3418,
+      "trade_count": 2
+    },
+    {
+      "code": "002420",
+      "final_value": 627.12,
+      "return_pct": 25.4242,
+      "max_drawdown_pct": -13.4732,
+      "sharpe_ratio": 0.4015,
+      "trade_count": 5
+    },
+    {
+      "code": "002421",
+      "final_value": 456.41,
+      "return_pct": -8.7176,
+      "max_drawdown_pct": -28.5103,
+      "sharpe_ratio": 0.044,
+      "trade_count": 21
+    },
+    {
+      "code": "002424",
+      "final_value": 408.83,
+      "return_pct": -18.2333,
+      "max_drawdown_pct": -18.2333,
+      "sharpe_ratio": -0.4112,
+      "trade_count": 6
+    },
+    {
+      "code": "002425",
+      "final_value": 345.88,
+      "return_pct": -30.8234,
+      "max_drawdown_pct": -31.7628,
+      "sharpe_ratio": -0.3389,
+      "trade_count": 10
+    },
+    {
+      "code": "002426",
+      "final_value": 449.74,
+      "return_pct": -10.0527,
+      "max_drawdown_pct": -29.043,
+      "sharpe_ratio": -0.0127,
+      "trade_count": 11
+    },
+    {
+      "code": "002427",
+      "final_value": 434.92,
+      "return_pct": -13.0162,
+      "max_drawdown_pct": -16.2378,
+      "sharpe_ratio": -0.2394,
+      "trade_count": 6
+    },
+    {
+      "code": "002429",
+      "final_value": 468.02,
+      "return_pct": -6.3957,
+      "max_drawdown_pct": -7.9343,
+      "sharpe_ratio": -0.1861,
+      "trade_count": 10
+    },
+    {
+      "code": "002442",
+      "final_value": 463.44,
+      "return_pct": -7.3112,
+      "max_drawdown_pct": -11.0736,
+      "sharpe_ratio": -0.275,
+      "trade_count": 1
+    },
+    {
+      "code": "002445",
+      "final_value": 540.55,
+      "return_pct": 8.11,
+      "max_drawdown_pct": -16.4806,
+      "sharpe_ratio": 0.1821,
+      "trade_count": 4
+    },
+    {
+      "code": "002453",
+      "final_value": 543.91,
+      "return_pct": 8.7819,
+      "max_drawdown_pct": -12.0204,
+      "sharpe_ratio": 0.2478,
+      "trade_count": 2
+    },
+    {
+      "code": "002454",
+      "final_value": 633.25,
+      "return_pct": 26.6507,
+      "max_drawdown_pct": -43.0756,
+      "sharpe_ratio": 0.3587,
+      "trade_count": 19
+    },
+    {
+      "code": "002467",
+      "final_value": 701.0,
+      "return_pct": 40.1996,
+      "max_drawdown_pct": -23.4129,
+      "sharpe_ratio": 0.4334,
+      "trade_count": 14
+    },
+    {
+      "code": "002469",
+      "final_value": 509.06,
+      "return_pct": 1.8126,
+      "max_drawdown_pct": -10.121,
+      "sharpe_ratio": 0.0859,
+      "trade_count": 6
+    },
+    {
+      "code": "002470",
+      "final_value": 362.44,
+      "return_pct": -27.5122,
+      "max_drawdown_pct": -34.3135,
+      "sharpe_ratio": -0.2392,
+      "trade_count": 1
+    },
+    {
+      "code": "002471",
+      "final_value": 761.55,
+      "return_pct": 52.3093,
+      "max_drawdown_pct": -18.1381,
+      "sharpe_ratio": 0.4585,
+      "trade_count": 7
+    },
+    {
+      "code": "002474",
+      "final_value": 618.85,
+      "return_pct": 23.7695,
+      "max_drawdown_pct": -11.8796,
+      "sharpe_ratio": 0.563,
+      "trade_count": 2
+    },
+    {
+      "code": "002476",
+      "final_value": 390.18,
+      "return_pct": -21.9643,
+      "max_drawdown_pct": -26.29,
+      "sharpe_ratio": -0.7026,
+      "trade_count": 5
+    },
+    {
+      "code": "002478",
+      "final_value": 511.54,
+      "return_pct": 2.3077,
+      "max_drawdown_pct": -27.886,
+      "sharpe_ratio": 0.1137,
+      "trade_count": 12
+    },
+    {
+      "code": "002479",
+      "final_value": 519.72,
+      "return_pct": 3.9432,
+      "max_drawdown_pct": -13.8548,
+      "sharpe_ratio": 0.1268,
+      "trade_count": 15
+    },
+    {
+      "code": "002480",
+      "final_value": 555.14,
+      "return_pct": 11.0276,
+      "max_drawdown_pct": -15.6549,
+      "sharpe_ratio": 0.2463,
+      "trade_count": 10
+    },
+    {
+      "code": "002481",
+      "final_value": 433.48,
+      "return_pct": -13.3047,
+      "max_drawdown_pct": -19.4507,
+      "sharpe_ratio": -0.5121,
+      "trade_count": 7
+    },
+    {
+      "code": "002482",
+      "final_value": 315.85,
+      "return_pct": -36.83,
+      "max_drawdown_pct": -44.5576,
+      "sharpe_ratio": -0.6341,
+      "trade_count": 2
+    },
+    {
+      "code": "002483",
+      "final_value": 474.59,
+      "return_pct": -5.082,
+      "max_drawdown_pct": -12.9641,
+      "sharpe_ratio": -0.1001,
+      "trade_count": 3
+    },
+    {
+      "code": "002485",
+      "final_value": 589.03,
+      "return_pct": 17.8062,
+      "max_drawdown_pct": -10.1086,
+      "sharpe_ratio": 0.2749,
+      "trade_count": 23
+    },
+    {
+      "code": "002486",
+      "final_value": 436.77,
+      "return_pct": -12.6454,
+      "max_drawdown_pct": -22.3877,
+      "sharpe_ratio": -0.009,
+      "trade_count": 11
+    },
+    {
+      "code": "002489",
+      "final_value": 334.67,
+      "return_pct": -33.0661,
+      "max_drawdown_pct": -33.6782,
+      "sharpe_ratio": -0.6611,
+      "trade_count": 10
+    },
+    {
+      "code": "002490",
+      "final_value": 649.69,
+      "return_pct": 29.938,
+      "max_drawdown_pct": -23.0982,
+      "sharpe_ratio": 0.3608,
+      "trade_count": 14
+    },
+    {
+      "code": "002491",
+      "final_value": 521.84,
+      "return_pct": 4.3672,
+      "max_drawdown_pct": -11.107,
+      "sharpe_ratio": 0.1322,
+      "trade_count": 9
+    },
+    {
+      "code": "002492",
+      "final_value": 494.29,
+      "return_pct": -1.1424,
+      "max_drawdown_pct": -8.1486,
+      "sharpe_ratio": -0.0296,
+      "trade_count": 1
+    },
+    {
+      "code": "002494",
+      "final_value": 457.97,
+      "return_pct": -8.4064,
+      "max_drawdown_pct": -19.9555,
+      "sharpe_ratio": -0.0175,
+      "trade_count": 10
+    },
+    {
+      "code": "002495",
+      "final_value": 419.17,
+      "return_pct": -16.166,
+      "max_drawdown_pct": -22.0455,
+      "sharpe_ratio": -0.0753,
+      "trade_count": 1
+    },
+    {
+      "code": "002496",
+      "final_value": 360.23,
+      "return_pct": -27.9538,
+      "max_drawdown_pct": -30.6217,
+      "sharpe_ratio": -0.1526,
+      "trade_count": 3
+    },
+    {
+      "code": "002498",
+      "final_value": 367.12,
+      "return_pct": -26.577,
+      "max_drawdown_pct": -44.0979,
+      "sharpe_ratio": -0.442,
+      "trade_count": 22
+    },
+    {
+      "code": "002500",
+      "final_value": 576.62,
+      "return_pct": 15.3249,
+      "max_drawdown_pct": -20.5544,
+      "sharpe_ratio": 0.3383,
+      "trade_count": 4
+    },
+    {
+      "code": "002506",
+      "final_value": 538.18,
+      "return_pct": 7.6366,
+      "max_drawdown_pct": -10.0944,
+      "sharpe_ratio": 0.1895,
+      "trade_count": 8
+    },
+    {
+      "code": "002510",
+      "final_value": 705.18,
+      "return_pct": 41.0363,
+      "max_drawdown_pct": -21.51,
+      "sharpe_ratio": 0.4167,
+      "trade_count": 21
+    },
+    {
+      "code": "002512",
+      "final_value": 512.0,
+      "return_pct": 2.4001,
+      "max_drawdown_pct": -28.7329,
+      "sharpe_ratio": 0.1485,
+      "trade_count": 22
+    },
+    {
+      "code": "002513",
+      "final_value": 575.08,
+      "return_pct": 15.016,
+      "max_drawdown_pct": -36.9803,
+      "sharpe_ratio": 0.2599,
+      "trade_count": 9
+    },
+    {
+      "code": "002514",
+      "final_value": 651.75,
+      "return_pct": 30.3507,
+      "max_drawdown_pct": -43.529,
+      "sharpe_ratio": 0.3484,
+      "trade_count": 17
+    },
+    {
+      "code": "002515",
+      "final_value": 444.56,
+      "return_pct": -11.0878,
+      "max_drawdown_pct": -12.5421,
+      "sharpe_ratio": -0.2903,
+      "trade_count": 6
+    },
+    {
+      "code": "002516",
+      "final_value": 552.03,
+      "return_pct": 10.4052,
+      "max_drawdown_pct": -22.1822,
+      "sharpe_ratio": 0.209,
+      "trade_count": 17
+    },
+    {
+      "code": "002517",
+      "final_value": 566.1,
+      "return_pct": 13.22,
+      "max_drawdown_pct": -5.0586,
+      "sharpe_ratio": 0.4289,
+      "trade_count": 4
+    },
+    {
+      "code": "002519",
+      "final_value": 498.38,
+      "return_pct": -0.324,
+      "max_drawdown_pct": -17.6182,
+      "sharpe_ratio": 0.0502,
+      "trade_count": 8
+    },
+    {
+      "code": "002521",
+      "final_value": 461.55,
+      "return_pct": -7.6896,
+      "max_drawdown_pct": -10.0735,
+      "sharpe_ratio": -0.4906,
+      "trade_count": 3
+    },
+    {
+      "code": "002522",
+      "final_value": 544.35,
+      "return_pct": 8.8702,
+      "max_drawdown_pct": -27.3895,
+      "sharpe_ratio": 0.1924,
+      "trade_count": 13
+    },
+    {
+      "code": "002523",
+      "final_value": 612.89,
+      "return_pct": 22.5773,
+      "max_drawdown_pct": -14.4342,
+      "sharpe_ratio": 0.3122,
+      "trade_count": 13
+    },
+    {
+      "code": "002524",
+      "final_value": 486.5,
+      "return_pct": -2.699,
+      "max_drawdown_pct": -13.4878,
+      "sharpe_ratio": 0.0145,
+      "trade_count": 10
+    },
+    {
+      "code": "002536",
+      "final_value": 559.08,
+      "return_pct": 11.8152,
+      "max_drawdown_pct": -15.055,
+      "sharpe_ratio": 0.2936,
+      "trade_count": 1
+    },
+    {
+      "code": "002538",
+      "final_value": 464.93,
+      "return_pct": -7.0144,
+      "max_drawdown_pct": -7.0566,
+      "sharpe_ratio": -1.0647,
+      "trade_count": 2
+    },
+    {
+      "code": "002540",
+      "final_value": 666.7,
+      "return_pct": 33.34,
+      "max_drawdown_pct": -12.5739,
+      "sharpe_ratio": 0.4537,
+      "trade_count": 20
+    },
+    {
+      "code": "002542",
+      "final_value": 525.9,
+      "return_pct": 5.1808,
+      "max_drawdown_pct": -36.2597,
+      "sharpe_ratio": 0.1663,
+      "trade_count": 12
+    },
+    {
+      "code": "002546",
+      "final_value": 542.31,
+      "return_pct": 8.4624,
+      "max_drawdown_pct": -35.506,
+      "sharpe_ratio": 0.1831,
+      "trade_count": 21
+    },
+    {
+      "code": "002547",
+      "final_value": 468.81,
+      "return_pct": -6.2374,
+      "max_drawdown_pct": -46.9396,
+      "sharpe_ratio": 0.0585,
+      "trade_count": 21
+    },
+    {
+      "code": "002548",
+      "final_value": 433.4,
+      "return_pct": -13.32,
+      "max_drawdown_pct": -13.32,
+      "sharpe_ratio": -0.3514,
+      "trade_count": 4
+    },
+    {
+      "code": "002550",
+      "final_value": 518.45,
+      "return_pct": 3.6909,
+      "max_drawdown_pct": -38.9765,
+      "sharpe_ratio": 0.1253,
+      "trade_count": 6
+    },
+    {
+      "code": "002551",
+      "final_value": 411.5,
+      "return_pct": -17.7002,
+      "max_drawdown_pct": -21.616,
+      "sharpe_ratio": -0.2185,
+      "trade_count": 12
+    },
+    {
+      "code": "002554",
+      "final_value": 400.39,
+      "return_pct": -19.9218,
+      "max_drawdown_pct": -29.371,
+      "sharpe_ratio": -0.1088,
+      "trade_count": 16
+    },
+    {
+      "code": "002556",
+      "final_value": 457.8,
+      "return_pct": -8.4392,
+      "max_drawdown_pct": -8.4392,
+      "sharpe_ratio": -0.8617,
+      "trade_count": 2
+    },
+    {
+      "code": "002560",
+      "final_value": 474.99,
+      "return_pct": -5.0018,
+      "max_drawdown_pct": -10.2464,
+      "sharpe_ratio": -0.0661,
+      "trade_count": 6
+    },
+    {
+      "code": "002562",
+      "final_value": 359.54,
+      "return_pct": -28.0918,
+      "max_drawdown_pct": -41.5025,
+      "sharpe_ratio": -0.5463,
+      "trade_count": 11
+    },
+    {
+      "code": "002563",
+      "final_value": 582.56,
+      "return_pct": 16.5116,
+      "max_drawdown_pct": -21.4833,
+      "sharpe_ratio": 0.3118,
+      "trade_count": 18
+    },
+    {
+      "code": "002564",
+      "final_value": 456.07,
+      "return_pct": -8.7862,
+      "max_drawdown_pct": -21.8001,
+      "sharpe_ratio": -0.0917,
+      "trade_count": 11
+    },
+    {
+      "code": "002565",
+      "final_value": 357.5,
+      "return_pct": -28.5008,
+      "max_drawdown_pct": -42.8192,
+      "sharpe_ratio": -0.19,
+      "trade_count": 14
+    },
+    {
+      "code": "002567",
+      "final_value": 474.84,
+      "return_pct": -5.032,
+      "max_drawdown_pct": -5.5156,
+      "sharpe_ratio": -0.6415,
+      "trade_count": 1
+    },
+    {
+      "code": "002570",
+      "final_value": 469.65,
+      "return_pct": -6.0699,
+      "max_drawdown_pct": -31.0676,
+      "sharpe_ratio": -0.0152,
+      "trade_count": 11
+    },
+    {
+      "code": "002571",
+      "final_value": 471.96,
+      "return_pct": -5.6088,
+      "max_drawdown_pct": -10.7352,
+      "sharpe_ratio": -0.1441,
+      "trade_count": 4
+    },
+    {
+      "code": "002573",
+      "final_value": 459.85,
+      "return_pct": -8.0307,
+      "max_drawdown_pct": -18.797,
+      "sharpe_ratio": -0.1287,
+      "trade_count": 13
+    },
+    {
+      "code": "002574",
+      "final_value": 614.92,
+      "return_pct": 22.9834,
+      "max_drawdown_pct": -31.3016,
+      "sharpe_ratio": 0.3666,
+      "trade_count": 9
+    },
+    {
+      "code": "002575",
+      "final_value": 467.33,
+      "return_pct": -6.5336,
+      "max_drawdown_pct": -8.5647,
+      "sharpe_ratio": -0.428,
+      "trade_count": 1
+    },
+    {
+      "code": "002578",
+      "final_value": 356.15,
+      "return_pct": -28.7708,
+      "max_drawdown_pct": -32.0734,
+      "sharpe_ratio": -0.4657,
+      "trade_count": 13
+    },
+    {
+      "code": "002582",
+      "final_value": 418.6,
+      "return_pct": -16.2794,
+      "max_drawdown_pct": -22.5278,
+      "sharpe_ratio": -0.3728,
+      "trade_count": 6
+    },
+    {
+      "code": "002583",
+      "final_value": 472.01,
+      "return_pct": -5.599,
+      "max_drawdown_pct": -5.599,
+      "sharpe_ratio": -0.8095,
+      "trade_count": 1
+    },
+    {
+      "code": "002586",
+      "final_value": 488.91,
+      "return_pct": -2.2175,
+      "max_drawdown_pct": -16.0164,
+      "sharpe_ratio": 0.034,
+      "trade_count": 14
+    },
+    {
+      "code": "002587",
+      "final_value": 516.51,
+      "return_pct": 3.3028,
+      "max_drawdown_pct": -12.5356,
+      "sharpe_ratio": 0.1183,
+      "trade_count": 5
+    },
+    {
+      "code": "002589",
+      "final_value": 418.5,
+      "return_pct": -16.2993,
+      "max_drawdown_pct": -41.5754,
+      "sharpe_ratio": -0.0186,
+      "trade_count": 22
+    },
+    {
+      "code": "002591",
+      "final_value": 548.24,
+      "return_pct": 9.6489,
+      "max_drawdown_pct": -7.2606,
+      "sharpe_ratio": 0.2741,
+      "trade_count": 4
+    },
+    {
+      "code": "002592",
+      "final_value": 424.92,
+      "return_pct": -15.0168,
+      "max_drawdown_pct": -15.7091,
+      "sharpe_ratio": -0.7907,
+      "trade_count": 3
+    },
+    {
+      "code": "002593",
+      "final_value": 597.28,
+      "return_pct": 19.4559,
+      "max_drawdown_pct": -39.4068,
+      "sharpe_ratio": 0.2718,
+      "trade_count": 26
+    },
+    {
+      "code": "002596",
+      "final_value": 632.17,
+      "return_pct": 26.4342,
+      "max_drawdown_pct": -12.571,
+      "sharpe_ratio": 0.3281,
+      "trade_count": 18
+    },
+    {
+      "code": "002599",
+      "final_value": 506.28,
+      "return_pct": 1.256,
+      "max_drawdown_pct": -7.9756,
+      "sharpe_ratio": 0.0865,
+      "trade_count": 1
+    },
+    {
+      "code": "002600",
+      "final_value": 483.59,
+      "return_pct": -3.2824,
+      "max_drawdown_pct": -8.7877,
+      "sharpe_ratio": -0.17,
+      "trade_count": 2
+    },
+    {
+      "code": "002602",
+      "final_value": 489.02,
+      "return_pct": -2.1963,
+      "max_drawdown_pct": -15.0046,
+      "sharpe_ratio": 0.0155,
+      "trade_count": 8
+    },
+    {
+      "code": "002607",
+      "final_value": 357.55,
+      "return_pct": -28.4892,
+      "max_drawdown_pct": -38.1753,
+      "sharpe_ratio": -0.3528,
+      "trade_count": 6
+    },
+    {
+      "code": "002611",
+      "final_value": 494.68,
+      "return_pct": -1.0641,
+      "max_drawdown_pct": -17.6769,
+      "sharpe_ratio": 0.0322,
+      "trade_count": 9
+    },
+    {
+      "code": "002613",
+      "final_value": 460.51,
+      "return_pct": -7.8985,
+      "max_drawdown_pct": -52.8556,
+      "sharpe_ratio": 0.0158,
+      "trade_count": 24
+    },
+    {
+      "code": "002634",
+      "final_value": 407.86,
+      "return_pct": -18.4272,
+      "max_drawdown_pct": -18.4272,
+      "sharpe_ratio": -0.7001,
+      "trade_count": 4
+    },
+    {
+      "code": "002638",
+      "final_value": 595.42,
+      "return_pct": 19.0837,
+      "max_drawdown_pct": -7.1384,
+      "sharpe_ratio": 0.331,
+      "trade_count": 6
+    },
+    {
+      "code": "002640",
+      "final_value": 431.71,
+      "return_pct": -13.6575,
+      "max_drawdown_pct": -44.7678,
+      "sharpe_ratio": -0.0343,
+      "trade_count": 15
+    },
+    {
+      "code": "002641",
+      "final_value": 423.68,
+      "return_pct": -15.2632,
+      "max_drawdown_pct": -36.8142,
+      "sharpe_ratio": -0.1798,
+      "trade_count": 18
+    },
+    {
+      "code": "002647",
+      "final_value": 714.63,
+      "return_pct": 42.9268,
+      "max_drawdown_pct": -14.789,
+      "sharpe_ratio": 0.5168,
+      "trade_count": 8
+    },
+    {
+      "code": "002650",
+      "final_value": 526.8,
+      "return_pct": 5.3595,
+      "max_drawdown_pct": -13.2781,
+      "sharpe_ratio": 0.1598,
+      "trade_count": 10
+    },
+    {
+      "code": "002652",
+      "final_value": 434.38,
+      "return_pct": -13.1244,
+      "max_drawdown_pct": -23.8237,
+      "sharpe_ratio": -0.0745,
+      "trade_count": 19
+    },
+    {
+      "code": "002654",
+      "final_value": 453.53,
+      "return_pct": -9.2947,
+      "max_drawdown_pct": -17.0615,
+      "sharpe_ratio": -0.1266,
+      "trade_count": 8
+    },
+    {
+      "code": "002656",
+      "final_value": 435.86,
+      "return_pct": -12.827,
+      "max_drawdown_pct": -27.8612,
+      "sharpe_ratio": -0.0156,
+      "trade_count": 7
+    },
+    {
+      "code": "002659",
+      "final_value": 501.71,
+      "return_pct": 0.3412,
+      "max_drawdown_pct": -21.2791,
+      "sharpe_ratio": 0.0957,
+      "trade_count": 15
+    },
+    {
+      "code": "002662",
+      "final_value": 383.53,
+      "return_pct": -23.2936,
+      "max_drawdown_pct": -28.8959,
+      "sharpe_ratio": -0.2946,
+      "trade_count": 23
+    },
+    {
+      "code": "002666",
+      "final_value": 490.81,
+      "return_pct": -1.8372,
+      "max_drawdown_pct": -21.9879,
+      "sharpe_ratio": 0.0464,
+      "trade_count": 14
+    },
+    {
+      "code": "002668",
+      "final_value": 540.62,
+      "return_pct": 8.1232,
+      "max_drawdown_pct": -4.266,
+      "sharpe_ratio": 0.3595,
+      "trade_count": 3
+    },
+    {
+      "code": "002671",
+      "final_value": 564.34,
+      "return_pct": 12.8688,
+      "max_drawdown_pct": -19.0676,
+      "sharpe_ratio": 0.2266,
+      "trade_count": 18
+    },
+    {
+      "code": "002672",
+      "final_value": 542.72,
+      "return_pct": 8.5445,
+      "max_drawdown_pct": -8.4984,
+      "sharpe_ratio": 0.22,
+      "trade_count": 10
+    },
+    {
+      "code": "002676",
+      "final_value": 455.63,
+      "return_pct": -8.873,
+      "max_drawdown_pct": -17.3144,
+      "sharpe_ratio": -0.1041,
+      "trade_count": 9
+    },
+    {
+      "code": "002678",
+      "final_value": 507.67,
+      "return_pct": 1.5331,
+      "max_drawdown_pct": -12.0789,
+      "sharpe_ratio": 0.0796,
+      "trade_count": 4
+    },
+    {
+      "code": "002681",
+      "final_value": 453.0,
+      "return_pct": -9.4006,
+      "max_drawdown_pct": -21.972,
+      "sharpe_ratio": -0.0954,
+      "trade_count": 13
+    },
+    {
+      "code": "002682",
+      "final_value": 561.32,
+      "return_pct": 12.2634,
+      "max_drawdown_pct": -43.558,
+      "sharpe_ratio": 0.2272,
+      "trade_count": 21
+    },
+    {
+      "code": "002685",
+      "final_value": 792.65,
+      "return_pct": 58.5296,
+      "max_drawdown_pct": -26.9207,
+      "sharpe_ratio": 0.5297,
+      "trade_count": 14
+    },
+    {
+      "code": "002686",
+      "final_value": 650.55,
+      "return_pct": 30.1105,
+      "max_drawdown_pct": -20.17,
+      "sharpe_ratio": 0.4604,
+      "trade_count": 3
+    },
+    {
+      "code": "002687",
+      "final_value": 445.79,
+      "return_pct": -10.8412,
+      "max_drawdown_pct": -14.0788,
+      "sharpe_ratio": -0.1858,
+      "trade_count": 9
+    },
+    {
+      "code": "002688",
+      "final_value": 676.38,
+      "return_pct": 35.2755,
+      "max_drawdown_pct": -25.4433,
+      "sharpe_ratio": 0.4616,
+      "trade_count": 16
+    },
+    {
+      "code": "002689",
+      "final_value": 501.7,
+      "return_pct": 0.3408,
+      "max_drawdown_pct": -31.6161,
+      "sharpe_ratio": 0.1342,
+      "trade_count": 28
+    },
+    {
+      "code": "002691",
+      "final_value": 601.16,
+      "return_pct": 20.2329,
+      "max_drawdown_pct": -10.7274,
+      "sharpe_ratio": 0.3408,
+      "trade_count": 6
+    },
+    {
+      "code": "002692",
+      "final_value": 475.54,
+      "return_pct": -4.8925,
+      "max_drawdown_pct": -16.7333,
+      "sharpe_ratio": 0.0135,
+      "trade_count": 20
+    },
+    {
+      "code": "002693",
+      "final_value": 530.89,
+      "return_pct": 6.1789,
+      "max_drawdown_pct": -21.7333,
+      "sharpe_ratio": 0.1607,
+      "trade_count": 4
+    },
+    {
+      "code": "002694",
+      "final_value": 533.28,
+      "return_pct": 6.655,
+      "max_drawdown_pct": -29.8223,
+      "sharpe_ratio": 0.1657,
+      "trade_count": 16
+    },
+    {
+      "code": "002696",
+      "final_value": 559.68,
+      "return_pct": 11.9359,
+      "max_drawdown_pct": -12.3313,
+      "sharpe_ratio": 0.2835,
+      "trade_count": 5
+    },
+    {
+      "code": "002697",
+      "final_value": 444.58,
+      "return_pct": -11.0833,
+      "max_drawdown_pct": -19.1688,
+      "sharpe_ratio": -0.1673,
+      "trade_count": 6
+    },
+    {
+      "code": "002700",
+      "final_value": 600.88,
+      "return_pct": 20.1767,
+      "max_drawdown_pct": -9.9129,
+      "sharpe_ratio": 0.422,
+      "trade_count": 11
+    },
+    {
+      "code": "002701",
+      "final_value": 480.57,
+      "return_pct": -3.886,
+      "max_drawdown_pct": -10.3924,
+      "sharpe_ratio": -0.051,
+      "trade_count": 12
+    },
+    {
+      "code": "002702",
+      "final_value": 423.74,
+      "return_pct": -15.2526,
+      "max_drawdown_pct": -20.0747,
+      "sharpe_ratio": -0.2757,
+      "trade_count": 4
+    },
+    {
+      "code": "002724",
+      "final_value": 612.67,
+      "return_pct": 22.5341,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.5592,
+      "trade_count": 2
+    },
+    {
+      "code": "002742",
+      "final_value": 402.37,
+      "return_pct": -19.5267,
+      "max_drawdown_pct": -37.1572,
+      "sharpe_ratio": -0.3226,
+      "trade_count": 10
+    },
+    {
+      "code": "002743",
+      "final_value": 467.82,
+      "return_pct": -6.4364,
+      "max_drawdown_pct": -8.6707,
+      "sharpe_ratio": -0.1693,
+      "trade_count": 3
+    },
+    {
+      "code": "002752",
+      "final_value": 512.27,
+      "return_pct": 2.4531,
+      "max_drawdown_pct": -18.7601,
+      "sharpe_ratio": 0.1012,
+      "trade_count": 12
+    },
+    {
+      "code": "002765",
+      "final_value": 494.64,
+      "return_pct": -1.0713,
+      "max_drawdown_pct": -4.0507,
+      "sharpe_ratio": -0.0882,
+      "trade_count": 1
+    },
+    {
+      "code": "002766",
+      "final_value": 450.03,
+      "return_pct": -9.9931,
+      "max_drawdown_pct": -11.1079,
+      "sharpe_ratio": -0.7211,
+      "trade_count": 1
+    },
+    {
+      "code": "002775",
+      "final_value": 428.05,
+      "return_pct": -14.391,
+      "max_drawdown_pct": -33.5879,
+      "sharpe_ratio": -0.0585,
+      "trade_count": 27
+    },
+    {
+      "code": "002793",
+      "final_value": 428.32,
+      "return_pct": -14.336,
+      "max_drawdown_pct": -14.5723,
+      "sharpe_ratio": -0.9012,
+      "trade_count": 3
+    },
+    {
+      "code": "002795",
+      "final_value": 509.36,
+      "return_pct": 1.872,
+      "max_drawdown_pct": -9.8795,
+      "sharpe_ratio": 0.0894,
+      "trade_count": 2
+    },
+    {
+      "code": "002798",
+      "final_value": 600.41,
+      "return_pct": 20.0821,
+      "max_drawdown_pct": -9.1623,
+      "sharpe_ratio": 0.3772,
+      "trade_count": 8
+    },
+    {
+      "code": "002807",
+      "final_value": 372.82,
+      "return_pct": -25.436,
+      "max_drawdown_pct": -29.2136,
+      "sharpe_ratio": -0.5195,
+      "trade_count": 14
+    },
+    {
+      "code": "002822",
+      "final_value": 344.68,
+      "return_pct": -31.0638,
+      "max_drawdown_pct": -35.8105,
+      "sharpe_ratio": -0.6237,
+      "trade_count": 15
+    },
+    {
+      "code": "002839",
+      "final_value": 467.77,
+      "return_pct": -6.4467,
+      "max_drawdown_pct": -12.0949,
+      "sharpe_ratio": -0.0622,
+      "trade_count": 21
+    },
+    {
+      "code": "002863",
+      "final_value": 466.27,
+      "return_pct": -6.7469,
+      "max_drawdown_pct": -11.0893,
+      "sharpe_ratio": -0.2074,
+      "trade_count": 4
+    },
+    {
+      "code": "002872",
+      "final_value": 527.03,
+      "return_pct": 5.4055,
+      "max_drawdown_pct": -11.6599,
+      "sharpe_ratio": 0.1603,
+      "trade_count": 10
+    },
+    {
+      "code": "002909",
+      "final_value": 516.8,
+      "return_pct": 3.3604,
+      "max_drawdown_pct": -12.1761,
+      "sharpe_ratio": 0.1366,
+      "trade_count": 4
+    },
+    {
+      "code": "002958",
+      "final_value": 453.77,
+      "return_pct": -9.245,
+      "max_drawdown_pct": -9.245,
+      "sharpe_ratio": -0.123,
+      "trade_count": 9
+    },
+    {
+      "code": "002966",
+      "final_value": 489.72,
+      "return_pct": -2.0552,
+      "max_drawdown_pct": -2.7443,
+      "sharpe_ratio": -0.1611,
+      "trade_count": 2
+    },
+    {
+      "code": "002969",
+      "final_value": 374.01,
+      "return_pct": -25.1978,
+      "max_drawdown_pct": -25.1978,
+      "sharpe_ratio": -0.5193,
+      "trade_count": 10
+    },
+    {
+      "code": "002998",
+      "final_value": 493.66,
+      "return_pct": -1.2685,
+      "max_drawdown_pct": -3.2277,
+      "sharpe_ratio": -0.1108,
+      "trade_count": 1
+    },
+    {
+      "code": "003010",
+      "final_value": 525.39,
+      "return_pct": 5.0773,
+      "max_drawdown_pct": -15.6843,
+      "sharpe_ratio": 0.1571,
+      "trade_count": 2
+    },
+    {
+      "code": "003816",
+      "final_value": 440.87,
+      "return_pct": -11.8251,
+      "max_drawdown_pct": -28.8148,
+      "sharpe_ratio": -0.2952,
+      "trade_count": 18
+    },
+    {
+      "code": "600008",
+      "final_value": 482.12,
+      "return_pct": -3.576,
+      "max_drawdown_pct": -8.9823,
+      "sharpe_ratio": -0.1491,
+      "trade_count": 8
+    },
+    {
+      "code": "600012",
+      "final_value": 464.1,
+      "return_pct": -7.18,
+      "max_drawdown_pct": -14.4552,
+      "sharpe_ratio": -0.2882,
+      "trade_count": 5
+    },
+    {
+      "code": "600015",
+      "final_value": 471.79,
+      "return_pct": -5.6425,
+      "max_drawdown_pct": -9.7158,
+      "sharpe_ratio": -0.1276,
+      "trade_count": 14
+    },
+    {
+      "code": "600016",
+      "final_value": 426.85,
+      "return_pct": -14.6298,
+      "max_drawdown_pct": -20.0185,
+      "sharpe_ratio": -0.3613,
+      "trade_count": 17
+    },
+    {
+      "code": "600017",
+      "final_value": 472.33,
+      "return_pct": -5.5349,
+      "max_drawdown_pct": -10.162,
+      "sharpe_ratio": -0.0429,
+      "trade_count": 9
+    },
+    {
+      "code": "600018",
+      "final_value": 479.72,
+      "return_pct": -4.0568,
+      "max_drawdown_pct": -6.1476,
+      "sharpe_ratio": -0.3024,
+      "trade_count": 2
+    },
+    {
+      "code": "600019",
+      "final_value": 453.91,
+      "return_pct": -9.2176,
+      "max_drawdown_pct": -9.2176,
+      "sharpe_ratio": -0.6061,
+      "trade_count": 1
+    },
+    {
+      "code": "600020",
+      "final_value": 402.23,
+      "return_pct": -19.5548,
+      "max_drawdown_pct": -21.8461,
+      "sharpe_ratio": -0.5774,
+      "trade_count": 15
+    },
+    {
+      "code": "600023",
+      "final_value": 503.98,
+      "return_pct": 0.7957,
+      "max_drawdown_pct": -17.364,
+      "sharpe_ratio": 0.0706,
+      "trade_count": 14
+    },
+    {
+      "code": "600026",
+      "final_value": 462.12,
+      "return_pct": -7.5765,
+      "max_drawdown_pct": -7.5765,
+      "sharpe_ratio": -0.6138,
+      "trade_count": 2
+    },
+    {
+      "code": "600027",
+      "final_value": 526.45,
+      "return_pct": 5.2898,
+      "max_drawdown_pct": -23.1398,
+      "sharpe_ratio": 0.1461,
+      "trade_count": 8
+    },
+    {
+      "code": "600028",
+      "final_value": 584.93,
+      "return_pct": 16.9866,
+      "max_drawdown_pct": -15.0537,
+      "sharpe_ratio": 0.3433,
+      "trade_count": 15
+    },
+    {
+      "code": "600033",
+      "final_value": 447.57,
+      "return_pct": -10.4862,
+      "max_drawdown_pct": -16.1672,
+      "sharpe_ratio": -0.1346,
+      "trade_count": 16
+    },
+    {
+      "code": "600035",
+      "final_value": 410.96,
+      "return_pct": -17.8079,
+      "max_drawdown_pct": -30.3243,
+      "sharpe_ratio": -0.2995,
+      "trade_count": 24
+    },
+    {
+      "code": "600050",
+      "final_value": 449.48,
+      "return_pct": -10.1033,
+      "max_drawdown_pct": -31.8956,
+      "sharpe_ratio": -0.0954,
+      "trade_count": 15
+    },
+    {
+      "code": "600052",
+      "final_value": 511.22,
+      "return_pct": 2.2445,
+      "max_drawdown_pct": -12.9251,
+      "sharpe_ratio": 0.1025,
+      "trade_count": 18
+    },
+    {
+      "code": "600063",
+      "final_value": 420.6,
+      "return_pct": -15.8794,
+      "max_drawdown_pct": -16.46,
+      "sharpe_ratio": -0.3319,
+      "trade_count": 6
+    },
+    {
+      "code": "600066",
+      "final_value": 465.71,
+      "return_pct": -6.8584,
+      "max_drawdown_pct": -15.6373,
+      "sharpe_ratio": -0.1197,
+      "trade_count": 2
+    },
+    {
+      "code": "600067",
+      "final_value": 403.82,
+      "return_pct": -19.2368,
+      "max_drawdown_pct": -22.2149,
+      "sharpe_ratio": -0.0229,
+      "trade_count": 10
+    },
+    {
+      "code": "600094",
+      "final_value": 526.26,
+      "return_pct": 5.2515,
+      "max_drawdown_pct": -16.2878,
+      "sharpe_ratio": 0.1492,
+      "trade_count": 27
+    },
+    {
+      "code": "600098",
+      "final_value": 537.1,
+      "return_pct": 7.4205,
+      "max_drawdown_pct": -2.3665,
+      "sharpe_ratio": 0.4217,
+      "trade_count": 3
+    },
+    {
+      "code": "600100",
+      "final_value": 468.3,
+      "return_pct": -6.3399,
+      "max_drawdown_pct": -6.3399,
+      "sharpe_ratio": -0.6494,
+      "trade_count": 2
+    },
+    {
+      "code": "600103",
+      "final_value": 420.62,
+      "return_pct": -15.8763,
+      "max_drawdown_pct": -38.4884,
+      "sharpe_ratio": -0.123,
+      "trade_count": 6
+    },
+    {
+      "code": "600105",
+      "final_value": 624.63,
+      "return_pct": 24.9256,
+      "max_drawdown_pct": -31.476,
+      "sharpe_ratio": 0.3192,
+      "trade_count": 20
+    },
+    {
+      "code": "600106",
+      "final_value": 717.76,
+      "return_pct": 43.5527,
+      "max_drawdown_pct": -16.7352,
+      "sharpe_ratio": 0.5096,
+      "trade_count": 19
+    },
+    {
+      "code": "600107",
+      "final_value": 694.54,
+      "return_pct": 38.908,
+      "max_drawdown_pct": -6.0968,
+      "sharpe_ratio": 0.6494,
+      "trade_count": 6
+    },
+    {
+      "code": "600108",
+      "final_value": 322.47,
+      "return_pct": -35.5061,
+      "max_drawdown_pct": -36.8245,
+      "sharpe_ratio": -0.7635,
+      "trade_count": 18
+    },
+    {
+      "code": "600110",
+      "final_value": 617.46,
+      "return_pct": 23.4923,
+      "max_drawdown_pct": -18.7315,
+      "sharpe_ratio": 0.3856,
+      "trade_count": 5
+    },
+    {
+      "code": "600115",
+      "final_value": 422.66,
+      "return_pct": -15.4687,
+      "max_drawdown_pct": -18.9491,
+      "sharpe_ratio": -0.6176,
+      "trade_count": 10
+    },
+    {
+      "code": "600117",
+      "final_value": 348.04,
+      "return_pct": -30.3924,
+      "max_drawdown_pct": -38.1721,
+      "sharpe_ratio": -0.192,
+      "trade_count": 13
+    },
+    {
+      "code": "600120",
+      "final_value": 441.16,
+      "return_pct": -11.769,
+      "max_drawdown_pct": -12.2586,
+      "sharpe_ratio": -0.1781,
+      "trade_count": 13
+    },
+    {
+      "code": "600121",
+      "final_value": 562.14,
+      "return_pct": 12.4287,
+      "max_drawdown_pct": -22.8397,
+      "sharpe_ratio": 0.2216,
+      "trade_count": 9
+    },
+    {
+      "code": "600125",
+      "final_value": 506.42,
+      "return_pct": 1.2848,
+      "max_drawdown_pct": -7.4772,
+      "sharpe_ratio": 0.0887,
+      "trade_count": 2
+    },
+    {
+      "code": "600126",
+      "final_value": 522.17,
+      "return_pct": 4.4331,
+      "max_drawdown_pct": -25.6042,
+      "sharpe_ratio": 0.1344,
+      "trade_count": 11
+    },
+    {
+      "code": "600130",
+      "final_value": 439.71,
+      "return_pct": -12.058,
+      "max_drawdown_pct": -12.3375,
+      "sharpe_ratio": -0.1866,
+      "trade_count": 12
+    },
+    {
+      "code": "600133",
+      "final_value": 501.95,
+      "return_pct": 0.3905,
+      "max_drawdown_pct": -5.3674,
+      "sharpe_ratio": 0.0421,
+      "trade_count": 2
+    },
+    {
+      "code": "600136",
+      "final_value": 329.12,
+      "return_pct": -34.1754,
+      "max_drawdown_pct": -39.81,
+      "sharpe_ratio": -0.4732,
+      "trade_count": 4
+    },
+    {
+      "code": "600149",
+      "final_value": 463.47,
+      "return_pct": -7.3057,
+      "max_drawdown_pct": -16.6979,
+      "sharpe_ratio": -0.0649,
+      "trade_count": 5
+    },
+    {
+      "code": "600153",
+      "final_value": 492.68,
+      "return_pct": -1.4633,
+      "max_drawdown_pct": -1.4633,
+      "sharpe_ratio": -0.5544,
+      "trade_count": 1
+    },
+    {
+      "code": "600156",
+      "final_value": 512.02,
+      "return_pct": 2.4046,
+      "max_drawdown_pct": -26.2541,
+      "sharpe_ratio": 0.1205,
+      "trade_count": 15
+    },
+    {
+      "code": "600159",
+      "final_value": 323.69,
+      "return_pct": -35.2617,
+      "max_drawdown_pct": -44.1567,
+      "sharpe_ratio": -0.1946,
+      "trade_count": 12
+    },
+    {
+      "code": "600162",
+      "final_value": 603.12,
+      "return_pct": 20.6246,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.489,
+      "trade_count": 2
+    },
+    {
+      "code": "600163",
+      "final_value": 504.34,
+      "return_pct": 0.8677,
+      "max_drawdown_pct": -6.5719,
+      "sharpe_ratio": 0.0598,
+      "trade_count": 3
+    },
+    {
+      "code": "600165",
+      "final_value": 586.29,
+      "return_pct": 17.2587,
+      "max_drawdown_pct": -3.5588,
+      "sharpe_ratio": 0.2726,
+      "trade_count": 4
+    },
+    {
+      "code": "600166",
+      "final_value": 538.75,
+      "return_pct": 7.75,
+      "max_drawdown_pct": -3.2565,
+      "sharpe_ratio": 0.1819,
+      "trade_count": 7
+    },
+    {
+      "code": "600168",
+      "final_value": 424.02,
+      "return_pct": -15.1958,
+      "max_drawdown_pct": -27.9149,
+      "sharpe_ratio": -0.258,
+      "trade_count": 14
+    },
+    {
+      "code": "600170",
+      "final_value": 351.65,
+      "return_pct": -29.6696,
+      "max_drawdown_pct": -33.9992,
+      "sharpe_ratio": -0.657,
+      "trade_count": 4
+    },
+    {
+      "code": "600172",
+      "final_value": 390.58,
+      "return_pct": -21.883,
+      "max_drawdown_pct": -22.4136,
+      "sharpe_ratio": -0.4594,
+      "trade_count": 5
+    },
+    {
+      "code": "600173",
+      "final_value": 429.68,
+      "return_pct": -14.0636,
+      "max_drawdown_pct": -24.1282,
+      "sharpe_ratio": -0.2447,
+      "trade_count": 3
+    },
+    {
+      "code": "600192",
+      "final_value": 493.34,
+      "return_pct": -1.332,
+      "max_drawdown_pct": -38.3423,
+      "sharpe_ratio": 0.0584,
+      "trade_count": 5
+    },
+    {
+      "code": "600202",
+      "final_value": 503.71,
+      "return_pct": 0.7411,
+      "max_drawdown_pct": -15.9323,
+      "sharpe_ratio": 0.0712,
+      "trade_count": 10
+    },
+    {
+      "code": "600207",
+      "final_value": 468.27,
+      "return_pct": -6.3467,
+      "max_drawdown_pct": -29.4162,
+      "sharpe_ratio": -0.0737,
+      "trade_count": 6
+    },
+    {
+      "code": "600208",
+      "final_value": 587.89,
+      "return_pct": 17.5782,
+      "max_drawdown_pct": -18.2944,
+      "sharpe_ratio": 0.266,
+      "trade_count": 7
+    },
+    {
+      "code": "600210",
+      "final_value": 760.03,
+      "return_pct": 52.0052,
+      "max_drawdown_pct": -21.3147,
+      "sharpe_ratio": 0.5329,
+      "trade_count": 20
+    },
+    {
+      "code": "600212",
+      "final_value": 828.38,
+      "return_pct": 65.6766,
+      "max_drawdown_pct": -25.0059,
+      "sharpe_ratio": 0.636,
+      "trade_count": 11
+    },
+    {
+      "code": "600217",
+      "final_value": 596.22,
+      "return_pct": 19.2435,
+      "max_drawdown_pct": -20.0269,
+      "sharpe_ratio": 0.3584,
+      "trade_count": 10
+    },
+    {
+      "code": "600219",
+      "final_value": 381.48,
+      "return_pct": -23.7037,
+      "max_drawdown_pct": -25.6978,
+      "sharpe_ratio": -0.4828,
+      "trade_count": 12
+    },
+    {
+      "code": "600222",
+      "final_value": 474.36,
+      "return_pct": -5.128,
+      "max_drawdown_pct": -6.6468,
+      "sharpe_ratio": -0.4813,
+      "trade_count": 1
+    },
+    {
+      "code": "600226",
+      "final_value": 1023.86,
+      "return_pct": 104.7721,
+      "max_drawdown_pct": -19.0098,
+      "sharpe_ratio": 0.8823,
+      "trade_count": 8
+    },
+    {
+      "code": "600227",
+      "final_value": 616.57,
+      "return_pct": 23.3143,
+      "max_drawdown_pct": -19.1521,
+      "sharpe_ratio": 0.3372,
+      "trade_count": 7
+    },
+    {
+      "code": "600228",
+      "final_value": 518.0,
+      "return_pct": 3.5997,
+      "max_drawdown_pct": -9.1534,
+      "sharpe_ratio": 0.1486,
+      "trade_count": 2
+    },
+    {
+      "code": "600232",
+      "final_value": 475.23,
+      "return_pct": -4.9544,
+      "max_drawdown_pct": -15.2309,
+      "sharpe_ratio": -0.1315,
+      "trade_count": 5
+    },
+    {
+      "code": "600234",
+      "final_value": 589.65,
+      "return_pct": 17.9305,
+      "max_drawdown_pct": -20.082,
+      "sharpe_ratio": 0.3804,
+      "trade_count": 5
+    },
+    {
+      "code": "600235",
+      "final_value": 486.78,
+      "return_pct": -2.6449,
+      "max_drawdown_pct": -2.6449,
+      "sharpe_ratio": -0.4846,
+      "trade_count": 1
+    },
+    {
+      "code": "600236",
+      "final_value": 502.36,
+      "return_pct": 0.4726,
+      "max_drawdown_pct": -8.0114,
+      "sharpe_ratio": 0.044,
+      "trade_count": 4
+    },
+    {
+      "code": "600239",
+      "final_value": 477.89,
+      "return_pct": -4.4228,
+      "max_drawdown_pct": -11.8082,
+      "sharpe_ratio": -0.0405,
+      "trade_count": 4
+    },
+    {
+      "code": "600243",
+      "final_value": 557.46,
+      "return_pct": 11.4912,
+      "max_drawdown_pct": -13.0211,
+      "sharpe_ratio": 0.233,
+      "trade_count": 11
+    },
+    {
+      "code": "600248",
+      "final_value": 392.44,
+      "return_pct": -21.5112,
+      "max_drawdown_pct": -25.2804,
+      "sharpe_ratio": -0.4329,
+      "trade_count": 12
+    },
+    {
+      "code": "600249",
+      "final_value": 594.27,
+      "return_pct": 18.8531,
+      "max_drawdown_pct": -16.9979,
+      "sharpe_ratio": 0.4054,
+      "trade_count": 6
+    },
+    {
+      "code": "600250",
+      "final_value": 488.7,
+      "return_pct": -2.2605,
+      "max_drawdown_pct": -2.2605,
+      "sharpe_ratio": -0.4952,
+      "trade_count": 1
+    },
+    {
+      "code": "600252",
+      "final_value": 466.43,
+      "return_pct": -6.715,
+      "max_drawdown_pct": -21.3118,
+      "sharpe_ratio": -0.0244,
+      "trade_count": 2
+    },
+    {
+      "code": "600255",
+      "final_value": 435.83,
+      "return_pct": -12.8342,
+      "max_drawdown_pct": -30.5787,
+      "sharpe_ratio": -0.0303,
+      "trade_count": 11
+    },
+    {
+      "code": "600256",
+      "final_value": 459.18,
+      "return_pct": -8.1648,
+      "max_drawdown_pct": -8.1648,
+      "sharpe_ratio": -0.4604,
+      "trade_count": 2
+    },
+    {
+      "code": "600257",
+      "final_value": 625.36,
+      "return_pct": 25.0717,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.4894,
+      "trade_count": 5
+    },
+    {
+      "code": "600261",
+      "final_value": 369.92,
+      "return_pct": -26.0164,
+      "max_drawdown_pct": -38.8269,
+      "sharpe_ratio": -0.5797,
+      "trade_count": 20
+    },
+    {
+      "code": "600266",
+      "final_value": 533.45,
+      "return_pct": 6.6909,
+      "max_drawdown_pct": -13.1515,
+      "sharpe_ratio": 0.1646,
+      "trade_count": 16
+    },
+    {
+      "code": "600269",
+      "final_value": 423.24,
+      "return_pct": -15.352,
+      "max_drawdown_pct": -22.0539,
+      "sharpe_ratio": -0.4197,
+      "trade_count": 11
+    },
+    {
+      "code": "600279",
+      "final_value": 459.85,
+      "return_pct": -8.0299,
+      "max_drawdown_pct": -20.7536,
+      "sharpe_ratio": -0.0755,
+      "trade_count": 18
+    },
+    {
+      "code": "600280",
+      "final_value": 329.52,
+      "return_pct": -34.0963,
+      "max_drawdown_pct": -60.2085,
+      "sharpe_ratio": -0.2372,
+      "trade_count": 19
+    },
+    {
+      "code": "600281",
+      "final_value": 458.13,
+      "return_pct": -8.3741,
+      "max_drawdown_pct": -21.8566,
+      "sharpe_ratio": -0.0231,
+      "trade_count": 10
+    },
+    {
+      "code": "600282",
+      "final_value": 529.5,
+      "return_pct": 5.8996,
+      "max_drawdown_pct": -10.8437,
+      "sharpe_ratio": 0.1728,
+      "trade_count": 17
+    },
+    {
+      "code": "600287",
+      "final_value": 603.41,
+      "return_pct": 20.6821,
+      "max_drawdown_pct": -20.1026,
+      "sharpe_ratio": 0.4476,
+      "trade_count": 14
+    },
+    {
+      "code": "600289",
+      "final_value": 723.48,
+      "return_pct": 44.695,
+      "max_drawdown_pct": -32.2896,
+      "sharpe_ratio": 0.5136,
+      "trade_count": 11
+    },
+    {
+      "code": "600293",
+      "final_value": 328.73,
+      "return_pct": -34.2543,
+      "max_drawdown_pct": -38.2658,
+      "sharpe_ratio": -0.5353,
+      "trade_count": 16
+    },
+    {
+      "code": "600300",
+      "final_value": 373.39,
+      "return_pct": -25.3218,
+      "max_drawdown_pct": -31.3216,
+      "sharpe_ratio": -0.3291,
+      "trade_count": 20
+    },
+    {
+      "code": "600302",
+      "final_value": 578.2,
+      "return_pct": 15.6397,
+      "max_drawdown_pct": -21.8876,
+      "sharpe_ratio": 0.3154,
+      "trade_count": 5
+    },
+    {
+      "code": "600303",
+      "final_value": 483.08,
+      "return_pct": -3.3836,
+      "max_drawdown_pct": -51.935,
+      "sharpe_ratio": 0.0345,
+      "trade_count": 21
+    },
+    {
+      "code": "600308",
+      "final_value": 364.82,
+      "return_pct": -27.0357,
+      "max_drawdown_pct": -27.0357,
+      "sharpe_ratio": -0.9885,
+      "trade_count": 13
+    },
+    {
+      "code": "600310",
+      "final_value": 524.11,
+      "return_pct": 4.8218,
+      "max_drawdown_pct": -25.2743,
+      "sharpe_ratio": 0.1619,
+      "trade_count": 23
+    },
+    {
+      "code": "600333",
+      "final_value": 522.61,
+      "return_pct": 4.522,
+      "max_drawdown_pct": -7.7574,
+      "sharpe_ratio": 0.1511,
+      "trade_count": 7
+    },
+    {
+      "code": "600336",
+      "final_value": 495.19,
+      "return_pct": -0.9624,
+      "max_drawdown_pct": -8.8204,
+      "sharpe_ratio": -0.0226,
+      "trade_count": 1
+    },
+    {
+      "code": "600337",
+      "final_value": 405.48,
+      "return_pct": -18.9046,
+      "max_drawdown_pct": -30.9003,
+      "sharpe_ratio": -0.2538,
+      "trade_count": 11
+    },
+    {
+      "code": "600339",
+      "final_value": 339.22,
+      "return_pct": -32.156,
+      "max_drawdown_pct": -36.3329,
+      "sharpe_ratio": -0.5149,
+      "trade_count": 19
+    },
+    {
+      "code": "600340",
+      "final_value": 157.29,
+      "return_pct": -68.5424,
+      "max_drawdown_pct": -69.1272,
+      "sharpe_ratio": -0.8088,
+      "trade_count": 5
+    },
+    {
+      "code": "600350",
+      "final_value": 460.62,
+      "return_pct": -7.8762,
+      "max_drawdown_pct": -7.8762,
+      "sharpe_ratio": -0.1958,
+      "trade_count": 10
+    },
+    {
+      "code": "600353",
+      "final_value": 521.81,
+      "return_pct": 4.3621,
+      "max_drawdown_pct": -16.5374,
+      "sharpe_ratio": 0.1336,
+      "trade_count": 4
+    },
+    {
+      "code": "600358",
+      "final_value": 440.62,
+      "return_pct": -11.8758,
+      "max_drawdown_pct": -16.8901,
+      "sharpe_ratio": -0.1342,
+      "trade_count": 7
+    },
+    {
+      "code": "600360",
+      "final_value": 534.48,
+      "return_pct": 6.897,
+      "max_drawdown_pct": -20.5804,
+      "sharpe_ratio": 0.1924,
+      "trade_count": 4
+    },
+    {
+      "code": "600361",
+      "final_value": 455.08,
+      "return_pct": -8.9833,
+      "max_drawdown_pct": -9.5544,
+      "sharpe_ratio": -0.1257,
+      "trade_count": 8
+    },
+    {
+      "code": "600365",
+      "final_value": 492.17,
+      "return_pct": -1.5652,
+      "max_drawdown_pct": -24.8868,
+      "sharpe_ratio": 0.0616,
+      "trade_count": 16
+    },
+    {
+      "code": "600368",
+      "final_value": 502.25,
+      "return_pct": 0.4491,
+      "max_drawdown_pct": -23.7462,
+      "sharpe_ratio": 0.0761,
+      "trade_count": 13
+    },
+    {
+      "code": "600369",
+      "final_value": 424.71,
+      "return_pct": -15.0586,
+      "max_drawdown_pct": -23.8657,
+      "sharpe_ratio": -0.2873,
+      "trade_count": 14
+    },
+    {
+      "code": "600370",
+      "final_value": 339.41,
+      "return_pct": -32.1176,
+      "max_drawdown_pct": -38.3349,
+      "sharpe_ratio": -0.2208,
+      "trade_count": 4
+    },
+    {
+      "code": "600375",
+      "final_value": 637.33,
+      "return_pct": 27.4657,
+      "max_drawdown_pct": -15.2845,
+      "sharpe_ratio": 0.5982,
+      "trade_count": 4
+    },
+    {
+      "code": "600376",
+      "final_value": 709.61,
+      "return_pct": 41.9215,
+      "max_drawdown_pct": -28.7645,
+      "sharpe_ratio": 0.4429,
+      "trade_count": 6
+    },
+    {
+      "code": "600381",
+      "final_value": 597.44,
+      "return_pct": 19.4878,
+      "max_drawdown_pct": -5.8525,
+      "sharpe_ratio": 0.3516,
+      "trade_count": 8
+    },
+    {
+      "code": "600382",
+      "final_value": 348.93,
+      "return_pct": -30.2142,
+      "max_drawdown_pct": -40.1501,
+      "sharpe_ratio": -0.5199,
+      "trade_count": 12
+    },
+    {
+      "code": "600383",
+      "final_value": 307.24,
+      "return_pct": -38.5514,
+      "max_drawdown_pct": -48.9055,
+      "sharpe_ratio": -0.7802,
+      "trade_count": 7
+    },
+    {
+      "code": "600386",
+      "final_value": 439.08,
+      "return_pct": -12.1837,
+      "max_drawdown_pct": -26.942,
+      "sharpe_ratio": -0.0605,
+      "trade_count": 13
+    },
+    {
+      "code": "600390",
+      "final_value": 444.04,
+      "return_pct": -11.1924,
+      "max_drawdown_pct": -26.2379,
+      "sharpe_ratio": -0.2605,
+      "trade_count": 6
+    },
+    {
+      "code": "600395",
+      "final_value": 623.83,
+      "return_pct": 24.7668,
+      "max_drawdown_pct": -1.5557,
+      "sharpe_ratio": 0.6403,
+      "trade_count": 2
+    },
+    {
+      "code": "600396",
+      "final_value": 1465.16,
+      "return_pct": 193.031,
+      "max_drawdown_pct": -16.939,
+      "sharpe_ratio": 0.99,
+      "trade_count": 11
+    },
+    {
+      "code": "600397",
+      "final_value": 334.72,
+      "return_pct": -33.0551,
+      "max_drawdown_pct": -47.8651,
+      "sharpe_ratio": -0.519,
+      "trade_count": 14
+    },
+    {
+      "code": "600398",
+      "final_value": 576.49,
+      "return_pct": 15.2977,
+      "max_drawdown_pct": -9.476,
+      "sharpe_ratio": 0.3063,
+      "trade_count": 6
+    },
+    {
+      "code": "600400",
+      "final_value": 503.61,
+      "return_pct": 0.7223,
+      "max_drawdown_pct": -32.023,
+      "sharpe_ratio": 0.1043,
+      "trade_count": 13
+    },
+    {
+      "code": "600403",
+      "final_value": 413.15,
+      "return_pct": -17.3696,
+      "max_drawdown_pct": -42.802,
+      "sharpe_ratio": -0.1396,
+      "trade_count": 15
+    },
+    {
+      "code": "600405",
+      "final_value": 500.61,
+      "return_pct": 0.1228,
+      "max_drawdown_pct": -9.9069,
+      "sharpe_ratio": 0.0418,
+      "trade_count": 3
+    },
+    {
+      "code": "600408",
+      "final_value": 572.05,
+      "return_pct": 14.4097,
+      "max_drawdown_pct": -27.427,
+      "sharpe_ratio": 0.2392,
+      "trade_count": 9
+    },
+    {
+      "code": "600410",
+      "final_value": 617.62,
+      "return_pct": 23.5249,
+      "max_drawdown_pct": -6.8196,
+      "sharpe_ratio": 0.5614,
+      "trade_count": 2
+    },
+    {
+      "code": "600415",
+      "final_value": 436.19,
+      "return_pct": -12.7622,
+      "max_drawdown_pct": -16.5986,
+      "sharpe_ratio": -0.169,
+      "trade_count": 7
+    },
+    {
+      "code": "600423",
+      "final_value": 334.34,
+      "return_pct": -33.1319,
+      "max_drawdown_pct": -33.1319,
+      "sharpe_ratio": -0.4919,
+      "trade_count": 15
+    },
+    {
+      "code": "600425",
+      "final_value": 367.22,
+      "return_pct": -26.5568,
+      "max_drawdown_pct": -33.911,
+      "sharpe_ratio": -0.4547,
+      "trade_count": 17
+    },
+    {
+      "code": "600428",
+      "final_value": 455.91,
+      "return_pct": -8.8174,
+      "max_drawdown_pct": -15.9662,
+      "sharpe_ratio": -0.3355,
+      "trade_count": 2
+    },
+    {
+      "code": "600429",
+      "final_value": 479.25,
+      "return_pct": -4.1503,
+      "max_drawdown_pct": -21.2166,
+      "sharpe_ratio": -0.0263,
+      "trade_count": 13
+    },
+    {
+      "code": "600433",
+      "final_value": 337.66,
+      "return_pct": -32.4682,
+      "max_drawdown_pct": -38.3336,
+      "sharpe_ratio": -0.6073,
+      "trade_count": 21
+    },
+    {
+      "code": "600439",
+      "final_value": 318.48,
+      "return_pct": -36.3031,
+      "max_drawdown_pct": -56.7774,
+      "sharpe_ratio": -0.326,
+      "trade_count": 9
+    },
+    {
+      "code": "600448",
+      "final_value": 301.17,
+      "return_pct": -39.7653,
+      "max_drawdown_pct": -41.7675,
+      "sharpe_ratio": -0.7837,
+      "trade_count": 16
+    },
+    {
+      "code": "600478",
+      "final_value": 412.74,
+      "return_pct": -17.4512,
+      "max_drawdown_pct": -18.3065,
+      "sharpe_ratio": -0.8602,
+      "trade_count": 2
+    },
+    {
+      "code": "600481",
+      "final_value": 679.84,
+      "return_pct": 35.9675,
+      "max_drawdown_pct": -18.1651,
+      "sharpe_ratio": 0.4769,
+      "trade_count": 6
+    },
+    {
+      "code": "600488",
+      "final_value": 395.52,
+      "return_pct": -20.8966,
+      "max_drawdown_pct": -29.9466,
+      "sharpe_ratio": -0.5334,
+      "trade_count": 11
+    },
+    {
+      "code": "600490",
+      "final_value": 352.32,
+      "return_pct": -29.5362,
+      "max_drawdown_pct": -35.9426,
+      "sharpe_ratio": -0.4682,
+      "trade_count": 12
+    },
+    {
+      "code": "600491",
+      "final_value": 391.28,
+      "return_pct": -21.7431,
+      "max_drawdown_pct": -25.4541,
+      "sharpe_ratio": -0.4316,
+      "trade_count": 10
+    },
+    {
+      "code": "600493",
+      "final_value": 495.68,
+      "return_pct": -0.864,
+      "max_drawdown_pct": -10.2885,
+      "sharpe_ratio": 0.0056,
+      "trade_count": 3
+    },
+    {
+      "code": "600495",
+      "final_value": 395.19,
+      "return_pct": -20.9614,
+      "max_drawdown_pct": -27.9612,
+      "sharpe_ratio": -0.4665,
+      "trade_count": 10
+    },
+    {
+      "code": "600496",
+      "final_value": 418.87,
+      "return_pct": -16.2265,
+      "max_drawdown_pct": -24.3187,
+      "sharpe_ratio": -0.2322,
+      "trade_count": 16
+    },
+    {
+      "code": "600497",
+      "final_value": 457.25,
+      "return_pct": -8.5499,
+      "max_drawdown_pct": -8.5499,
+      "sharpe_ratio": -0.6208,
+      "trade_count": 2
+    },
+    {
+      "code": "600500",
+      "final_value": 403.0,
+      "return_pct": -19.4007,
+      "max_drawdown_pct": -23.0315,
+      "sharpe_ratio": -0.5042,
+      "trade_count": 5
+    },
+    {
+      "code": "600502",
+      "final_value": 465.38,
+      "return_pct": -6.9232,
+      "max_drawdown_pct": -23.6108,
+      "sharpe_ratio": 0.0022,
+      "trade_count": 23
+    },
+    {
+      "code": "600503",
+      "final_value": 491.05,
+      "return_pct": -1.7898,
+      "max_drawdown_pct": -6.9205,
+      "sharpe_ratio": 0.0882,
+      "trade_count": 9
+    },
+    {
+      "code": "600507",
+      "final_value": 587.87,
+      "return_pct": 17.5744,
+      "max_drawdown_pct": -10.274,
+      "sharpe_ratio": 0.3594,
+      "trade_count": 15
+    },
+    {
+      "code": "600509",
+      "final_value": 515.12,
+      "return_pct": 3.0232,
+      "max_drawdown_pct": -0.0,
+      "sharpe_ratio": 0.4594,
+      "trade_count": 1
+    },
+    {
+      "code": "600510",
+      "final_value": 506.17,
+      "return_pct": 1.2345,
+      "max_drawdown_pct": -19.0801,
+      "sharpe_ratio": 0.0724,
+      "trade_count": 4
+    },
+    {
+      "code": "600512",
+      "final_value": 340.02,
+      "return_pct": -31.996,
+      "max_drawdown_pct": -38.497,
+      "sharpe_ratio": -0.3534,
+      "trade_count": 6
+    },
+    {
+      "code": "600515",
+      "final_value": 333.34,
+      "return_pct": -33.3328,
+      "max_drawdown_pct": -41.6901,
+      "sharpe_ratio": -0.7614,
+      "trade_count": 12
+    },
+    {
+      "code": "600516",
+      "final_value": 536.85,
+      "return_pct": 7.3696,
+      "max_drawdown_pct": -8.0234,
+      "sharpe_ratio": 0.2478,
+      "trade_count": 5
+    },
+    {
+      "code": "600517",
+      "final_value": 530.16,
+      "return_pct": 6.0313,
+      "max_drawdown_pct": -17.8326,
+      "sharpe_ratio": 0.1732,
+      "trade_count": 7
+    },
+    {
+      "code": "600518",
+      "final_value": 480.63,
+      "return_pct": -3.8736,
+      "max_drawdown_pct": -7.9748,
+      "sharpe_ratio": -0.2403,
+      "trade_count": 1
+    },
+    {
+      "code": "600525",
+      "final_value": 655.77,
+      "return_pct": 31.1549,
+      "max_drawdown_pct": -13.4062,
+      "sharpe_ratio": 0.5912,
+      "trade_count": 11
+    },
+    {
+      "code": "600526",
+      "final_value": 461.29,
+      "return_pct": -7.7411,
+      "max_drawdown_pct": -16.8577,
+      "sharpe_ratio": -0.2116,
+      "trade_count": 4
+    },
+    {
+      "code": "600527",
+      "final_value": 354.2,
+      "return_pct": -29.1602,
+      "max_drawdown_pct": -29.1602,
+      "sharpe_ratio": -0.9281,
+      "trade_count": 1
+    },
+    {
+      "code": "600530",
+      "final_value": 493.36,
+      "return_pct": -1.3287,
+      "max_drawdown_pct": -31.0671,
+      "sharpe_ratio": 0.0754,
+      "trade_count": 12
+    },
+    {
+      "code": "600531",
+      "final_value": 481.83,
+      "return_pct": -3.6344,
+      "max_drawdown_pct": -8.6102,
+      "sharpe_ratio": -0.2394,
+      "trade_count": 2
+    },
+    {
+      "code": "600537",
+      "final_value": 389.71,
+      "return_pct": -22.0589,
+      "max_drawdown_pct": -36.1733,
+      "sharpe_ratio": -0.2008,
+      "trade_count": 12
+    },
+    {
+      "code": "600561",
+      "final_value": 453.58,
+      "return_pct": -9.284,
+      "max_drawdown_pct": -17.6989,
+      "sharpe_ratio": -0.3126,
+      "trade_count": 2
+    },
+    {
+      "code": "600567",
+      "final_value": 498.41,
+      "return_pct": -0.3178,
+      "max_drawdown_pct": -1.8262,
+      "sharpe_ratio": -0.056,
+      "trade_count": 1
+    },
+    {
+      "code": "600569",
+      "final_value": 498.39,
+      "return_pct": -0.3228,
+      "max_drawdown_pct": -7.4796,
+      "sharpe_ratio": 0.0279,
+      "trade_count": 1
+    },
+    {
+      "code": "600572",
+      "final_value": 449.74,
+      "return_pct": -10.052,
+      "max_drawdown_pct": -23.5894,
+      "sharpe_ratio": -0.2003,
+      "trade_count": 11
+    },
+    {
+      "code": "600575",
+      "final_value": 337.74,
+      "return_pct": -32.4524,
+      "max_drawdown_pct": -32.4524,
+      "sharpe_ratio": -0.5409,
+      "trade_count": 10
+    },
+    {
+      "code": "600576",
+      "final_value": 497.52,
+      "return_pct": -0.4968,
+      "max_drawdown_pct": -11.0401,
+      "sharpe_ratio": 0.0051,
+      "trade_count": 1
+    },
+    {
+      "code": "600577",
+      "final_value": 509.73,
+      "return_pct": 1.9469,
+      "max_drawdown_pct": -8.2381,
+      "sharpe_ratio": 0.0904,
+      "trade_count": 8
+    },
+    {
+      "code": "600578",
+      "final_value": 447.64,
+      "return_pct": -10.4726,
+      "max_drawdown_pct": -16.2197,
+      "sharpe_ratio": -0.0774,
+      "trade_count": 14
+    },
+    {
+      "code": "600581",
+      "final_value": 315.52,
+      "return_pct": -36.8953,
+      "max_drawdown_pct": -41.6098,
+      "sharpe_ratio": -0.4711,
+      "trade_count": 10
+    },
+    {
+      "code": "600582",
+      "final_value": 510.96,
+      "return_pct": 2.1925,
+      "max_drawdown_pct": -15.677,
+      "sharpe_ratio": 0.0975,
+      "trade_count": 14
+    },
+    {
+      "code": "600583",
+      "final_value": 615.09,
+      "return_pct": 23.0172,
+      "max_drawdown_pct": -12.0151,
+      "sharpe_ratio": 0.4077,
+      "trade_count": 17
+    },
+    {
+      "code": "600589",
+      "final_value": 566.39,
+      "return_pct": 13.2788,
+      "max_drawdown_pct": -16.1361,
+      "sharpe_ratio": 0.2549,
+      "trade_count": 7
+    },
+    {
+      "code": "600590",
+      "final_value": 618.68,
+      "return_pct": 23.7356,
+      "max_drawdown_pct": -15.1961,
+      "sharpe_ratio": 0.4849,
+      "trade_count": 2
+    },
+    {
+      "code": "600594",
+      "final_value": 459.74,
+      "return_pct": -8.0526,
+      "max_drawdown_pct": -14.7206,
+      "sharpe_ratio": -0.134,
+      "trade_count": 11
+    },
+    {
+      "code": "600595",
+      "final_value": 368.98,
+      "return_pct": -26.2043,
+      "max_drawdown_pct": -30.1524,
+      "sharpe_ratio": -0.2959,
+      "trade_count": 13
+    },
+    {
+      "code": "600601",
+      "final_value": 553.16,
+      "return_pct": 10.6326,
+      "max_drawdown_pct": -11.9194,
+      "sharpe_ratio": 0.2312,
+      "trade_count": 7
+    },
+    {
+      "code": "600603",
+      "final_value": 411.08,
+      "return_pct": -17.7846,
+      "max_drawdown_pct": -20.2416,
+      "sharpe_ratio": -1.0846,
+      "trade_count": 4
+    },
+    {
+      "code": "600604",
+      "final_value": 451.65,
+      "return_pct": -9.6693,
+      "max_drawdown_pct": -12.858,
+      "sharpe_ratio": -0.2206,
+      "trade_count": 4
+    },
+    {
+      "code": "600606",
+      "final_value": 482.2,
+      "return_pct": -3.5592,
+      "max_drawdown_pct": -13.0673,
+      "sharpe_ratio": -0.0346,
+      "trade_count": 8
+    },
+    {
+      "code": "600609",
+      "final_value": 477.98,
+      "return_pct": -4.4049,
+      "max_drawdown_pct": -18.5019,
+      "sharpe_ratio": -0.0293,
+      "trade_count": 9
+    },
+    {
+      "code": "600610",
+      "final_value": 945.35,
+      "return_pct": 89.0703,
+      "max_drawdown_pct": -25.6495,
+      "sharpe_ratio": 0.8369,
+      "trade_count": 4
+    },
+    {
+      "code": "600611",
+      "final_value": 774.67,
+      "return_pct": 54.9335,
+      "max_drawdown_pct": -37.0668,
+      "sharpe_ratio": 0.5308,
+      "trade_count": 18
+    },
+    {
+      "code": "600622",
+      "final_value": 539.49,
+      "return_pct": 7.8979,
+      "max_drawdown_pct": -24.5187,
+      "sharpe_ratio": 0.1877,
+      "trade_count": 18
+    },
+    {
+      "code": "600635",
+      "final_value": 402.37,
+      "return_pct": -19.5267,
+      "max_drawdown_pct": -28.9704,
+      "sharpe_ratio": -0.28,
+      "trade_count": 14
+    },
+    {
+      "code": "600638",
+      "final_value": 483.71,
+      "return_pct": -3.2582,
+      "max_drawdown_pct": -13.8547,
+      "sharpe_ratio": -0.025,
+      "trade_count": 4
+    },
+    {
+      "code": "600642",
+      "final_value": 489.74,
+      "return_pct": -2.0526,
+      "max_drawdown_pct": -13.543,
+      "sharpe_ratio": -0.0097,
+      "trade_count": 7
+    },
+    {
+      "code": "600643",
+      "final_value": 523.25,
+      "return_pct": 4.6491,
+      "max_drawdown_pct": -29.0809,
+      "sharpe_ratio": 0.1374,
+      "trade_count": 7
+    },
+    {
+      "code": "600649",
+      "final_value": 459.51,
+      "return_pct": -8.0972,
+      "max_drawdown_pct": -23.741,
+      "sharpe_ratio": -0.0056,
+      "trade_count": 17
+    },
+    {
+      "code": "600651",
+      "final_value": 347.09,
+      "return_pct": -30.5822,
+      "max_drawdown_pct": -30.5822,
+      "sharpe_ratio": -0.6574,
+      "trade_count": 12
+    },
+    {
+      "code": "600654",
+      "final_value": 448.22,
+      "return_pct": -10.3554,
+      "max_drawdown_pct": -34.9148,
+      "sharpe_ratio": 0.0092,
+      "trade_count": 9
+    },
+    {
+      "code": "600657",
+      "final_value": 532.81,
+      "return_pct": 6.5616,
+      "max_drawdown_pct": -28.227,
+      "sharpe_ratio": 0.1625,
+      "trade_count": 14
+    },
+    {
+      "code": "600658",
+      "final_value": 416.33,
+      "return_pct": -16.7343,
+      "max_drawdown_pct": -16.8282,
+      "sharpe_ratio": -0.4437,
+      "trade_count": 7
+    },
+    {
+      "code": "600662",
+      "final_value": 458.77,
+      "return_pct": -8.2451,
+      "max_drawdown_pct": -14.967,
+      "sharpe_ratio": -0.1493,
+      "trade_count": 5
+    },
+    {
+      "code": "600664",
+      "final_value": 384.56,
+      "return_pct": -23.0882,
+      "max_drawdown_pct": -32.412,
+      "sharpe_ratio": -0.384,
+      "trade_count": 23
+    },
+    {
+      "code": "600665",
+      "final_value": 355.37,
+      "return_pct": -28.927,
+      "max_drawdown_pct": -40.0621,
+      "sharpe_ratio": -0.2225,
+      "trade_count": 26
+    },
+    {
+      "code": "600666",
+      "final_value": 645.47,
+      "return_pct": 29.0948,
+      "max_drawdown_pct": -4.8111,
+      "sharpe_ratio": 0.3729,
+      "trade_count": 9
+    },
+    {
+      "code": "600675",
+      "final_value": 377.7,
+      "return_pct": -24.4608,
+      "max_drawdown_pct": -36.9181,
+      "sharpe_ratio": -0.1946,
+      "trade_count": 10
+    },
+    {
+      "code": "600676",
+      "final_value": 335.48,
+      "return_pct": -32.9038,
+      "max_drawdown_pct": -35.2762,
+      "sharpe_ratio": -0.8075,
+      "trade_count": 10
+    },
+    {
+      "code": "600681",
+      "final_value": 353.59,
+      "return_pct": -29.2821,
+      "max_drawdown_pct": -38.7451,
+      "sharpe_ratio": -0.5184,
+      "trade_count": 18
+    },
+    {
+      "code": "600683",
+      "final_value": 435.19,
+      "return_pct": -12.9629,
+      "max_drawdown_pct": -29.8611,
+      "sharpe_ratio": -0.2803,
+      "trade_count": 9
+    },
+    {
+      "code": "600684",
+      "final_value": 404.88,
+      "return_pct": -19.0234,
+      "max_drawdown_pct": -29.8207,
+      "sharpe_ratio": -0.0947,
+      "trade_count": 23
+    },
+    {
+      "code": "600688",
+      "final_value": 369.72,
+      "return_pct": -26.0554,
+      "max_drawdown_pct": -26.0753,
+      "sharpe_ratio": -0.7442,
+      "trade_count": 14
+    },
+    {
+      "code": "600691",
+      "final_value": 442.92,
+      "return_pct": -11.4168,
+      "max_drawdown_pct": -20.0718,
+      "sharpe_ratio": -0.083,
+      "trade_count": 11
+    },
+    {
+      "code": "600693",
+      "final_value": 489.7,
+      "return_pct": -2.0594,
+      "max_drawdown_pct": -29.6038,
+      "sharpe_ratio": 0.0823,
+      "trade_count": 16
+    },
+    {
+      "code": "600698",
+      "final_value": 800.83,
+      "return_pct": 60.1651,
+      "max_drawdown_pct": -17.839,
+      "sharpe_ratio": 0.5056,
+      "trade_count": 21
+    },
+    {
+      "code": "600704",
+      "final_value": 461.23,
+      "return_pct": -7.7531,
+      "max_drawdown_pct": -15.2785,
+      "sharpe_ratio": -0.1732,
+      "trade_count": 13
+    },
+    {
+      "code": "600707",
+      "final_value": 631.6,
+      "return_pct": 26.3194,
+      "max_drawdown_pct": -11.5136,
+      "sharpe_ratio": 0.4923,
+      "trade_count": 7
+    },
+    {
+      "code": "600708",
+      "final_value": 539.23,
+      "return_pct": 7.8453,
+      "max_drawdown_pct": -12.4794,
+      "sharpe_ratio": 0.177,
+      "trade_count": 14
+    },
+    {
+      "code": "600710",
+      "final_value": 445.05,
+      "return_pct": -10.9904,
+      "max_drawdown_pct": -10.9904,
+      "sharpe_ratio": -0.4614,
+      "trade_count": 1
+    },
+    {
+      "code": "600711",
+      "final_value": 537.76,
+      "return_pct": 7.5526,
+      "max_drawdown_pct": -8.0165,
+      "sharpe_ratio": 0.2314,
+      "trade_count": 4
+    },
+    {
+      "code": "600712",
+      "final_value": 634.21,
+      "return_pct": 26.8415,
+      "max_drawdown_pct": -18.874,
+      "sharpe_ratio": 0.3365,
+      "trade_count": 18
+    },
+    {
+      "code": "600713",
+      "final_value": 422.9,
+      "return_pct": -15.4203,
+      "max_drawdown_pct": -32.7183,
+      "sharpe_ratio": -0.2298,
+      "trade_count": 11
+    },
+    {
+      "code": "600716",
+      "final_value": 360.2,
+      "return_pct": -27.9595,
+      "max_drawdown_pct": -35.2641,
+      "sharpe_ratio": -0.4664,
+      "trade_count": 16
+    },
+    {
+      "code": "600717",
+      "final_value": 374.27,
+      "return_pct": -25.1468,
+      "max_drawdown_pct": -25.1468,
+      "sharpe_ratio": -1.3671,
+      "trade_count": 6
+    },
+    {
+      "code": "600719",
+      "final_value": 418.2,
+      "return_pct": -16.3592,
+      "max_drawdown_pct": -16.3592,
+      "sharpe_ratio": -0.7829,
+      "trade_count": 6
+    },
+    {
+      "code": "600722",
+      "final_value": 528.46,
+      "return_pct": 5.692,
+      "max_drawdown_pct": -6.5392,
+      "sharpe_ratio": 0.1766,
+      "trade_count": 4
+    },
+    {
+      "code": "600736",
+      "final_value": 479.33,
+      "return_pct": -4.1335,
+      "max_drawdown_pct": -18.6258,
+      "sharpe_ratio": -0.0414,
+      "trade_count": 8
+    },
+    {
+      "code": "600738",
+      "final_value": 501.87,
+      "return_pct": 0.3738,
+      "max_drawdown_pct": -4.6494,
+      "sharpe_ratio": 0.0493,
+      "trade_count": 4
+    },
+    {
+      "code": "600740",
+      "final_value": 542.32,
+      "return_pct": 8.4643,
+      "max_drawdown_pct": -2.0553,
+      "sharpe_ratio": 0.1914,
+      "trade_count": 10
+    },
+    {
+      "code": "600748",
+      "final_value": 461.78,
+      "return_pct": -7.6448,
+      "max_drawdown_pct": -18.1927,
+      "sharpe_ratio": -0.0334,
+      "trade_count": 16
+    },
+    {
+      "code": "600751",
+      "final_value": 434.75,
+      "return_pct": -13.049,
+      "max_drawdown_pct": -19.9834,
+      "sharpe_ratio": -0.0854,
+      "trade_count": 7
+    },
+    {
+      "code": "600757",
+      "final_value": 387.75,
+      "return_pct": -22.4502,
+      "max_drawdown_pct": -26.2351,
+      "sharpe_ratio": -0.6993,
+      "trade_count": 5
+    },
+    {
+      "code": "600758",
+      "final_value": 338.06,
+      "return_pct": -32.3879,
+      "max_drawdown_pct": -35.9146,
+      "sharpe_ratio": -0.5753,
+      "trade_count": 6
+    },
+    {
+      "code": "600759",
+      "final_value": 788.08,
+      "return_pct": 57.617,
+      "max_drawdown_pct": -13.4055,
+      "sharpe_ratio": 0.5349,
+      "trade_count": 4
+    },
+    {
+      "code": "600770",
+      "final_value": 540.23,
+      "return_pct": 8.0456,
+      "max_drawdown_pct": -33.2764,
+      "sharpe_ratio": 0.191,
+      "trade_count": 5
+    },
+    {
+      "code": "600777",
+      "final_value": 622.02,
+      "return_pct": 24.4036,
+      "max_drawdown_pct": -15.2283,
+      "sharpe_ratio": 0.3746,
+      "trade_count": 6
+    },
+    {
+      "code": "600778",
+      "final_value": 424.29,
+      "return_pct": -15.1424,
+      "max_drawdown_pct": -24.945,
+      "sharpe_ratio": -0.3209,
+      "trade_count": 4
+    },
+    {
+      "code": "600780",
+      "final_value": 488.13,
+      "return_pct": -2.373,
+      "max_drawdown_pct": -6.5826,
+      "sharpe_ratio": -0.0195,
+      "trade_count": 4
+    },
+    {
+      "code": "600782",
+      "final_value": 619.34,
+      "return_pct": 23.868,
+      "max_drawdown_pct": -20.519,
+      "sharpe_ratio": 0.4996,
+      "trade_count": 15
+    },
+    {
+      "code": "600784",
+      "final_value": 474.36,
+      "return_pct": -5.128,
+      "max_drawdown_pct": -5.1535,
+      "sharpe_ratio": -0.8098,
+      "trade_count": 1
+    },
+    {
+      "code": "600787",
+      "final_value": 487.65,
+      "return_pct": -2.4696,
+      "max_drawdown_pct": -3.9107,
+      "sharpe_ratio": -0.2444,
+      "trade_count": 3
+    },
+    {
+      "code": "600790",
+      "final_value": 344.36,
+      "return_pct": -31.1271,
+      "max_drawdown_pct": -33.3365,
+      "sharpe_ratio": -0.6878,
+      "trade_count": 19
+    },
+    {
+      "code": "600807",
+      "final_value": 348.01,
+      "return_pct": -30.3977,
+      "max_drawdown_pct": -42.5027,
+      "sharpe_ratio": -0.2327,
+      "trade_count": 23
+    },
+    {
+      "code": "600808",
+      "final_value": 367.73,
+      "return_pct": -26.4532,
+      "max_drawdown_pct": -33.0779,
+      "sharpe_ratio": -0.5555,
+      "trade_count": 8
+    },
+    {
+      "code": "600812",
+      "final_value": 547.48,
+      "return_pct": 9.4965,
+      "max_drawdown_pct": -4.0169,
+      "sharpe_ratio": 0.4217,
+      "trade_count": 2
+    },
+    {
+      "code": "600815",
+      "final_value": 446.85,
+      "return_pct": -10.6292,
+      "max_drawdown_pct": -19.877,
+      "sharpe_ratio": -0.0085,
+      "trade_count": 9
+    },
+    {
+      "code": "600816",
+      "final_value": 337.94,
+      "return_pct": -32.4112,
+      "max_drawdown_pct": -35.9828,
+      "sharpe_ratio": -0.4095,
+      "trade_count": 14
+    },
+    {
+      "code": "600819",
+      "final_value": 464.95,
+      "return_pct": -7.0096,
+      "max_drawdown_pct": -10.6258,
+      "sharpe_ratio": -0.4471,
+      "trade_count": 4
+    },
+    {
+      "code": "600820",
+      "final_value": 441.97,
+      "return_pct": -11.6061,
+      "max_drawdown_pct": -16.5142,
+      "sharpe_ratio": -0.5343,
+      "trade_count": 4
+    },
+    {
+      "code": "600824",
+      "final_value": 379.59,
+      "return_pct": -24.0816,
+      "max_drawdown_pct": -41.9186,
+      "sharpe_ratio": -0.2789,
+      "trade_count": 16
+    },
+    {
+      "code": "600825",
+      "final_value": 506.52,
+      "return_pct": 1.3043,
+      "max_drawdown_pct": -10.4079,
+      "sharpe_ratio": 0.0837,
+      "trade_count": 11
+    },
+    {
+      "code": "600826",
+      "final_value": 489.31,
+      "return_pct": -2.1384,
+      "max_drawdown_pct": -2.5552,
+      "sharpe_ratio": -0.4508,
+      "trade_count": 1
+    },
+    {
+      "code": "600828",
+      "final_value": 323.03,
+      "return_pct": -35.3945,
+      "max_drawdown_pct": -41.8549,
+      "sharpe_ratio": -0.5347,
+      "trade_count": 14
+    },
+    {
+      "code": "600831",
+      "final_value": 405.5,
+      "return_pct": -18.9004,
+      "max_drawdown_pct": -38.4679,
+      "sharpe_ratio": -0.2931,
+      "trade_count": 10
+    },
+    {
+      "code": "600839",
+      "final_value": 1211.3,
+      "return_pct": 142.2593,
+      "max_drawdown_pct": -31.3183,
+      "sharpe_ratio": 0.8667,
+      "trade_count": 18
+    },
+    {
+      "code": "600841",
+      "final_value": 441.42,
+      "return_pct": -11.7153,
+      "max_drawdown_pct": -31.1737,
+      "sharpe_ratio": -0.1713,
+      "trade_count": 2
+    },
+    {
+      "code": "600844",
+      "final_value": 496.1,
+      "return_pct": -0.7793,
+      "max_drawdown_pct": -18.311,
+      "sharpe_ratio": 0.1137,
+      "trade_count": 22
+    },
+    {
+      "code": "600853",
+      "final_value": 410.4,
+      "return_pct": -17.9202,
+      "max_drawdown_pct": -26.9978,
+      "sharpe_ratio": -0.1679,
+      "trade_count": 18
+    },
+    {
+      "code": "600854",
+      "final_value": 502.69,
+      "return_pct": 0.5372,
+      "max_drawdown_pct": -46.6208,
+      "sharpe_ratio": 0.0991,
+      "trade_count": 23
+    },
+    {
+      "code": "600858",
+      "final_value": 430.71,
+      "return_pct": -13.8575,
+      "max_drawdown_pct": -19.3571,
+      "sharpe_ratio": -0.3655,
+      "trade_count": 2
+    },
+    {
+      "code": "600863",
+      "final_value": 410.13,
+      "return_pct": -17.974,
+      "max_drawdown_pct": -26.4023,
+      "sharpe_ratio": -0.1401,
+      "trade_count": 18
+    },
+    {
+      "code": "600866",
+      "final_value": 594.21,
+      "return_pct": 18.8422,
+      "max_drawdown_pct": -23.653,
+      "sharpe_ratio": 0.2895,
+      "trade_count": 13
+    },
+    {
+      "code": "600868",
+      "final_value": 512.42,
+      "return_pct": 2.4849,
+      "max_drawdown_pct": -19.1532,
+      "sharpe_ratio": 0.1135,
+      "trade_count": 6
+    },
+    {
+      "code": "600869",
+      "final_value": 595.29,
+      "return_pct": 19.0583,
+      "max_drawdown_pct": -27.2504,
+      "sharpe_ratio": 0.2857,
+      "trade_count": 13
+    },
+    {
+      "code": "600871",
+      "final_value": 450.34,
+      "return_pct": -9.933,
+      "max_drawdown_pct": -15.9362,
+      "sharpe_ratio": -0.194,
+      "trade_count": 3
+    },
+    {
+      "code": "600873",
+      "final_value": 539.22,
+      "return_pct": 7.844,
+      "max_drawdown_pct": -10.3086,
+      "sharpe_ratio": 0.2716,
+      "trade_count": 1
+    },
+    {
+      "code": "600894",
+      "final_value": 476.92,
+      "return_pct": -4.6168,
+      "max_drawdown_pct": -5.3888,
+      "sharpe_ratio": -0.123,
+      "trade_count": 6
+    },
+    {
+      "code": "600901",
+      "final_value": 450.33,
+      "return_pct": -9.9338,
+      "max_drawdown_pct": -14.3361,
+      "sharpe_ratio": -0.2358,
+      "trade_count": 13
+    },
+    {
+      "code": "600905",
+      "final_value": 433.74,
+      "return_pct": -13.252,
+      "max_drawdown_pct": -17.89,
+      "sharpe_ratio": -0.4938,
+      "trade_count": 15
+    },
+    {
+      "code": "600908",
+      "final_value": 475.7,
+      "return_pct": -4.8597,
+      "max_drawdown_pct": -13.4394,
+      "sharpe_ratio": -0.0986,
+      "trade_count": 12
+    },
+    {
+      "code": "600909",
+      "final_value": 450.76,
+      "return_pct": -9.8486,
+      "max_drawdown_pct": -13.9717,
+      "sharpe_ratio": -0.2984,
+      "trade_count": 4
+    },
+    {
+      "code": "600919",
+      "final_value": 458.24,
+      "return_pct": -8.3526,
+      "max_drawdown_pct": -8.3526,
+      "sharpe_ratio": -0.3311,
+      "trade_count": 3
+    },
+    {
+      "code": "600928",
+      "final_value": 373.65,
+      "return_pct": -25.2696,
+      "max_drawdown_pct": -32.3549,
+      "sharpe_ratio": -0.3998,
+      "trade_count": 24
+    },
+    {
+      "code": "600935",
+      "final_value": 413.93,
+      "return_pct": -17.2138,
+      "max_drawdown_pct": -19.7701,
+      "sharpe_ratio": -0.264,
+      "trade_count": 2
+    },
+    {
+      "code": "600936",
+      "final_value": 343.28,
+      "return_pct": -31.3444,
+      "max_drawdown_pct": -38.3458,
+      "sharpe_ratio": -0.3183,
+      "trade_count": 8
+    },
+    {
+      "code": "600939",
+      "final_value": 396.74,
+      "return_pct": -20.6511,
+      "max_drawdown_pct": -32.3612,
+      "sharpe_ratio": -0.2625,
+      "trade_count": 16
+    },
+    {
+      "code": "600959",
+      "final_value": 320.08,
+      "return_pct": -35.9836,
+      "max_drawdown_pct": -38.6379,
+      "sharpe_ratio": -0.9447,
+      "trade_count": 19
+    },
+    {
+      "code": "600960",
+      "final_value": 421.6,
+      "return_pct": -15.6794,
+      "max_drawdown_pct": -33.7422,
+      "sharpe_ratio": -0.1015,
+      "trade_count": 18
+    },
+    {
+      "code": "600963",
+      "final_value": 695.15,
+      "return_pct": 39.0297,
+      "max_drawdown_pct": -12.0238,
+      "sharpe_ratio": 0.6545,
+      "trade_count": 8
+    },
+    {
+      "code": "600965",
+      "final_value": 478.02,
+      "return_pct": -4.3952,
+      "max_drawdown_pct": -12.0366,
+      "sharpe_ratio": -0.0865,
+      "trade_count": 3
+    },
+    {
+      "code": "600966",
+      "final_value": 465.2,
+      "return_pct": -6.96,
+      "max_drawdown_pct": -16.6671,
+      "sharpe_ratio": -0.1568,
+      "trade_count": 3
+    },
+    {
+      "code": "600968",
+      "final_value": 386.52,
+      "return_pct": -22.6958,
+      "max_drawdown_pct": -38.969,
+      "sharpe_ratio": -0.5249,
+      "trade_count": 8
+    },
+    {
+      "code": "600971",
+      "final_value": 539.17,
+      "return_pct": 7.8336,
+      "max_drawdown_pct": -12.6268,
+      "sharpe_ratio": 0.2103,
+      "trade_count": 2
+    },
+    {
+      "code": "600973",
+      "final_value": 458.83,
+      "return_pct": -8.2339,
+      "max_drawdown_pct": -30.2234,
+      "sharpe_ratio": -0.0873,
+      "trade_count": 12
+    },
+    {
+      "code": "600996",
+      "final_value": 480.34,
+      "return_pct": -3.9312,
+      "max_drawdown_pct": -3.9578,
+      "sharpe_ratio": -0.7777,
+      "trade_count": 1
+    },
+    {
+      "code": "600998",
+      "final_value": 458.69,
+      "return_pct": -8.2612,
+      "max_drawdown_pct": -16.1778,
+      "sharpe_ratio": -0.2108,
+      "trade_count": 8
+    },
+    {
+      "code": "601000",
+      "final_value": 431.95,
+      "return_pct": -13.6109,
+      "max_drawdown_pct": -20.4232,
+      "sharpe_ratio": -0.2665,
+      "trade_count": 12
+    },
+    {
+      "code": "601002",
+      "final_value": 623.7,
+      "return_pct": 24.7403,
+      "max_drawdown_pct": -7.8504,
+      "sharpe_ratio": 0.4244,
+      "trade_count": 17
+    },
+    {
+      "code": "601003",
+      "final_value": 600.45,
+      "return_pct": 20.0901,
+      "max_drawdown_pct": -34.779,
+      "sharpe_ratio": 0.2927,
+      "trade_count": 13
+    },
+    {
+      "code": "601006",
+      "final_value": 490.79,
+      "return_pct": -1.8418,
+      "max_drawdown_pct": -2.7446,
+      "sharpe_ratio": -0.2284,
+      "trade_count": 3
+    },
+    {
+      "code": "601008",
+      "final_value": 379.26,
+      "return_pct": -24.1482,
+      "max_drawdown_pct": -29.2351,
+      "sharpe_ratio": -0.5394,
+      "trade_count": 9
+    },
+    {
+      "code": "601010",
+      "final_value": 318.88,
+      "return_pct": -36.2242,
+      "max_drawdown_pct": -46.3931,
+      "sharpe_ratio": -0.6102,
+      "trade_count": 4
+    },
+    {
+      "code": "601011",
+      "final_value": 426.79,
+      "return_pct": -14.6416,
+      "max_drawdown_pct": -17.333,
+      "sharpe_ratio": -0.0582,
+      "trade_count": 11
+    },
+    {
+      "code": "601015",
+      "final_value": 397.45,
+      "return_pct": -20.5101,
+      "max_drawdown_pct": -24.3032,
+      "sharpe_ratio": -0.3407,
+      "trade_count": 12
+    },
+    {
+      "code": "601016",
+      "final_value": 488.92,
+      "return_pct": -2.2158,
+      "max_drawdown_pct": -17.7819,
+      "sharpe_ratio": 0.0433,
+      "trade_count": 16
+    },
+    {
+      "code": "601018",
+      "final_value": 329.09,
+      "return_pct": -34.1824,
+      "max_drawdown_pct": -34.1824,
+      "sharpe_ratio": -1.373,
+      "trade_count": 10
+    },
+    {
+      "code": "601019",
+      "final_value": 466.94,
+      "return_pct": -6.6122,
+      "max_drawdown_pct": -9.7505,
+      "sharpe_ratio": -0.3191,
+      "trade_count": 4
+    },
+    {
+      "code": "601068",
+      "final_value": 530.22,
+      "return_pct": 6.044,
+      "max_drawdown_pct": -6.8473,
+      "sharpe_ratio": 0.1974,
+      "trade_count": 5
+    },
+    {
+      "code": "601077",
+      "final_value": 539.99,
+      "return_pct": 7.9989,
+      "max_drawdown_pct": -8.4164,
+      "sharpe_ratio": 0.2113,
+      "trade_count": 10
+    },
+    {
+      "code": "601086",
+      "final_value": 459.0,
+      "return_pct": -8.2,
+      "max_drawdown_pct": -27.9694,
+      "sharpe_ratio": -0.0206,
+      "trade_count": 11
+    },
+    {
+      "code": "601099",
+      "final_value": 514.45,
+      "return_pct": 2.89,
+      "max_drawdown_pct": -25.8726,
+      "sharpe_ratio": 0.1156,
+      "trade_count": 17
+    },
+    {
+      "code": "601158",
+      "final_value": 464.14,
+      "return_pct": -7.1713,
+      "max_drawdown_pct": -10.6643,
+      "sharpe_ratio": -0.3408,
+      "trade_count": 10
+    },
+    {
+      "code": "601162",
+      "final_value": 709.62,
+      "return_pct": 41.9245,
+      "max_drawdown_pct": -14.076,
+      "sharpe_ratio": 0.5777,
+      "trade_count": 17
+    },
+    {
+      "code": "601169",
+      "final_value": 487.83,
+      "return_pct": -2.4336,
+      "max_drawdown_pct": -11.733,
+      "sharpe_ratio": -0.0557,
+      "trade_count": 13
+    },
+    {
+      "code": "601179",
+      "final_value": 505.05,
+      "return_pct": 1.0107,
+      "max_drawdown_pct": -6.3514,
+      "sharpe_ratio": 0.0646,
+      "trade_count": 5
+    },
+    {
+      "code": "601187",
+      "final_value": 460.62,
+      "return_pct": -7.8757,
+      "max_drawdown_pct": -12.3885,
+      "sharpe_ratio": -0.1792,
+      "trade_count": 8
+    },
+    {
+      "code": "601188",
+      "final_value": 364.15,
+      "return_pct": -27.1702,
+      "max_drawdown_pct": -38.0601,
+      "sharpe_ratio": -0.2126,
+      "trade_count": 17
+    },
+    {
+      "code": "601199",
+      "final_value": 577.27,
+      "return_pct": 15.4534,
+      "max_drawdown_pct": -23.9857,
+      "sharpe_ratio": 0.3098,
+      "trade_count": 12
+    },
+    {
+      "code": "601212",
+      "final_value": 342.39,
+      "return_pct": -31.5227,
+      "max_drawdown_pct": -34.3637,
+      "sharpe_ratio": -0.4518,
+      "trade_count": 8
+    },
+    {
+      "code": "601216",
+      "final_value": 401.19,
+      "return_pct": -19.761,
+      "max_drawdown_pct": -29.2504,
+      "sharpe_ratio": -0.3699,
+      "trade_count": 13
+    },
+    {
+      "code": "601218",
+      "final_value": 600.56,
+      "return_pct": 20.1115,
+      "max_drawdown_pct": -26.2705,
+      "sharpe_ratio": 0.2912,
+      "trade_count": 20
+    },
+    {
+      "code": "601226",
+      "final_value": 500.3,
+      "return_pct": 0.0592,
+      "max_drawdown_pct": -3.8178,
+      "sharpe_ratio": 0.0167,
+      "trade_count": 1
+    },
+    {
+      "code": "601228",
+      "final_value": 341.77,
+      "return_pct": -31.6461,
+      "max_drawdown_pct": -37.417,
+      "sharpe_ratio": -0.64,
+      "trade_count": 28
+    },
+    {
+      "code": "601229",
+      "final_value": 528.79,
+      "return_pct": 5.7586,
+      "max_drawdown_pct": -2.9267,
+      "sharpe_ratio": 0.2486,
+      "trade_count": 9
+    },
+    {
+      "code": "601279",
+      "final_value": 378.5,
+      "return_pct": -24.3,
+      "max_drawdown_pct": -24.3,
+      "sharpe_ratio": -0.9813,
+      "trade_count": 4
+    },
+    {
+      "code": "601288",
+      "final_value": 551.19,
+      "return_pct": 10.2378,
+      "max_drawdown_pct": -5.6832,
+      "sharpe_ratio": 0.3254,
+      "trade_count": 13
+    },
+    {
+      "code": "601298",
+      "final_value": 464.59,
+      "return_pct": -7.0827,
+      "max_drawdown_pct": -7.0827,
+      "sharpe_ratio": -0.2626,
+      "trade_count": 7
+    },
+    {
+      "code": "601319",
+      "final_value": 495.17,
+      "return_pct": -0.9668,
+      "max_drawdown_pct": -5.9272,
+      "sharpe_ratio": 0.0056,
+      "trade_count": 7
+    },
+    {
+      "code": "601326",
+      "final_value": 439.19,
+      "return_pct": -12.1626,
+      "max_drawdown_pct": -28.6713,
+      "sharpe_ratio": -0.1711,
+      "trade_count": 17
+    },
+    {
+      "code": "601328",
+      "final_value": 630.19,
+      "return_pct": 26.0385,
+      "max_drawdown_pct": -0.6831,
+      "sharpe_ratio": 0.6546,
+      "trade_count": 16
+    },
+    {
+      "code": "601333",
+      "final_value": 460.4,
+      "return_pct": -7.9206,
+      "max_drawdown_pct": -15.1759,
+      "sharpe_ratio": -0.1377,
+      "trade_count": 9
+    },
+    {
+      "code": "601339",
+      "final_value": 460.98,
+      "return_pct": -7.8042,
+      "max_drawdown_pct": -33.1491,
+      "sharpe_ratio": -0.0396,
+      "trade_count": 18
+    },
+    {
+      "code": "601368",
+      "final_value": 480.66,
+      "return_pct": -3.8683,
+      "max_drawdown_pct": -4.8756,
+      "sharpe_ratio": -0.1317,
+      "trade_count": 3
+    },
+    {
+      "code": "601598",
+      "final_value": 462.56,
+      "return_pct": -7.4884,
+      "max_drawdown_pct": -28.9154,
+      "sharpe_ratio": -0.0395,
+      "trade_count": 16
+    },
+    {
+      "code": "601599",
+      "final_value": 386.38,
+      "return_pct": -22.7234,
+      "max_drawdown_pct": -27.1996,
+      "sharpe_ratio": -0.2888,
+      "trade_count": 15
+    },
+    {
+      "code": "601600",
+      "final_value": 495.64,
+      "return_pct": -0.8723,
+      "max_drawdown_pct": -5.8711,
+      "sharpe_ratio": 0.0133,
+      "trade_count": 4
+    },
+    {
+      "code": "601608",
+      "final_value": 429.6,
+      "return_pct": -14.0791,
+      "max_drawdown_pct": -19.9011,
+      "sharpe_ratio": -0.291,
+      "trade_count": 15
+    },
+    {
+      "code": "601616",
+      "final_value": 560.03,
+      "return_pct": 12.0063,
+      "max_drawdown_pct": -16.8405,
+      "sharpe_ratio": 0.2216,
+      "trade_count": 23
+    },
+    {
+      "code": "601618",
+      "final_value": 323.84,
+      "return_pct": -35.2315,
+      "max_drawdown_pct": -36.0625,
+      "sharpe_ratio": -0.6653,
+      "trade_count": 18
+    },
+    {
+      "code": "601619",
+      "final_value": 384.08,
+      "return_pct": -23.183,
+      "max_drawdown_pct": -27.5976,
+      "sharpe_ratio": -0.3599,
+      "trade_count": 18
+    },
+    {
+      "code": "601777",
+      "final_value": 907.64,
+      "return_pct": 81.5289,
+      "max_drawdown_pct": -16.9017,
+      "sharpe_ratio": 0.7059,
+      "trade_count": 16
+    },
+    {
+      "code": "601778",
+      "final_value": 530.53,
+      "return_pct": 6.1061,
+      "max_drawdown_pct": -17.576,
+      "sharpe_ratio": 0.1651,
+      "trade_count": 8
+    },
+    {
+      "code": "601789",
+      "final_value": 595.4,
+      "return_pct": 19.0795,
+      "max_drawdown_pct": -42.2529,
+      "sharpe_ratio": 0.2702,
+      "trade_count": 27
+    },
+    {
+      "code": "601801",
+      "final_value": 383.37,
+      "return_pct": -23.3258,
+      "max_drawdown_pct": -24.0323,
+      "sharpe_ratio": -0.8355,
+      "trade_count": 6
+    },
+    {
+      "code": "601818",
+      "final_value": 427.98,
+      "return_pct": -14.4046,
+      "max_drawdown_pct": -15.3712,
+      "sharpe_ratio": -0.4993,
+      "trade_count": 12
+    },
+    {
+      "code": "601825",
+      "final_value": 536.7,
+      "return_pct": 7.3398,
+      "max_drawdown_pct": -10.3723,
+      "sharpe_ratio": 0.2675,
+      "trade_count": 10
+    },
+    {
+      "code": "601828",
+      "final_value": 363.14,
+      "return_pct": -27.3729,
+      "max_drawdown_pct": -39.4926,
+      "sharpe_ratio": -0.3584,
+      "trade_count": 10
+    },
+    {
+      "code": "601857",
+      "final_value": 445.04,
+      "return_pct": -10.993,
+      "max_drawdown_pct": -15.3389,
+      "sharpe_ratio": -0.1527,
+      "trade_count": 9
+    },
+    {
+      "code": "601860",
+      "final_value": 488.47,
+      "return_pct": -2.3068,
+      "max_drawdown_pct": -3.2137,
+      "sharpe_ratio": 0.0222,
+      "trade_count": 1
+    },
+    {
+      "code": "601868",
+      "final_value": 422.2,
+      "return_pct": -15.5602,
+      "max_drawdown_pct": -25.1074,
+      "sharpe_ratio": -0.3565,
+      "trade_count": 1
+    },
+    {
+      "code": "601949",
+      "final_value": 571.44,
+      "return_pct": 14.2884,
+      "max_drawdown_pct": -6.9184,
+      "sharpe_ratio": 0.3434,
+      "trade_count": 6
+    },
+    {
+      "code": "601956",
+      "final_value": 487.13,
+      "return_pct": -2.5733,
+      "max_drawdown_pct": -12.8909,
+      "sharpe_ratio": -0.0278,
+      "trade_count": 2
+    },
+    {
+      "code": "601968",
+      "final_value": 460.38,
+      "return_pct": -7.9232,
+      "max_drawdown_pct": -7.9232,
+      "sharpe_ratio": -0.5434,
+      "trade_count": 1
+    },
+    {
+      "code": "601975",
+      "final_value": 485.42,
+      "return_pct": -2.9167,
+      "max_drawdown_pct": -24.5172,
+      "sharpe_ratio": 0.0571,
+      "trade_count": 23
+    },
+    {
+      "code": "601988",
+      "final_value": 559.87,
+      "return_pct": 11.9738,
+      "max_drawdown_pct": -7.7153,
+      "sharpe_ratio": 0.3138,
+      "trade_count": 15
+    },
+    {
+      "code": "601991",
+      "final_value": 726.86,
+      "return_pct": 45.3728,
+      "max_drawdown_pct": -16.2273,
+      "sharpe_ratio": 0.4724,
+      "trade_count": 14
+    },
+    {
+      "code": "601996",
+      "final_value": 403.63,
+      "return_pct": -19.273,
+      "max_drawdown_pct": -25.3428,
+      "sharpe_ratio": -0.0905,
+      "trade_count": 2
+    },
+    {
+      "code": "603030",
+      "final_value": 291.36,
+      "return_pct": -41.7284,
+      "max_drawdown_pct": -45.8216,
+      "sharpe_ratio": -0.2989,
+      "trade_count": 10
+    },
+    {
+      "code": "603077",
+      "final_value": 366.04,
+      "return_pct": -26.793,
+      "max_drawdown_pct": -31.4519,
+      "sharpe_ratio": -0.4967,
+      "trade_count": 8
+    },
+    {
+      "code": "603116",
+      "final_value": 439.1,
+      "return_pct": -12.1802,
+      "max_drawdown_pct": -18.3889,
+      "sharpe_ratio": -0.3997,
+      "trade_count": 6
+    },
+    {
+      "code": "603117",
+      "final_value": 509.91,
+      "return_pct": 1.9819,
+      "max_drawdown_pct": -8.5312,
+      "sharpe_ratio": 0.1007,
+      "trade_count": 13
+    },
+    {
+      "code": "603725",
+      "final_value": 488.3,
+      "return_pct": -2.3408,
+      "max_drawdown_pct": -5.3929,
+      "sharpe_ratio": -0.2719,
+      "trade_count": 1
+    },
+    {
+      "code": "603809",
+      "final_value": 475.44,
+      "return_pct": -4.9128,
+      "max_drawdown_pct": -4.9128,
+      "sharpe_ratio": -0.5121,
+      "trade_count": 1
+    },
+    {
+      "code": "603811",
+      "final_value": 557.53,
+      "return_pct": 11.5064,
+      "max_drawdown_pct": -4.3183,
+      "sharpe_ratio": 0.3205,
+      "trade_count": 3
+    },
+    {
+      "code": "603817",
+      "final_value": 570.94,
+      "return_pct": 14.188,
+      "max_drawdown_pct": -3.5767,
+      "sharpe_ratio": 0.4876,
+      "trade_count": 1
+    },
+    {
+      "code": "603818",
+      "final_value": 378.17,
+      "return_pct": -24.366,
+      "max_drawdown_pct": -36.3693,
+      "sharpe_ratio": -0.2929,
+      "trade_count": 11
+    }
+  ],
+  "failed_codes_sample": [],
+  "error_codes_sample": [],
+  "comparison_to_v9": {
+    "v9_5y_return_pct": 0.111,
+    "v9_5y_trade_count": 209,
+    "v9_5y_pool": 1950,
+    "v7fixobv_5y_return_pct": -1.0586,
+    "v7fixobv_5y_trade_count": 7586,
+    "v7fixobv_5y_pool": 1950
+  },
+  "honest_declaration": "V7FIXOBV 是用户重传的 OBV bug 修复版 (类名 GoldComboV7_Locked, 含同名 MyOBV 自定义类)。V7FIXOBV 一字不差, 未加任何外部 hold/lock。V7FIXOBV 跟 V9 设计哲学完全不同 (V9 左侧抄底, V7FIXOBV 右侧主升), 数据可比因都跑 1950 只沪深 A 股 5Y。v1 截断版 + v2 OBV bug 版都已覆盖, V7FIXOBV 是 source of truth。"
+}

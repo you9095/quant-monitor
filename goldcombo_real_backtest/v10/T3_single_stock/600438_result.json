@@ -1,0 +1,17 @@
+{
+  "code": "600438",
+  "name": "通威股份",
+  "period": "2022-01-01 ~ 2026-08-14",
+  "start_value": 10000.0,
+  "final_value": 10194.184721,
+  "return_pct": 1.9418472099999962,
+  "n_completed_orders": 3,
+  "n_buys": 2,
+  "n_sells": 1,
+  "max_drawdown_pct": 2.475942646311728,
+  "sharpe": 0.5289754785901611,
+  "trade_total": 2,
+  "trade_won": 1,
+  "trade_lost": 0,
+  "verification": "PASS"
+}

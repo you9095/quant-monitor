@@ -1,0 +1,2553 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI量化 · 五策略监控面板</title>
+<script src="assets/chart.umd.min.js"></script>  <!-- 2026-08-14 v20: CDN 在 ClashX 出口下不可达,改用本地 assets/chart.umd.min.js (205KB) -->
+<style>
+/* ========== CSS变量设计系统 ========== */
+:root {
+  /* 背景层级 */
+  --bg-base: #0a0a0f;
+  --bg-elevated: #12121a;
+  --bg-surface: #1a1a28;
+  --bg-hover: #222236;
+  --bg-active: #2a2a40;
+
+  /* 文字 */
+  --text-primary: #e8e8f0;
+  --text-secondary: #a0a0b8;
+  --text-muted: #606078;
+  --text-inverse: #0a0a0f;
+
+  /* 边框 */
+  --border-subtle: rgba(255,255,255,0.06);
+  --border-medium: rgba(255,255,255,0.10);
+
+  /* 四策略色彩编码 */
+  --qixing-start: #3b82f6;
+  --qixing-end: #8b5cf6;
+  --r32-start: #10b981;
+  --r32-end: #06b6d4;
+  --zhuidian-start: #f59e0b;
+  --zhuidian-end: #f97316;
+  /* 三合策略（Fusion R31_vol_weight）：紫金渐变 - 三策略合一的尊贵感 */
+  --sanhe-start: #a855f7;
+  --sanhe-end: #facc15;
+  --lightning-start: #eab308;
+  --lightning-end: #f97316;
+  /* 黄金组合A（极致恐慌反转）M01 v6 5Y 集成 2026-08-15：红（避开 5 现有策略色） */
+  /* 2026-08-15: v3 R20_DMI_20 (8%硬止损) → v6_GoldComboV6Strategy_5Y (5%硬止损+保本+MACD高位死叉) */
+  /* source: /Users/junze/goldcombo_real_backtest/v6_5y/baseline_ashare_real_5y_v6.json */
+  --goldcombo-start: #ef4444;
+  --goldcombo-end: #f87171;
+
+  /* 状态色 */
+  --color-up: #10b981;
+  --color-down: #ef4444;
+  --color-warn: #f59e0b;
+  --color-danger: #ef4444;
+  --color-live: #06b6d4;
+
+  /* 实盘卡片光效 */
+  --shadow-live: 0 0 30px rgba(6,182,212,0.25), 0 4px 16px rgba(6,182,212,0.15);
+
+  /* 字体 */
+  --font-mono: "SF Mono", "Consolas", "Monaco", monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+
+  /* 间距 */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* 圆角 */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  /* 阴影 */
+  --shadow-card: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-hover: 0 8px 24px rgba(0,0,0,0.4);
+  --shadow-glow-qixing: 0 0 20px rgba(59,130,246,0.15);
+  --shadow-glow-r32: 0 0 20px rgba(16,185,129,0.15);
+  --shadow-glow-zhuidian: 0 0 20px rgba(245,158,11,0.15);
+}
+
+/* ========== 基础重置 ========== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 14px; }
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-base);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ========== 12列栅格 ========== */
+.container { max-width: 1400px; margin: 0 auto; padding: 0 var(--space-lg); }
+.row { display: flex; flex-wrap: wrap; margin: 0 calc(-1 * var(--space-sm)); }
+.col { flex: 1; padding: 0 var(--space-sm); }
+.col-4 { flex: 0 0 33.333%; max-width: 33.333%; padding: 0 var(--space-sm); }
+.col-6 { flex: 0 0 50%; max-width: 50%; padding: 0 var(--space-sm); }
+.col-8 { flex: 0 0 66.667%; max-width: 66.667%; padding: 0 var(--space-sm); }
+.col-12 { flex: 0 0 100%; max-width: 100%; padding: 0 var(--space-sm); }
+.col-3 { flex: 0 0 25%; max-width: 25%; padding: 0 var(--space-sm); }
+
+/* ========== 自适应栅格: col-row-N 占 N 分之一宽度 ========== */
+.col-row-1, .col-row-2, .col-row-3, .col-row-4, .col-row-5, .col-row-6, .col-row-7,
+.col-row-8, .col-row-9, .col-row-10, .col-row-11, .col-row-12 {
+  flex: 0 0 calc(100% / 1);
+  max-width: calc(100% / 1);
+  padding: 0 var(--space-sm);
+}
+.col-row-2 { flex: 0 0 calc(100% / 2); max-width: calc(100% / 2); }
+.col-row-3 { flex: 0 0 calc(100% / 3); max-width: calc(100% / 3); }
+.col-row-4 { flex: 0 0 calc(100% / 4); max-width: calc(100% / 4); }
+.col-row-5 { flex: 0 0 calc(100% / 5); max-width: calc(100% / 5); }
+.col-row-6 { flex: 0 0 calc(100% / 6); max-width: calc(100% / 6); }
+.col-row-7 { flex: 0 0 calc(100% / 7); max-width: calc(100% / 7); }
+.col-row-8 { flex: 0 0 calc(100% / 8); max-width: calc(100% / 8); }
+
+@media (max-width: 1024px) {
+  .col-3, .col-4, .col-6, .col-8 { flex: 0 0 100%; max-width: 100%; }
+  .col-row-2, .col-row-3, .col-row-4, .col-row-5, .col-row-6, .col-row-7, .col-row-8 {
+    flex: 0 0 100%; max-width: 100%;
+  }
+}
+
+/* ========== 顶部栏 ========== */
+.topbar {
+  height: 56px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-lg);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 16px;
+  font-weight: 600;
+}
+.topbar-brand .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--color-up);
+  box-shadow: 0 0 6px var(--color-up);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.topbar-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.topbar-meta .refresh-btn {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  color: var(--text-secondary);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  transition: all 0.2s;
+}
+.topbar-meta .refresh-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* ========== 今日动作条 ========== */
+.action-bar {
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: var(--space-md) var(--space-lg);
+}
+.action-bar-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: var(--space-sm);
+}
+.action-items {
+  display: flex;
+  gap: var(--space-md);
+}
+.action-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  transition: all 0.2s;
+}
+.action-item:hover {
+  border-color: var(--border-medium);
+  transform: translateY(-1px);
+}
+.action-item.qixing { border-left: 3px solid var(--qixing-start); }
+.action-item.r32 { border-left: 3px solid var(--r32-start); }
+.action-item.zhuidian { border-left: 3px solid var(--zhuidian-start); }
+.action-item.sanhe { border-left: 3px solid var(--sanhe-start); }
+.action-item.lightning { border-left: 3px solid var(--lightning-start); }
+/* M01 v6 5Y 集成 2026-08-15: goldcombo 卡片左色条 (v6_GoldComboV6Strategy_5Y) */
+.action-item.goldcombo { border-left: 3px solid var(--goldcombo-start); }
+
+.action-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.action-badge.buy { background: rgba(16,185,129,0.15); color: var(--color-up); }
+.action-badge.sell { background: rgba(239,68,68,0.15); color: var(--color-down); }
+.action-badge.rebalance { background: rgba(6,182,212,0.15); color: var(--r32-end); }
+.action-badge.hold { background: rgba(160,160,184,0.15); color: var(--text-secondary); }
+
+.action-detail {
+  flex: 1;
+}
+.action-detail .target {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 600;
+}
+.action-detail .desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.action-btn {
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-sans);
+}
+.action-btn.primary {
+  background: linear-gradient(135deg, var(--r32-start), var(--r32-end));
+  color: var(--text-inverse);
+}
+.action-btn.primary:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+/* ========== 策略卡片 ========== */
+.strategy-section {
+  padding: var(--space-lg);
+}
+.strategy-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  height: 100%;
+}
+.strategy-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
+.strategy-card.qixing:hover { box-shadow: var(--shadow-hover), var(--shadow-glow-qixing); }
+.strategy-card.r32:hover { box-shadow: var(--shadow-hover), var(--shadow-glow-r32); }
+.strategy-card.zhuidian:hover { box-shadow: var(--shadow-hover), var(--shadow-glow-zhuidian); }
+.strategy-card.sanhe:hover { box-shadow: var(--shadow-hover), 0 0 20px rgba(168,85,247,0.15); }
+
+
+/* ========== 回测策略卡片（降低视觉层级） ========== */
+.strategy-card.backtest { opacity: 0.85; }
+.strategy-card.backtest:hover { opacity: 1; }
+/* 2026-08-09 v5: 第 2/3 排与上一排空出间距 */
+.strategy-row-spaced { margin-top: 32px !important; }
+.strategy-card.backtest .pb-amount { font-size: 40px !important; }
+.strategy-card.backtest .pb-label { font-size: 14px !important; }
+.strategy-card.backtest .profit-block { padding: var(--space-lg) 0 !important; }
+
+/* B 字体：SF Pro Display + tnum cv11 + weight 600 — 压过 backtest (0,4,0) */
+.strategy-card.backtest .pb-amount {
+  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif !important;
+  font-weight: 600 !important;
+  font-feature-settings: 'tnum' 1, 'cv11' 1;
+  font-variant-numeric: tabular-nums;
+}
+/* 数字分段：符号 +/- 28px / 整数 40px — 2026-08-09 v5: 字间距 + 字高调整 */
+.strategy-card.backtest .pb-amount .pb-sign { font-size: 28px !important; font-weight: 700; opacity: 0.7; letter-spacing: 0.15em; }
+.strategy-card.backtest .pb-amount .pb-int  { font-size: 40px !important; font-weight: 700; letter-spacing: -0.05em; line-height: 1.15; }
+.strategy-card.backtest .today-action-strip { padding: 6px 10px !important; }
+.strategy-card.backtest .tas-title { font-size: 10px !important; }
+
+.card-header {
+  height: 4px;
+}
+/* 2026-08-09 v5: 5 色实色 (蓝/绿/橙/紫/黄), 默认降饱和+降亮度, hover 恢复 */
+.card-header.qixing    { background: #3b82f6; filter: saturate(0.7) brightness(0.8); }
+.card-header.r32       { background: #10b981; filter: saturate(0.7) brightness(0.8); }
+.card-header.zhuidian  { background: #f97316; filter: saturate(0.7) brightness(0.8); }
+.card-header.sanhe     { background: #a855f7; filter: saturate(0.7) brightness(0.8); }
+.card-header.lightning { background: #eab308; filter: saturate(0.7) brightness(0.8); }
+/* M01 v6 5Y 集成 2026-08-15: goldcombo 卡片顶部色条 */
+.card-header.goldcombo { background: #ef4444; filter: saturate(0.7) brightness(0.8); }
+.strategy-card:hover .card-header { filter: none; }
+
+.card-body {
+  padding: var(--space-lg);
+}
+.card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  background: rgba(16,185,129,0.1);
+  color: var(--color-up);
+}
+.status-badge::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* 三层标签：version / data_period / caliber（v2.0 路线图 P0-4） */
+.three-layer-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 var(--space-md) 0;
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px dashed rgba(255,255,255,0.08);
+}
+.tlt-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text-muted);
+  letter-spacing: 0.2px;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tlt-version { border-color: rgba(59,130,246,0.3); color: #93c5fd; }
+.tlt-period  { border-color: rgba(16,185,129,0.3); color: #6ee7b7; }
+.tlt-caliber { border-color: rgba(245,158,11,0.3); color: #fcd34d; }
+
+/* 大数字区 */
+.metric-row {
+  display: flex;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+.metric {
+  flex: 1;
+}
+.metric-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--space-xs);
+}
+.metric-value {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--text-secondary);
+}
+.metric-value.up { color: var(--text-secondary); }
+.metric-value.down { color: var(--text-secondary); }
+.metric-value.neutral { color: var(--text-secondary); }
+
+.metric-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* 持仓列表 */
+.holdings-list {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-md);
+}
+.holdings-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: var(--space-sm);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--space-sm);
+}
+.holding-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.holding-row:last-child { border-bottom: none; }
+.holding-code {
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+.holding-name {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.holding-pnl.up { color: var(--color-up); }
+.holding-pnl.down { color: var(--color-down); }
+
+/* 卡片底部 */
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-subtle);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* ========== 收益对比区 ========== */
+.chart-section {
+  padding: var(--space-lg);
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+}
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+.section-tabs {
+  display: flex;
+  gap: var(--space-xs);
+}
+.tab {
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+.tab:hover { color: var(--text-primary); }
+.tab.active {
+  background: var(--bg-surface);
+  border-color: var(--border-medium);
+  color: var(--text-primary);
+}
+
+.chart-container {
+  height: 320px;
+  position: relative;
+}
+
+/* ========== 风险监控区 ========== */
+.risk-section {
+  padding: var(--space-lg);
+}
+.risk-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+}
+@media (max-width: 1024px) {
+  .risk-grid { grid-template-columns: 1fr; }
+}
+.risk-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  border: 1px solid var(--border-subtle);
+}
+.risk-card.danger {
+  border-color: rgba(239,68,68,0.3);
+  animation: pulse-danger 2s ease-in-out infinite;
+}
+@keyframes pulse-danger {
+  0%, 100% { box-shadow: 0 0 0 rgba(239,68,68,0); }
+  50% { box-shadow: 0 0 12px rgba(239,68,68,0.15); }
+}
+.risk-title {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--space-sm);
+}
+.risk-value {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 700;
+}
+.risk-value.danger { color: var(--color-danger); }
+.risk-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* ========== 策略日志区 ========== */
+.log-section {
+  padding: var(--space-lg);
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border-subtle);
+}
+.log-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+.log-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+.log-time {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  min-width: 140px;
+}
+.log-strategy {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 80px;
+  text-align: center;
+}
+.log-strategy.qixing { background: rgba(59,130,246,0.15); color: var(--qixing-start); }
+.log-strategy.r32 { background: rgba(16,185,129,0.15); color: var(--r32-start); }
+.log-strategy.zhuidian { background: rgba(245,158,11,0.15); color: var(--zhuidian-start); }
+.log-strategy.sanhe { background: rgba(168,85,247,0.15); color: var(--sanhe-start); }
+.log-strategy.lightning { background: rgba(250,204,21,0.15); color: var(--lightning-start); }
+.log-action {
+  font-weight: 600;
+}
+.log-action.buy { color: var(--color-up); }
+.log-action.sell { color: var(--color-down); }
+.log-detail {
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+/* ========== 模态面板 ========== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.modal-overlay.active {
+  display: flex;
+  opacity: 1;
+}
+.modal-panel {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-medium);
+  width: 90%;
+  max-width: 800px;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform: scale(0.95);
+  transition: transform 0.3s;
+}
+.modal-overlay.active .modal-panel {
+  transform: scale(1);
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.modal-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+.modal-close:hover { color: var(--text-primary); }
+.modal-body {
+  padding: var(--space-lg);
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ========== 侧滑面板 ========== */
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 420px;
+  max-width: 90vw;
+  height: 100vh;
+  background: var(--bg-elevated);
+  border-left: 1px solid var(--border-medium);
+  z-index: 200;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+.drawer.active { transform: translateX(0); }
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.drawer-body {
+  padding: var(--space-lg);
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ========== 对比模式 ========== */
+.compare-mode .strategy-card {
+  cursor: default;
+}
+.compare-mode .strategy-card:hover {
+  transform: none;
+}
+.compare-indicator {
+  display: none;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: var(--space-xs);
+}
+.compare-mode .compare-indicator {
+  display: block;
+}
+
+/* ========== 响应式 ========== */
+@media (max-width: 768px) {
+  .action-items { flex-direction: column; }
+  .metric-value { font-size: 22px; }
+  .risk-grid { grid-template-columns: 1fr; }
+  .drawer { width: 100%; }
+}
+
+/* ========== 工具类 ========== */
+.hidden { display: none !important; }
+.text-mono { font-family: var(--font-mono); }
+.text-up { color: var(--color-up); }
+.text-down { color: var(--color-down); }
+.text-warn { color: var(--color-warn); }
+
+/* ========== v1.1 (2026-06-26) 顶部总览条 ========== */
+.portfolio-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  font-size: 12px;
+}
+.portfolio-summary .item {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 0 var(--space-sm);
+  border-right: 1px solid var(--border-subtle);
+}
+.portfolio-summary .item:last-child { border-right: none; }
+.portfolio-summary .item .label {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.portfolio-summary .item .val {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 13px;
+}
+.portfolio-summary .item.total .val {
+  font-size: 16px;
+  color: var(--text-primary);
+}
+.portfolio-summary .item.pnl.up .val { color: var(--color-up); }
+.portfolio-summary .item.pnl.down .val { color: var(--color-down); }
+
+/* ========== v1.1 (2026-06-26) 卡片顶部：今日交易条 ========== */
+.today-action-strip {
+  background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  border: 1px solid var(--border-subtle);
+  border-left-width: 3px;
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+.today-action-strip.qixing { border-left-color: var(--qixing-start); }
+.today-action-strip.r32 { border-left-color: var(--r32-start); }
+.today-action-strip.zhuidian { border-left-color: var(--zhuidian-start); }
+.today-action-strip.sanhe { border-left-color: var(--sanhe-start); }
+.today-action-strip.lightning { border-left-color: var(--lightning-start); }
+
+.today-action-strip .tas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.today-action-strip .tas-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+}
+.today-action-strip .tas-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+.today-action-strip .tas-action.BUY { background: rgba(16,185,129,0.18); color: var(--color-up); }
+.today-action-strip .tas-action.SELL { background: rgba(239,68,68,0.18); color: var(--color-down); }
+.today-action-strip .tas-action.REBALANCE { background: rgba(6,182,212,0.18); color: var(--r32-end); }
+.today-action-strip .tas-action.DEFENSIVE { background: rgba(245,158,11,0.18); color: var(--color-warn); }
+.today-action-strip .tas-action.HOLD { background: rgba(160,160,184,0.18); color: var(--text-secondary); }
+.today-action-strip .tas-flow {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 2px 0;
+  letter-spacing: 0.3px;
+}
+.today-action-strip .tas-target {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+.today-action-strip .tas-detail {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* ========== v1.1 (2026-06-26) 卡片中央：总盈亏大字 ========== */
+.profit-block {
+  text-align: center;
+  padding: var(--space-lg) 0;
+  margin: var(--space-md) 0;
+  border-top: 1px dashed var(--border-subtle);
+  border-bottom: 1px dashed var(--border-subtle);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+}
+.profit-block .pb-label {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.profit-block .pb-amount {
+  font-family: var(--font-mono);
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+.profit-block .pb-amount.up { color: var(--color-up); text-shadow: 0 0 16px rgba(16,185,129,0.3); }
+.profit-block .pb-amount.down { color: var(--color-down); text-shadow: 0 0 16px rgba(239,68,68,0.3); }
+.profit-block .pb-amount.neutral { color: var(--text-secondary); }
+.profit-block .pb-meta {
+  display: flex;
+  justify-content: space-around;
+  margin-top: var(--space-sm);
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+.profit-block .pb-meta .pb-meta-item .lbl {
+  color: var(--text-muted);
+  font-size: 10px;
+  margin-right: 4px;
+}
+</style>
+</head>
+<body>
+
+<!-- 顶部栏 -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <span class="dot"></span>
+    <span>AI量化 · 五策略监控面板</span>
+  </div>
+  <div class="topbar-meta">
+    <span id="current-date"></span>
+    <span id="current-time">15:00:00</span>
+    <div class="portfolio-summary" id="portfolio-summary">
+      <div class="item"><span class="label">初始</span><span class="val text-mono" id="ps-initial">¥50,000.00</span></div>
+      <div class="item pnl"><span class="label">总盈亏</span><span class="val" id="ps-pnl">--</span></div>
+      <div class="item pnl"><span class="label">收益率</span><span class="val" id="ps-return">--</span></div>
+      <div class="item total"><span class="label">总资金</span><span class="val text-mono" id="ps-total">¥50,000.00</span></div>
+    </div>
+    <button class="refresh-btn" onclick="refreshData()" title="快捷键: R">⟳ 刷新</button>
+  </div>
+</header>
+
+<!-- 今日动作条 -->
+<section class="action-bar">
+  <div class="container">
+    <div class="action-bar-title">今日动作</div>
+    <div class="action-items" id="action-items">
+      <!-- 动态填充 -->
+    </div>
+  </div>
+</section>
+
+<!-- 策略卡片区 -->
+<section class="strategy-section">
+  <div class="container">
+
+    <div id="strategy-cards">
+      <!-- 动态填充 (calcGridRows 决定 1-3 排布局) -->
+    </div>
+  </div>
+</section>
+
+<!-- 交易明细区 -->
+<section class="chart-section" style="border-top:none">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-title">今日交易明细</span>
+      <!-- 2026-08-03 审计陷阱#5: 硬编码 2026-06-08 与后端 LIVE_START_DATE=2026-05-25 冲突 → 去掉硬编码,
+           有 API 时由 renderAll 注入真实起始日(portfolio_summary.live_start_date) -->
+      <span id="live-start-label" style="font-size:12px;color:var(--text-muted)">实盘模拟 · 全自动执行</span>
+    </div>
+    <div class="trade-grid" id="trade-details">
+      <!-- 动态填充 (auto-fit 自适应) -->
+    </div>
+  </div>
+</section>
+
+<style>
+.trade-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-md); }
+@media (max-width: 1024px) { .trade-grid { grid-template-columns: 1fr; } }
+.trade-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  padding: var(--space-lg);
+  transition: all 0.2s;
+}
+.trade-card:hover { border-color: var(--border-medium); transform: translateY(-2px); }
+.trade-card.qixing { border-left: 3px solid var(--qixing-start); }
+.trade-card.r32 { border-left: 3px solid var(--r32-start); }
+.trade-card.zhuidian { border-left: 3px solid var(--zhuidian-start); }
+.trade-card.sanhe { border-left: 3px solid var(--sanhe-start); }
+.trade-card.lightning { border-left: 3px solid var(--lightning-start); }
+/* M01 v6 5Y 集成 2026-08-15: goldcombo 交易明细左色条 */
+.trade-card.goldcombo { border-left: 3px solid var(--goldcombo-start); }
+.trade-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+.trade-card-title { font-size: 14px; font-weight: 600; }
+.trade-card-badge {
+  padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;
+}
+.trade-card-badge.buy { background: rgba(16,185,129,0.15); color: var(--color-up); }
+.trade-card-badge.rebalance { background: rgba(6,182,212,0.15); color: var(--r32-end); }
+.trade-list { display: flex; flex-direction: column; gap: var(--space-sm); }
+.trade-row {
+  display: grid; grid-template-columns: 50px 1fr 80px 100px;
+  gap: var(--space-sm); align-items: center;
+  padding: var(--space-sm) 0; border-bottom: 1px solid var(--border-subtle);
+  font-size: 13px;
+}
+.trade-row:last-child { border-bottom: none; }
+.trade-time { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+.trade-code { font-family: var(--font-mono); font-weight: 600; }
+.trade-qty { text-align: right; font-family: var(--font-mono); }
+.trade-amount { text-align: right; font-family: var(--font-mono); color: var(--text-secondary); }
+.trade-summary {
+  margin-top: var(--space-md); padding-top: var(--space-md);
+  border-top: 1px solid var(--border-subtle);
+  display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary);
+}
+</style>
+
+<script>
+// 渲染交易明细
+
+</script>
+
+<!-- 收益对比区 -->
+<section class="chart-section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-title">收益对比</span>
+      <div class="section-tabs">
+        <span class="tab active" onclick="switchChart('2y')">2Y回测</span>
+        <span class="tab" onclick="switchChart('5y')">5Y回测</span>
+        <span class="tab" onclick="switchChart('live')">实盘</span>
+      </div>
+    </div>
+    <div class="chart-container">
+      <canvas id="returnChart"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- Daily P&L 趋势区 (P8 v1.0, 2026-06-28) -->
+<section class="chart-section" style="border-top:1px solid var(--border-subtle)">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-title">📈 Daily P&L 趋势（5 策略最近 14 天）</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:12px;color:var(--text-muted)" id="daily-pnl-meta">加载中...</span>
+        <div class="section-tabs">
+          <span class="tab active" id="tab-daily-pnl-cumulative" onclick="switchDailyPnlView('cumulative')">累计 P&L</span>
+          <span class="tab" id="tab-daily-pnl-daily" onclick="switchDailyPnlView('daily')">每日 P&L</span>
+        </div>
+      </div>
+    </div>
+    <div class="chart-container">
+      <canvas id="dailyPnlTrendChart"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- WFA 过拟合审计区 (P9 v1.0, 2026-07-03) -->
+<section class="chart-section" style="border-top:1px solid var(--border-subtle)">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-title">🔬 WFA 过拟合审计（4 策略 Walk-Forward Analysis）</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:12px;color:var(--text-muted)" id="wfa-meta">加载中...</span>
+      </div>
+    </div>
+
+    <!-- 4 策略健康度卡片 -->
+    <div id="wfa-cards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+      <div class="risk-card" style="text-align:center">
+        <div class="risk-title">加载中...</div>
+      </div>
+    </div>
+
+    <!-- WFA 样本外 P&L 折线 -->
+    <div class="section-header" style="margin-top:10px">
+      <span style="font-size:13px;color:var(--text-muted)">📊 样本外（OOS）累计 P&L · 4 策略拼接 13 个测试窗口</span>
+    </div>
+    <div class="chart-container">
+      <canvas id="wfaOosCurveChart"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- 参数稳定性监控区 (P9-D v1.0, 2026-07-03) -->
+<section class="chart-section" style="border-top:1px solid var(--border-subtle)">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-title">🎯 参数稳定性监控（4 策略"假设网格"·13 训练窗口）</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:12px;color:var(--text-muted)" id="param-stability-meta">加载中...</span>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);margin:4px 0 12px 0">
+      在每个训练窗口上跑"假设参数网格"（不动策略代码），看最优参数在 13 窗口的分布 — 反映参数稳健性。
+    </p>
+
+    <!-- 4 策略参数分布柱状图 -->
+    <div id="param-stability-cards" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px">  <!-- P9-D qixing 加入 (2026-07-04) -->
+      <div class="risk-card" style="text-align:center">
+        <div class="risk-title">加载中...</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- P9-D A/B 对照区（grid_mode vs hardcode） (2026-07-04) -->
+<section class="chart-section" style="border-top:1px solid var(--border-subtle);background:rgba(99,102,241,0.04)">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-title">⚖️ A/B 对照（grid_mode vs hardcode · 验证 WFA 优化是否真有效）</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:12px;color:var(--text-muted)" id="ab-comparison-meta">加载中...</span>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);margin:4px 0 12px 0">
+      同一截止日同一份数据，分别用 <b>grid_mode（应用 P9 WFA 网格最优）</b> 和 <b>hardcode（策略代码原参数）</b> 跑 backtest。
+      每日对比 → 6 个月后判断 grid mode 是否真的有效（vs 单纯过拟合）。
+    </p>
+
+    <!-- 总览 KPI 条 -->
+    <div id="ab-comparison-kpi" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+      <div class="risk-card" style="text-align:center">
+        <div class="risk-title">加载中...</div>
+      </div>
+    </div>
+
+    <!-- 4 策略对比卡片 -->
+    <div id="ab-comparison-cards" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">  <!-- P9 E: 加 qixing 第 5 张卡片 -->
+      <div class="risk-card" style="text-align:center">
+        <div class="risk-title">加载中...</div>
+      </div>
+    </div>
+
+    <!-- 时序曲线（diff_sum 走势） -->
+    <div style="margin-top:20px">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">📈 diff_sum 时序（grid_mode - baseline 之和走势；正值=grid_mode 整体更优）</div>
+      <div class="chart-container" style="height:200px">
+        <canvas id="abDiffTrendChart"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 风险监控区 -->
+<section class="risk-section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-title">风险监控</span>
+    </div>
+    <div class="risk-grid">
+      <div class="risk-card">
+        <div class="risk-title">止损位距离</div>
+        <div class="risk-value" id="stop-loss">--</div>
+        <div class="risk-desc">最近止损位距现价百分比</div>
+      </div>
+      <div class="risk-card">
+        <div class="risk-title">最大集中度</div>
+        <div class="risk-value" id="concentration">99.95%</div>
+        <div class="risk-desc">单策略最高持仓占比（追电）</div>
+      </div>
+      <div class="risk-card">
+        <div class="risk-title">跨境敞口</div>
+        <div class="risk-value" id="cross-border">60%</div>
+        <div class="risk-desc">R32中海外ETF权重占比</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 策略日志区 -->
+<section class="log-section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-title">策略变更日志</span>
+      <div style="display:flex;align-items:center;gap:12px">
+        <select id="review-date-select" onchange="loadReviewByDate(this.value)" style="background:var(--bg-surface);border:1px solid var(--border-medium);color:var(--text-primary);padding:4px 10px;border-radius:var(--radius-sm);font-size:12px;cursor:pointer">
+        </select>
+        <a href="review.html" style="font-size:12px;color:var(--r32-end);text-decoration:none">查看完整复盘 →</a>
+      </div>
+    </div>
+    <div class="log-list" id="strategy-logs">
+      <!-- 动态生成四策略日志 -->
+    </div>
+  </div>
+</section>
+
+<!-- 模态面板 -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal-panel" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">策略详情</span>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <!-- 动态填充 -->
+    </div>
+  </div>
+</div>
+
+<!-- 侧滑面板 -->
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <span class="modal-title" id="drawer-title">ETF详情</span>
+    <button class="modal-close" onclick="closeDrawer()">&times;</button>
+  </div>
+  <div class="drawer-body" id="drawer-body">
+    <!-- 动态填充 -->
+  </div>
+</div>
+
+  <script src="assets/data.js?v=22"></script>  <!-- 2026-08-14 v22: overview端点 L194 live_total_pnl 兜底 + L238 tr 兜底,黄金组合A 真实显示 -->
+  <!-- 2026-08-15 v23: goldcombo v3 R20_DMI_20 → v6 5Y baseline (signals/goldcombo_2026-08-15.json + config/strategies.json v6) -->
+  <script>
+// ========== 数据状态（从DataLayer加载） ==========
+let strategiesData = {};
+let currentChart = null;
+
+// 初始化数据
+async function initData() {
+  const data = await DataLayer.fetchStrategies();
+  strategiesData = data;
+  renderAll(data);
+  // 启动轮询
+  DataLayer.startPolling(renderAll);
+}
+
+
+// 渲染全部
+async function renderAll(data) {
+  // v1.1 (2026-06-26): 预取实盘模拟总览 + 今日动作，让卡片可以读到
+  try {
+    const [psRes, taRes] = await Promise.all([
+      fetch(`${DataLayer.config.apiBase}/dashboard/portfolio_summary`).then(r => r.json()).catch(() => null),
+      fetch(`${DataLayer.config.apiBase}/dashboard/today_actions_all`).then(r => r.json()).catch(() => null),
+    ]);
+    if (psRes && psRes.code === 0) {
+      window.__portfolioPerStrategy = psRes.data.per_strategy || {};
+      // 注入真实实盘起始日 (2026-08-03 审计陷阱#5: 后端 LIVE_START_DATE=2026-05-25)
+      if (psRes.data.live_start_date) {
+        const lbl = document.getElementById('live-start-label');
+        if (lbl) lbl.textContent = `${psRes.data.live_start_date} 实盘模拟起始日 · 全自动执行`;
+      }
+    }
+    if (taRes && taRes.code === 0) {
+      window.__todayActions = taRes.data.strategies || {};
+      if (data.strategies) {
+        data.strategies.forEach(s => {
+          const sid = s.id || s.strategy_id;
+          const ta = (window.__todayActions || {})[sid];
+          if (ta) {
+            s.today_action = ta.action || s.today_action;
+            s.target = ta.target || s.target;
+            if (ta.signal_date && s.metrics) {
+              s.metrics.signal_date = ta.signal_date;
+            }
+          }
+        });
+      }
+    }
+  } catch (err) {
+    console.warn('预取数据失败:', err);
+  }
+  // 统一 stale 过滤 (2026-08-03 审计陷阱#4): 与 renderStrategyCards 一致,
+  // 过期策略(zhuidian 7-20 距今>5天)不再进入今日动作/交易明细/日志
+  const filtered = activeStrategies(data.strategies);
+  renderStrategyCards(data.strategies);
+  renderActionItems(filtered);
+  renderTradeDetails(filtered);
+  renderNavCurves(data.strategies);
+  renderLogs(filtered);
+  updatePortfolio(data.portfolio);
+}
+
+// 渲染今日动作条 (4 策略)
+function renderActionItems(strategies) {
+  const container = document.getElementById('action-items');
+  if (!container) return;
+  if (!strategies || strategies.length === 0) { container.innerHTML = ''; return; }
+  container.innerHTML = strategies.map(s => {
+    const sid = s.id || s.strategy_id;
+    const action = s.today_action || s.action || 'HOLD';
+    // 根据策略类型生成 target/desc
+    const holdings = s.holdings || [];
+    let target = '', desc = '';
+    if (holdings.length === 0) {
+      target = s.name + ' 无操作';
+      desc = '当前无持仓';
+    } else if (holdings.length === 1) {
+      target = holdings[0].code + ' ' + (holdings[0].name || '');
+      // 2026-08-12 P0 fix: signals JSON 的 cost 字段语义是 per-share (每股成本),
+      // 显示"成本"用持仓市值 (qty*price) 才合理,否则 cost=per-share 直接显示会误导
+      // (1000股 × cost=100 显示"¥100" 以为是每股价)。优先 price 字段,退到 cost*qty。
+      const _h0 = holdings[0];
+      const _h0price = _h0.price != null ? _h0.price : _h0.current_price;
+      const _h0mv = (_h0.qty && _h0price) ? _h0.qty * _h0price
+                   : (_h0.qty && _h0.cost) ? _h0.qty * _h0.cost
+                   : (_h0.market_value != null ? _h0.market_value : null);
+      desc = '持仓 ¥' + (_h0mv != null ? _h0mv.toLocaleString('zh-CN', {minimumFractionDigits: 2}) : '--') + ' · ' + (_h0.qty ? _h0.qty.toLocaleString() + ' 股' : '');
+    } else {
+      const codes = holdings.map(h => h.code).slice(0, 5);
+      target = (s.name || sid) + ' ' + holdings.length + '只持仓';
+      desc = codes.join(' / ');
+    }
+    return `<div class="action-item ${sid}">
+      <span class="action-badge ${(action || '').toLowerCase()}">${action}</span>
+      <div class="action-detail">
+        <div class="target">${target}</div>
+        <div class="desc">${desc}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ========== 通用自适应栅格算法 ==========
+// 规则: 4-7 策略两排, 8+ 三排, 每排 100% 撑满
+//   4 → 2+2     5 → 3+2     6 → 3+3
+//   7 → 3+4     8 → 3+3+2   9 → 3+3+3  10 → 4+3+3
+function calcGridRows(count) {
+  if (count <= 0) return [];
+  if (count <= 3) return [count];
+  if (count <= 7) {
+    // 两排: 第一排 ceil(n/2), 第二排 floor(n/2)
+    return [Math.ceil(count / 2), Math.floor(count / 2)];
+  }
+  // 8+ → 三排: 第一排 3, 第二排 3, 第三排剩余
+  if (count === 8) return [3, 3, 2];
+  if (count === 9) return [3, 3, 3];
+  if (count === 10) return [4, 3, 3];
+  if (count === 11) return [4, 4, 3];
+  if (count === 12) return [4, 4, 4];
+  // 13+: 3 3 3 3 ... 平均分配
+  const baseRows = [3, 3, 3];
+  let remain = count - 9;
+  for (let i = 0; remain > 0; i = (i + 1) % 3) {
+    baseRows[i] += 1;
+    remain -= 1;
+  }
+  return baseRows;
+}
+
+// 信号日期落后超过 MAX_STALE_DAYS 的策略视为"未运行"，跳过渲染
+const MAX_STALE_DAYS = 5;
+function isStrategyActive(s) {
+  const sid = s.id || s.strategy_id;
+  const sigDate = s.metrics?.signal_date || (window.__todayActions && window.__todayActions[sid]?.signal_date) || '';
+  if (!sigDate) return false; // 无信号日期 = 无数据 = 不在运行
+  const now = new Date();
+  const sig = new Date(sigDate + 'T00:00:00');
+  const diffDays = Math.floor((now - sig) / (1000 * 60 * 60 * 24));
+  return diffDays <= MAX_STALE_DAYS;
+}
+function activeStrategies(strategies) {
+  return (strategies || []).filter(isStrategyActive);
+}
+
+// 动态生成策略卡片栅格
+function renderStrategyCards(strategies) {
+  const container = document.getElementById('strategy-cards');
+  if (!container) return;
+  const filtered = strategies ? activeStrategies(strategies) : [];
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="col-12" style="text-align:center;color:var(--text-muted);padding:48px">暂无正在运行的策略数据</div>';
+    return;
+  }
+
+  const rows = calcGridRows(filtered.length);
+  let html = '';
+  let idx = 0;
+  rows.forEach((rowSize, rowIdx) => {
+    // 复用 row flex 布局
+    html += '<div class="row strategy-row' + (rowIdx > 0 ? ' strategy-row-spaced' : '') + '" data-row="' + (rowIdx + 1) + '">';
+    for (let i = 0; i < rowSize && idx < filtered.length; i++, idx++) {
+      const s = filtered[idx];
+      const sid = s.id || s.strategy_id;
+      const sname = s.name || s.strategy_name || sid;
+      // 100% 自适应: 每张 col 宽度 = 100/rowSize
+      const colClass = 'col-row-' + rowSize;
+      const cardHtml = buildCardHtml(sid, sname, s);
+      html += '<div class="' + colClass + '">' + cardHtml + '</div>';
+    }
+    html += '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function buildCardHtml(sid, sname, s) {
+  // 数据来源标记：全部回测（非实盘）
+  const isBacktest = true; // 策略卡片均为回测数据
+  // 从数据中提取字段
+  const holdings = s.holdings || [];
+  const totalReturn = s.total_return;
+  const position = s.position_pct;
+  const cash = s.cash;
+  const status = s.status || 'running';
+  const statusLabel = status === 'placeholder' ? '占位' : status === 'running' ? '运行中' : status;
+  const todayAction = s.today_action || s.action || 'HOLD';
+  // R 标签
+  const latestRound = s.metrics?.latest_round || s.metrics?.latest_desc || '';
+
+  // ===== v1.1 (2026-06-26) 卡片顶部：今日交易条 =====
+  const actionLabel = (todayAction || 'HOLD').toUpperCase();
+  const targetText = s.target ? `→ ${s.target}` : '';
+  const todayDetail = (s.metrics && s.metrics.latest_desc) || (holdings.length > 0 ? `${holdings.length}只持仓` : '空仓观望');
+  // 信号日期
+  const sigDate = s.metrics?.signal_date || (window.__todayActions && window.__todayActions[sid]?.signal_date) || '';
+  const todayActionStrip = `
+    <div class="today-action-strip ${sid}">
+      <div class="tas-header">
+        <span class="tas-title">⚡ 今日交易流程 ${sigDate ? `· ${sigDate}` : ''}</span>
+        <span class="tas-action ${actionLabel}">${actionLabel}</span>
+      </div>
+      <div class="tas-flow">${(actionLabel === 'BUY' ? '买入 ' : actionLabel === 'SELL' ? '卖出 ' : actionLabel === 'REBALANCE' ? '调仓至 ' : actionLabel === 'DEFENSIVE' ? '防御 ' : '观望 ') + (s.target || '—')}</div>
+      <div class="tas-detail">${todayDetail}</div>
+    </div>
+  `;
+
+  // ===== v1.1 (2026-06-26) + 2026-08-03 P0 fix: 总盈亏大字区块 =====
+  // 优先用后端真实持仓市值(__portfolioPerStrategy.current_value),否则从本地 holdings 算市值
+  const initCap = s.initial_capital || (window.__portfolioPerStrategy && window.__portfolioPerStrategy[sid]?.initial_capital) || 10000;
+  let curVal = window.__portfolioPerStrategy && window.__portfolioPerStrategy[sid]?.current_value;
+  if (curVal == null) {
+    // 本地 fallback: sum(qty * price) + cash; 没有 qty*price 时 sum(cost-weight) + cost
+    const livePnL = s.metrics && (s.metrics.live_total_pnl != null ? s.metrics.live_total_pnl : null);
+    if (livePnL != null) {
+      curVal = initCap + livePnL;  // signals 有 live_total_pnl → 直接换算市值
+    } else {
+      // 退化: 用总收益率 × 本金
+      curVal = initCap * (1 + (totalReturn || 0) / 100);
+    }
+  }
+  const pnlAmount = curVal - initCap;
+  const pnlClass = pnlAmount > 0 ? 'up' : pnlAmount < 0 ? 'down' : 'neutral';
+  const pnlAbs = Math.abs(pnlAmount);
+  const pnlSign = pnlAmount >= 0 ? '+' : '-';
+  const pnlFormatted = pnlAbs.toLocaleString('zh-CN', {minimumFractionDigits: 2});
+  const dotIdx = pnlFormatted.lastIndexOf('.');
+  const pnlInt = dotIdx >= 0 ? pnlFormatted.slice(0, dotIdx) : pnlFormatted;
+  const pnlDec = dotIdx >= 0 ? pnlFormatted.slice(dotIdx) : '';
+  // 2026-08-09 v4: 删 ¥符号, 删 .00 段, 只留 +/- + 整数主体
+  const pnlStr = `<span class="pb-sign">${pnlSign}</span><span class="pb-int">${pnlInt}</span>`;
+  const returnStr = (totalReturn !== undefined && totalReturn !== null) ? ((totalReturn >= 0 ? '+' : '') + totalReturn.toFixed(2) + '%') : '--';
+  const profitBlock = `
+    <div class="profit-block">
+      <div class="pb-label">总盈亏（实盘模拟 ${initCap >= 1000 ? (initCap/1000).toFixed(0) + 'k本金' : initCap + '本金'} 至今）</div>
+      <div class="pb-amount ${pnlClass} pb-font-${sid}" data-metric="card-pnl-amount">${pnlStr}</div>
+      <div class="pb-meta">
+        <span class="pb-meta-item"><span class="lbl">收益率</span>${returnStr}</span>
+        <span class="pb-meta-item"><span class="lbl">当前市值</span>¥${curVal.toLocaleString('zh-CN', {minimumFractionDigits: 2})}</span>
+      </div>
+    </div>
+  `;
+
+  let holdingsHtml = holdings.map(h => {
+    const qty = h.qty ? h.qty.toLocaleString() : (h.weight ? h.weight + '%' : '--');
+    // 2026-08-12 P0 fix: cost 字段是 per-share,显示"成本"用持仓市值 (qty*price 或 qty*cost)
+    // 才是用户期望的金额,直接显示 cost=100 会被误读为"总市值 100 元"
+    const _hprice = h.price != null ? h.price : (h.current_price != null ? h.current_price : (h.cost || 0));
+    const _hmv = h.market_value != null ? h.market_value : ((h.qty && _hprice) ? h.qty * _hprice : null);
+    const cost = _hmv != null ? '¥' + _hmv.toLocaleString('zh-CN', {minimumFractionDigits: 2})
+              : (h.cost ? '¥' + h.cost : '--');
+    const pnlHtml = h.pnl !== undefined && h.pnl !== null
+      ? `<span class="holding-pnl ${h.pnl >= 0 ? 'up' : 'down'}">${h.pnl >= 0 ? '+' : ''}${h.pnl.toFixed(2)} (${h.pnl >= 0 ? '+' : ''}${h.pnl_pct}%)</span>`
+      : '<span class="holding-pnl">--</span>';
+    return `<div class="holding-row">
+      <div><div class="holding-code">${h.code}</div><div class="holding-name">${h.name || ''}</div></div>
+      <span class="text-mono">${qty}</span>
+      <span class="text-mono">${cost}</span>
+      ${pnlHtml}
+    </div>`;
+  }).join('');
+
+  // 兼容无 holdings 的情况
+  if (holdings.length === 0) {
+    holdingsHtml = '<div class="holding-row" style="justify-content:center;color:var(--text-muted)">无持仓</div>';
+  }
+
+  return `<div class="strategy-card ${sid} backtest" data-strategy="${sid}" data-source="backtest" onclick="openStrategyDetail('${sid}')">
+    <div class="card-header ${sid}"></div>
+    <div class="card-body">
+      <div class="card-title-row">
+        <span class="card-title">${sname} ${latestRound ? `<span style="font-size:10px;color:var(--${sid}-start);margin-left:4px">${latestRound}</span>` : ''}</span>
+        <span class="status-badge">${statusLabel}</span>
+      </div>
+      <div class="three-layer-tags" data-source="${s.metrics?.signal_date || ''}">
+        <span class="tlt-tag tlt-version" title="策略版本号（棘轮迭代轮次）">📦 ${s.metrics?.version_tag || latestRound || '未标注'}</span>
+        <span class="tlt-tag tlt-period" title="回测数据期">📅 ${s.metrics?.data_period || '未指定'}</span>
+        <span class="tlt-tag tlt-caliber" title="指标计算口径">⚙️ ${s.metrics?.caliber || '未指定'}</span>
+      </div>
+      ${todayActionStrip}
+      ${profitBlock}
+      <div class="metric-row">
+        <div class="metric">
+          <div class="metric-label">2Y 年化 (主)</div>
+          <div class="metric-value ${totalReturn !== undefined && totalReturn !== null ? (totalReturn >= 0 ? 'up' : 'down') : 'neutral'}" data-metric="annualized-return" data-period="2y">${s.metrics?.annualized_return_2y !== undefined ? (s.metrics.annualized_return_2y >= 0 ? '+' : '') + s.metrics.annualized_return_2y.toFixed(2) + '%' : (totalReturn !== undefined && totalReturn !== null ? (totalReturn >= 0 ? '+' : '') + totalReturn.toFixed(2) + '%' : '--')}</div>
+          <div class="metric-sub">回撤 ${s.metrics?.max_dd_2y !== undefined ? s.metrics.max_dd_2y.toFixed(2) + '%' : '--'}</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">仓位 / 现金</div>
+          <div class="metric-value neutral" style="font-size:13px;color:var(--text-muted)">${position !== undefined ? position.toFixed(1) + '%' : '--'}</div>
+          <div class="metric-sub">¥${cash !== undefined ? cash.toFixed(2) : '--'}</div>
+        </div>
+      </div>
+      <div class="holdings-list">
+        <div class="holdings-header">
+          <span>标的</span><span>${holdings.length > 0 && holdings[0].weight ? '权重' : '数量'}</span><span>成本</span><span>盈亏</span>
+        </div>
+        ${holdingsHtml}
+      </div>
+      <div class="card-footer">
+        <span class="card-footer-cash">交易 ${s.metrics?.trades_count || 0} 笔</span>
+        <span>成本 ¥${(s.metrics?.trades_count !== undefined ? (s.metrics.trades_count * 6).toFixed(2) : '0.00')}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+// 把旧 renderCards 改名为 wrapper 调用新的
+function renderCards(strategies) {
+  renderStrategyCards(strategies);
+}
+
+// 渲染交易明细 (3+1 四策略)
+function renderTradeDetails(strategies) {
+  const container = document.getElementById('trade-details');
+  if (!container) return;
+  if (!strategies || strategies.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+  container.innerHTML = strategies.map(s => {
+    const sid = s.id || s.strategy_id;
+    const sname = s.name || s.strategy_name || sid;
+    const holdings = s.holdings || [];
+    const totalCount = holdings.length;
+    const totalAmt = holdings.reduce((sum, h) => {
+      // 2026-08-12 P0 fix: signals JSON 的 cost 字段语义是"总成本"(= market_value),
+      // 不再 qty * cost 双重计算。优先用 market_value, 退到 cost。
+      const mv = h.market_value != null ? h.market_value : (h.cost || 0);
+      return sum + mv;
+    }, 0);
+    const cash = s.cash || 0;
+    // 2026-08-12 v17 P0 fix: 合计用 s.total_asset (API 真实总资产) 而不是 s.cash (现金)
+    // 原因: cash = total_asset - holdings_sum, 但 trade-card 已列 holdings 各项 amount, 合计应等于 total_asset
+    // 视觉一致性: 让"共 N 笔交易 合计 ¥X"显示真实总资产
+    const totalAsset = s.total_asset != null ? s.total_asset : (totalAmt + cash);
+    return `<div class="trade-card ${sid}">
+      <div class="trade-card-header">
+        <span class="trade-card-title">${sname}</span>
+        <span class="trade-card-badge ${s.today_action === 'BUY' ? 'buy' : (s.today_action === 'SELL' ? 'sell' : 'rebalance')}">${s.today_action || 'HOLD'}</span>
+      </div>
+      <div class="trade-card-body">
+        ${holdings.length === 0 ? '<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:12px">无持仓</div>' :
+          holdings.map((h, i) => {
+            // 2026-08-03 审计陷阱#3: 禁止 String(20+i*2) 生成假成交时间 → 无真实时间显示 --:--
+            const time = (h.time || '--:--');
+            return `<div class="trade-row">
+              <div class="trade-row-left">
+                <div class="trade-time">${time}</div>
+                <div class="trade-code">${h.code}<br><span style="font-size:10px;color:var(--text-muted)">${h.name || ''}</span></div>
+              </div>
+              <div class="trade-row-right">
+                <div class="trade-qty">${(h.qty || 0).toLocaleString()}股</div>
+                <!-- 2026-08-12 P0 fix: 改用 market_value (不再 qty * cost 双重计算, 否则 1000股 × cost=100000 显示成 ¥100,000,000) -->
+                <div class="trade-amount">¥${((h.market_value != null ? h.market_value : (h.cost || 0))).toLocaleString('zh-CN', {minimumFractionDigits: 2})}</div>
+              </div>
+            </div>`;
+          }).join('')}
+      </div>
+      <div class="trade-card-footer">
+        <span>共 ${totalCount} 笔交易</span>
+        <span>合计 ¥${totalAsset.toLocaleString('zh-CN', {minimumFractionDigits: 2})}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// 渲染收益对比图 (3+1 四策略)
+// v1.1 (2026-06-26): 改为实盘模拟累计曲线，从实盘模拟首日 (2026-05-25) 到今天
+async function renderNavCurves(strategies) {
+  const ctx = document.getElementById('returnChart');
+  if (!ctx) return;
+  const colors = {
+    qixing:   { border: '#3b82f6', bg: 'rgba(59,130,246,0.08)' },
+    r32:      { border: '#10b981', bg: 'rgba(16,185,129,0.08)' },
+    zhuidian: { border: '#f59e0b', bg: 'rgba(245,158,11,0.08)' },
+    sanhe:    { border: '#a855f7', bg: 'rgba(168,85,247,0.08)' },
+    lightning:{ border: '#facc15', bg: 'rgba(250,204,21,0.08)' }
+  };
+
+  // 优先调用 live_curves API；失败时回退到 mockData.history['2y']
+  let liveData = null;
+  try {
+    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/live_curves`);
+    const result = await res.json();
+    if (result.code === 0) liveData = result.data;
+  } catch (err) {
+    console.warn('live_curves API 失败，使用 mockData 回退:', err);
+  }
+
+  if (currentChart) { currentChart.destroy(); }
+
+  let labels = [];
+  let datasets = [];
+
+  if (liveData && liveData.curves) {
+    // 实盘模拟数据：使用 dates 作为 X 轴，returns 作为 Y 轴
+    labels = liveData.curves[Object.keys(liveData.curves)[0]].dates.map(d => d.substring(5)); // MM-DD
+    datasets = (liveData.strategy_ids || Object.keys(liveData.curves)).map(sid => {
+      const c = liveData.curves[sid];
+      const cs = colors[sid] || { border: '#888', bg: 'rgba(136,136,136,0.08)' };
+      // 找到该 sid 在 strategies 里的名字
+      const s = (strategies || []).find(x => (x.id || x.strategy_id) === sid);
+      const sname = s?.name || s?.strategy_name || sid;
+      return {
+        label: sname,
+        data: c.returns,
+        borderColor: cs.border,
+        backgroundColor: cs.bg,
+        fill: false,
+        tension: 0.3,
+        pointRadius: 1,
+        borderWidth: 2,
+        _initial_capital: s?.initial_capital || 10000,
+      };
+    });
+    // 缓存供标题使用
+    window.__liveCurveMeta = { start: liveData.start_date, end: liveData.end_date, days: liveData.days };
+  } else {
+    // 回退：mockData history 2y（诚实标注为回测数据, 非实盘模拟）
+    const hist = (DataLayer.mockData && DataLayer.mockData.history && DataLayer.mockData.history['2y']) || { labels: [], qixing: [], r32: [], sanhe: [], zhuidian: [], lightning: [] };
+    labels = (hist.labels || []).map(l => l.substring(5));
+    // 2026-08-03 审计陷阱#2: mockData 终点(qixing 74.0 / r32 38.14)与真实回测不符
+    // → 尽力从 signals/{sid}_{signal_date}.json 拉取 backtest_total_return 重生成终点;
+    //   静态站拉不到时保留 mock 终点并在 label 上注明"mock占位", 不冒充真实
+    const realEndpoints = {};
+    await Promise.all((strategies || []).map(async s => {
+      const sid = s.id || s.strategy_id;
+      const sigDate = s.metrics?.signal_date || (window.__todayActions && window.__todayActions[sid]?.signal_date);
+      if (!sigDate) return;
+      try {
+        const res = await fetch(`signals/${sid}_${sigDate}.json`);
+        if (res.ok) {
+          const sig = await res.json();
+          if (typeof sig.backtest_total_return === 'number') {
+            realEndpoints[sid] = sig.backtest_total_return;
+          }
+        }
+      } catch (e) { /* 保持 mock 终点, label 会注明 mock占位 */ }
+    }));
+    const stratMap = { qixing: hist.qixing, r32: hist.r32, zhuidian: hist.zhuidian, sanhe: hist.sanhe, lightning: hist.lightning };
+    datasets = (strategies || []).map(s => {
+      const sid = s.id || s.strategy_id;
+      const sname = s.name || s.strategy_name || sid;
+      const c = colors[sid] || { border: '#888', bg: 'rgba(136,136,136,0.08)' };
+      let arr = stratMap[sid] || [];
+      const endpointFixed = realEndpoints[sid] !== undefined && arr.length > 0;
+      if (endpointFixed) {
+        arr = arr.slice();
+        arr[arr.length - 1] = realEndpoints[sid]; // 终点 = signals 真实 backtest_total_return
+      }
+      return {
+        label: sname + (endpointFixed ? ' (回测2Y·终点=signals真实)' : ' (回测2Y·mock占位)'),
+        data: arr,
+        borderColor: c.border,
+        backgroundColor: c.bg,
+        fill: false,
+        tension: 0.3,
+        pointRadius: 1,
+        borderWidth: 2,
+        borderDash: [4, 4],
+      };
+    });
+    // days 由 labels 长度(月点数)推导, 不再硬编码 25天 (2026-08-03 审计陷阱#2)
+    window.__liveCurveMeta = { start: (hist.labels || [])[0] || '2024-06', end: (hist.labels || []).slice(-1)[0] || '2026-06', days: (hist.labels || []).length, mode: 'mock' };
+  }
+
+  // 更新 section header 的时间范围描述
+  const meta = window.__liveCurveMeta || {};
+  const sectionTitle = document.querySelector('.chart-section .section-title');
+  if (sectionTitle) {
+    // mock 回退时数据是 2Y 回测(月粒度) → 标注"回测2Y + 个月", 不冒充"实盘模拟 + 天"
+    const unit = meta.mode === 'mock' ? '个月' : '天';
+    const modeLabel = meta.mode === 'mock' ? '回测2Y' : '实盘模拟';
+    sectionTitle.textContent = `收益曲线 · ${modeLabel} ${meta.start || '?'} → ${meta.end || '?'}（${meta.days || '?'}${unit}）`;
+  }
+  const tabsEl = document.querySelector('.chart-section .section-tabs');
+  if (tabsEl && tabsEl.children.length > 0) {
+    if (meta.mode === 'mock') {
+      tabsEl.children[0].textContent = '回测2Y';
+      if (tabsEl.children[1]) tabsEl.children[1].textContent = '回测5Y';
+    } else {
+      tabsEl.children[0].textContent = '实盘模拟';
+      if (tabsEl.children[1]) tabsEl.children[1].textContent = '回测对比';
+    }
+    tabsEl.children[0].classList.add('active');
+  }
+
+  currentChart = new Chart(ctx.getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top', labels: { color: '#a0a0b8', font: { family: 'SF Mono, Consolas, monospace', size: 11 }, usePointStyle: true, boxWidth: 8 } },
+        tooltip: {
+          backgroundColor: 'rgba(10,10,15,0.9)',
+          titleColor: '#e8e8f0',
+          bodyColor: '#a0a0b8',
+          borderColor: 'rgba(255,255,255,0.1)',
+          borderWidth: 1,
+          callbacks: {
+            title: items => {
+              const idx = items[0].dataIndex;
+              const ds = liveData?.curves?.[Object.keys(liveData.curves)[0]]?.dates;
+              return ds ? ds[idx] : items[0].label;
+            },
+            label: c => c.dataset.label + ': ' + (c.parsed.y >= 0 ? '+' : '') + c.parsed.y.toFixed(2) + '%'
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#606078', maxTicksLimit: 10, font: { size: 10 } } },
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#606078', callback: v => v + '%', font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+// ========== 旧函数移除 (改为新 renderMultiChart 调用新策略) ==========
+function renderMultiChart(curves, period) {
+  // 简化版: 直接从 strategies 实时数据生成
+  const all = (window.strategiesData && window.strategiesData.strategies) || (DataLayer.getCachedData && DataLayer.getCachedData().strategies) || [];
+  renderNavCurves(all);
+}
+
+// 更新总资金 / 总盈亏 / 总收益率 (v1.1 - 2026-06-26)
+async function updatePortfolio(portfolio) {
+  // 调用 portfolio_summary API 获取权威数据
+  try {
+    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/portfolio_summary`);
+    const result = await res.json();
+    if (result.code === 0 && result.data) {
+      const d = result.data;
+      const initial = d.initial_capital || 50000;
+      const total = d.total_value || initial;
+      // L1615 (P0 修复 2026-08-01 5539aa5): pnl 优先读 total_pnl,缺失时用 total - initial 兜底
+      const pnl = d.total_pnl !== undefined ? d.total_pnl : (d.total_value - (d.initial_capital || 50000));
+      // L1616 (2026-08-01 5539aa5): ret 字段标准命名 total_return_pct
+      const ret = d.total_return_pct || 0;
+
+      const psInitial = document.getElementById('ps-initial');
+      const psPnl = document.getElementById('ps-pnl');
+      const psReturn = document.getElementById('ps-return');
+      const psTotal = document.getElementById('ps-total');
+
+      if (psInitial) psInitial.textContent = '¥' + initial.toLocaleString('zh-CN', {minimumFractionDigits: 2});
+      if (psPnl) {
+        psPnl.textContent = (pnl >= 0 ? '+¥' : '-¥') + Math.abs(pnl).toLocaleString('zh-CN', {minimumFractionDigits: 2});
+        psPnl.parentElement.className = 'item pnl ' + (pnl >= 0 ? 'up' : 'down');
+      }
+      if (psReturn) {
+        psReturn.textContent = (ret >= 0 ? '+' : '') + ret.toFixed(2) + '%';
+        psReturn.parentElement.className = 'item pnl ' + (ret >= 0 ? 'up' : 'down');
+      }
+      if (psTotal) {
+        psTotal.textContent = '¥' + total.toLocaleString('zh-CN', {minimumFractionDigits: 2});
+        psTotal.style.color = pnl >= 0 ? 'var(--color-up)' : 'var(--color-down)';
+      }
+      return;
+    }
+  } catch (err) {
+    console.warn('portfolio_summary API 失败，回退到传入数据:', err);
+  }
+
+  // 回退到传入数据 (P0 修复 2026-08-01 5f5502e: 静态站 fetch 必失败 → pnl 优先读 portfolio.total_pnl, 兜底 total - initial)
+  const initial = 50000;
+  const total = portfolio.total_value || initial;
+  // L1645 (2026-08-01 5f5502e): 标准字段 total_return_pct (不是 total_return)
+  const ret = portfolio.total_return_pct || 0;
+  // L1646 (2026-08-01 5f5502e): pnl 优先读 portfolio.total_pnl,缺失时用 total - initial
+  const pnl = portfolio.total_pnl !== undefined && portfolio.total_pnl !== null ? portfolio.total_pnl : (total - initial);
+  const psInitial = document.getElementById('ps-initial');
+  const psPnl = document.getElementById('ps-pnl');
+  const psReturn = document.getElementById('ps-return');
+  const psTotal = document.getElementById('ps-total');
+  if (psInitial) psInitial.textContent = '¥' + initial.toLocaleString('zh-CN', {minimumFractionDigits: 2});
+  if (psPnl) {
+    psPnl.textContent = (pnl >= 0 ? '+¥' : '-¥') + Math.abs(pnl).toLocaleString('zh-CN', {minimumFractionDigits: 2});
+    psPnl.parentElement.className = 'item pnl ' + (pnl >= 0 ? 'up' : 'down');
+  }
+  if (psReturn) {
+    psReturn.textContent = (ret >= 0 ? '+' : '') + ret.toFixed(2) + '%';
+    psReturn.parentElement.className = 'item pnl ' + (ret >= 0 ? 'up' : 'down');
+  }
+  if (psTotal) {
+    psTotal.textContent = '¥' + total.toLocaleString('zh-CN', {minimumFractionDigits: 2});
+  }
+}
+
+// 渲染策略变更日志 (动态生成 4 策略)
+function renderLogs(strategies) {
+  const container = document.getElementById('strategy-logs');
+  if (!container) return;
+  // 2026-08-03 审计陷阱#4: 与 renderStrategyCards 一致走 stale 过滤; 无有效日志时显示"暂无日志"
+  const active = strategies ? activeStrategies(strategies) : [];
+  if (!active || active.length === 0) {
+    container.innerHTML = '<div class="log-item" style="justify-content:center;color:var(--text-muted)">暂无日志</div>';
+    return;
+  }
+  // 各策略的最近事件 (与 metrics 联动)
+  const labelMap = { qixing: '七星', r32: 'R32', zhuidian: '追电', sanhe: '三合' };
+  const logs = [];
+  active.forEach(s => {
+    const sid = s.id || s.strategy_id;
+    const r = s.metrics?.latest_round || '';
+    const desc = s.metrics?.latest_desc || s.metrics?.data_period || '';
+    const action = s.today_action || 'PARAM';
+    const annRet = s.metrics?.annualized_return !== undefined ? `年化 ${(s.metrics.annualized_return*100).toFixed(2)}%` : '';
+    // 2026-08-03 审计陷阱#3: 时间戳用真实 signal_date, 不用 new Date() 每次刷新生成假时间
+    const sigDate = s.metrics?.signal_date || (window.__todayActions && window.__todayActions[sid]?.signal_date) || '';
+    logs.push({
+      time: sigDate || '--',
+      sid,
+      label: labelMap[sid] || sid,
+      action,
+      detail: r ? `${r} ${desc} ${annRet}`.trim() : (s.name || sid) + ' 实盘运行中'
+    });
+  });
+  // 按时间倒序
+  logs.sort((a, b) => b.time.localeCompare(a.time));
+  container.innerHTML = logs.map(l => {
+    const badgeClass = (l.action || 'param').toLowerCase();
+    return `<div class="log-item">
+      <span class="log-time">${l.time}</span>
+      <span class="log-strategy ${l.sid}">${l.label}</span>
+      <span class="log-action ${badgeClass}">${l.action}</span>
+      <span class="log-detail">${l.detail}</span>
+    </div>`;
+  }).join('');
+}
+
+// ========== 时钟更新 ==========
+function getTodayStr() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function updateClock() {
+  const now = new Date();
+  const todayStr = getTodayStr();
+  document.getElementById('current-date').textContent = now.toLocaleDateString('zh-CN');
+  document.getElementById('current-time').textContent = now.toLocaleTimeString('zh-CN');
+  // 同步 review-date-select:若当前选中"今日"option,刷新文字;否则不动用户选择
+  const sel = document.getElementById('review-date-select');
+  if (sel) {
+    const todayOpt = sel.querySelector(`option[value="${todayStr}"]`);
+    if (todayOpt) todayOpt.textContent = `${todayStr} (今日)`;
+  }
+}
+
+function initReviewDateSelect() {
+  const sel = document.getElementById('review-date-select');
+  if (!sel) return;
+  const today = getTodayStr();
+  // 1. 今日默认
+  const opt = document.createElement('option');
+  opt.value = today;
+  opt.textContent = `${today} (今日)`;
+  sel.appendChild(opt);
+  // 2. 最近 14 天回放
+  for (let i = 1; i <= 14; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const past = `${y}-${m}-${dd}`;
+    const o = document.createElement('option');
+    o.value = past;
+    o.textContent = past;
+    sel.appendChild(o);
+  }
+  sel.value = today;
+  loadReviewByDate(today);
+}
+setInterval(updateClock, 1000);
+updateClock();
+initReviewDateSelect();
+
+// ========== 刷新数据 ==========
+function refreshData() {
+  const btn = document.querySelector('.refresh-btn');
+  btn.textContent = '⟳ 刷新中...';
+  setTimeout(() => {
+    btn.textContent = '⟳ 刷新';
+    // 模拟数据更新
+    console.log('数据已刷新');
+  }, 500);
+}
+
+// ========== 按日期加载复盘 ==========
+function loadReviewByDate(date) {
+  // 更新日志区显示对应日期的复盘摘要
+  const logs = getLogsForDate(date);
+  const container = document.getElementById('strategy-logs');
+  if (logs && logs.length > 0) {
+    container.innerHTML = logs.map(log => `
+      <div class="log-item">
+        <span class="log-time">${log.time}</span>
+        <span class="log-strategy ${log.strategy}">${log.strategyName}</span>
+        <span class="log-action ${log.action.toLowerCase()}">${log.action}</span>
+        <span class="log-detail">${log.detail}</span>
+      </div>
+    `).join('');
+  } else {
+    container.innerHTML = `
+      <div class="log-item" style="justify-content:center;color:var(--text-muted)">
+        ${date === getTodayStr() ? '今日暂无复盘记录' : '该日期暂无复盘记录'}
+      </div>
+    `;
+  }
+}
+
+// 获取指定日期的日志（实际应从 review/ 目录加载）
+function getLogsForDate(date) {
+  // 硬编码 mock 已移除,改为按真实 review 目录加载,无数据返回空
+  return [];
+}
+
+// ========== 执行动作 ==========
+function executeAction(strategyId) {
+  const all = strategiesData.strategies || strategiesData.mockData?.strategies || [];
+  const s = all.find(x => x.id === strategyId);
+  if (!s) return alert('策略数据未加载');
+  if (confirm(`确认执行【${s.name}】的${s.today_action}操作？`)) {
+    alert('指令已发送（模拟）');
+  }
+}
+
+// ========== 策略详情模态 ==========
+function openStrategyDetail(id) {
+  const all = strategiesData.strategies || strategiesData.mockData?.strategies || [];
+  const s = all.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('modal-title').textContent = s.name + ' · 详情';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="metric-row">
+      <div class="metric">
+        <div class="metric-label">当前动作</div>
+        <div class="metric-value" style="font-size:20px">${s.today_action || s.action || 'HOLD'}</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">仓位</div>
+        <div class="metric-value">${s.position_pct || s.position || 0}%</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">现金</div>
+        <div class="metric-value">¥${(s.cash || 0).toFixed(2)}</div>
+      </div>
+    </div>
+    <h4 style="margin:24px 0 12px;font-size:14px;color:var(--text-muted)">持仓明细</h4>
+    ${(s.holdings || []).map(h => `
+      <div class="holding-row" style="grid-template-columns:1fr 1fr 1fr 1fr">
+        <div><div class="holding-code">${h.code}</div><div class="holding-name">${h.name}</div></div>
+        <span class="text-mono">${h.qty ? h.qty.toLocaleString() : (h.weight + '%')}</span>
+        <!-- 2026-08-12 P0 fix: cost 是 per-share, 显示持仓市值 (qty*price 或 qty*cost fallback) -->
+        ${(() => {
+          const _p = h.price != null ? h.price : (h.current_price != null ? h.current_price : (h.cost || 0));
+          const _mv = h.market_value != null ? h.market_value : ((h.qty && _p) ? h.qty * _p : null);
+          return `<span class="text-mono">¥${_mv != null ? _mv.toLocaleString('zh-CN', {minimumFractionDigits: 2}) : (h.cost || '--')}</span>`;
+        })()}
+        <span class="holding-pnl ${(h.pnl||0) >= 0 ? 'up' : 'down'}">${h.pnl ? (h.pnl>=0?'+':'')+h.pnl.toFixed(2)+' ('+(h.pnl>=0?'+':'')+h.pnl_pct+'%)' : '--'}</span>
+      </div>
+    `).join('')}
+    <h4 style="margin:24px 0 12px;font-size:14px;color:var(--text-muted)">策略版本与回测绩效</h4>
+    <div class="metric-row">
+      <div class="metric">
+        <div class="metric-label">最新策略</div>
+        <div class="metric-value neutral">${s.metrics?.latest_round !== undefined ? (String(s.metrics.latest_round).startsWith('R') ? s.metrics.latest_round : (s.metrics.latest_round ? `R${s.metrics.latest_round}` : '追电1.0')) : '--'}</div>
+        <div class="metric-sub">${s.metrics?.latest_desc || '未标注'} · ${s.metrics?.data_period || '未标注'}</div>
+      </div>
+      ${s.metrics?.total_return_2y !== undefined ? `
+        <div class="metric">
+          <div class="metric-label">2Y回测</div>
+          <div class="metric-value up">+${s.metrics.total_return_2y}%</div>
+          <div class="metric-sub">回撤 ${s.metrics.max_dd_2y}% · ${s.metrics.trades_2y}笔</div>
+        </div>
+      ` : ''}
+      ${s.metrics?.total_return_5y !== undefined ? `
+        <div class="metric">
+          <div class="metric-label">5Y回测</div>
+          <div class="metric-value up">+${s.metrics.total_return_5y}%</div>
+          <div class="metric-sub">回撤 ${s.metrics.max_dd_5y}% · ${s.metrics.trades_5y}笔</div>
+        </div>
+      ` : ''}
+      <div class="metric">
+        <div class="metric-label">年化/夏普</div>
+        <div class="metric-value up">+${s.metrics?.annualized_return ?? s.metrics?.annual_return ?? '--'}%</div>
+        <div class="metric-sub">夏普 ${s.metrics?.sharpe ?? '--'} · 引擎 ${s.metrics?.engine_version || '未标注'}</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('modal-overlay').classList.add('active');
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('active');
+  }
+}
+
+// ========== 侧滑面板 ==========
+function openDrawer(title, content) {
+  document.getElementById('drawer-title').textContent = title;
+  document.getElementById('drawer-body').innerHTML = content;
+  document.getElementById('drawer').classList.add('active');
+}
+
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('active');
+}
+
+// ========== 图表 ==========
+// currentChart 已在顶部声明
+
+let currentChartPeriod = 'live';
+
+function initChart() {
+  // 默认加载实盘净值曲线（三策略对比）
+  loadNavCurves('live');
+  // P8 v1.0: 加载 5 策略 Daily P&L 趋势图
+  loadDailyPnlTrend(14);
+  // P9 v1.0: 加载 WFA 过拟合审计
+  loadWfaSummary();
+  loadWfaOosCurve();
+  // P9-D v1.0: 加载参数稳定性监控
+  loadParamStability();
+}
+
+async function loadNavCurves(period) {
+  currentChartPeriod = period;
+  try {
+    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/nav_curves`);
+    const result = await res.json();
+    if (result.code === 0) {
+      renderMultiChart(result.data.curves, period);
+      return;
+    }
+  } catch (err) {
+    console.error('净值曲线加载失败:', err);
+  }
+  // 回退到模拟数据
+  renderMultiChart(null, period);
+}
+
+function switchChart(period) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  loadNavCurves(period);
+}
+
+// ==================== P8 v1.0: Daily P&L 趋势图 ====================
+let dailyPnlTrendChart = null;
+let dailyPnlData = null;  // 缓存 API 数据
+
+async function loadDailyPnlTrend(days = 14) {
+  try {
+    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/daily_pnl_trend?days=${days}&cumulative=true`);
+    const data = await res.json();
+    if (data.code !== 0) {
+      throw new Error(data.message || 'API 返回错误');
+    }
+    dailyPnlData = data.data;
+    renderDailyPnlTrendChart(dailyPnlData, 'cumulative');
+    const meta = document.getElementById('daily-pnl-meta');
+    if (meta && dailyPnlData.kpi) {
+      meta.textContent = `${dailyPnlData.kpi.first_date} ~ ${dailyPnlData.kpi.last_date} (${dailyPnlData.kpi.total_days} 天 · 累计)`;
+    }
+  } catch (e) {
+    console.error('daily_pnl_trend API 失败:', e);
+    const meta = document.getElementById('daily-pnl-meta');
+    if (meta) meta.textContent = 'API 失败';
+  }
+}
+
+function renderDailyPnlTrendChart(data, viewMode) {
+  const canvas = document.getElementById('dailyPnlTrendChart');
+  if (!canvas || !data) return;
+
+  // 销毁旧图
+  if (dailyPnlTrendChart) dailyPnlTrendChart.destroy();
+
+  // 切换数据视图（cumulative/daily）
+  const isCumulative = viewMode === 'cumulative';
+  const datasets = Object.entries(data.strategies).map(([sid, info]) => ({
+    label: info.name,
+    data: info.data,
+    borderColor: info.color,
+    backgroundColor: info.color + '20',
+    borderWidth: 2,
+    pointRadius: 3,
+    pointHoverRadius: 5,
+    tension: 0.3,
+    fill: false,
+  }));
+
+  dailyPnlTrendChart = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: data.dates,
+      datasets: datasets,
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top', labels: { color: '#94a3b8', font: { size: 12 } } },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              const val = ctx.parsed.y;
+              return `${ctx.dataset.label}: ¥${val >= 0 ? '+' : ''}${val.toFixed(0)}`;
+            },
+          },
+        },
+        title: {
+          display: true,
+          text: isCumulative ? '累计 P&L 曲线' : '每日 P&L',
+          color: '#64748b',
+          font: { size: 13 },
+        },
+      },
+      scales: {
+        x: { ticks: { color: '#94a3b8', maxRotation: 45, minRotation: 45 }, grid: { color: '#1e293b' } },
+        y: {
+          ticks: {
+            color: '#94a3b8',
+            callback: function(v) { return '¥' + v.toLocaleString(); },
+          },
+          grid: { color: '#1e293b' },
+        },
+      },
+    },
+  });
+}
+
+async function switchDailyPnlView(viewMode) {
+  // 切换 tab 样式
+  document.getElementById('tab-daily-pnl-cumulative').classList.toggle('active', viewMode === 'cumulative');
+  document.getElementById('tab-daily-pnl-daily').classList.toggle('active', viewMode === 'daily');
+
+  if (!dailyPnlData) return;
+
+  if (viewMode === 'cumulative') {
+    renderDailyPnlTrendChart(dailyPnlData, 'cumulative');
+    const meta = document.getElementById('daily-pnl-meta');
+    if (meta) meta.textContent = `${dailyPnlData.kpi.first_date} ~ ${dailyPnlData.kpi.last_date} (${dailyPnlData.kpi.total_days} 天 · 累计)`;
+  } else {
+    // 重新拉取 cumulative=false 的数据
+    try {
+      const days = dailyPnlData.days;
+      const res = await fetch(`${DataLayer.config.apiBase}/dashboard/daily_pnl_trend?days=${days}&cumulative=false`);
+      const data = await res.json();
+      if (data.code === 0) {
+        renderDailyPnlTrendChart(data.data, 'daily');
+        const meta = document.getElementById('daily-pnl-meta');
+        if (meta) meta.textContent = `${data.data.kpi.first_date} ~ ${data.data.kpi.last_date} (${data.data.kpi.total_days} 天 · 每日)`;
+      }
+    } catch (e) {
+      console.error('切换到 daily 模式失败:', e);
+    }
+  }
+}
+
+// ==================== P9 v1.0: WFA 过拟合审计 ====================
+let wfaOosCurveChart = null;
+let wfaOosCurveData = null;
+
+async function loadWfaSummary() {
+  try {
+    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/wfa_summary`);
+    const data = await res.json();
+    if (data.code !== 0) {
+      throw new Error(data.message || 'API 返回错误');
+    }
+    renderWfaSummaryCards(data.data);
+    const meta = document.getElementById('wfa-meta');
+    if (meta && data.data.kpi) {
+      const k = data.data.kpi;
+      meta.textContent = `${k.wfa_run_date} | ${k.window_count} 窗口 | 训练 ${k.train_months} 月 + 测试 ${k.test_months} 月 | 严重过拟合 ${k.severe_overfit_count}/${k.total_strategies}`;
+    }
+  } catch (e) {
+    console.error('wfa_summary API 失败:', e);
+    const meta = document.getElementById('wfa-meta');
+    if (meta) meta.textContent = 'API 失败（请先跑 walk_forward_runner.py）';
+  }
+}
+
+function renderWfaSummaryCards(payload) {
+  const cardsEl = document.getElementById('wfa-cards');
+  if (!cardsEl) return;
+
+  const sidOrder = ['lightning', 'r32', 'sanhe', 'zhuidian'];
+  const healthIcons = {
+    severe_overfit: '🔴',
+    moderate_overfit: '⚡',
+    healthy: '✅',
+  };
+  const healthLabels = {
+    severe_overfit: '严重过拟合',
+    moderate_overfit: '中度过拟合',
+    healthy: '健康',
+  };
+
+  cardsEl.innerHTML = sidOrder.map(sid => {
+    const info = payload.strategies[sid];
+    if (!info) return '';
+    // 2026-08-14 修复:overfit_ratio=null 时不再显示 "N/A",改为根据 health 字段显示真实评估
+    const ratio = info.overfit_ratio !== null && info.overfit_ratio !== undefined
+      ? info.overfit_ratio.toFixed(3)
+      : (info.health === 'severe_overfit' ? '∞ (过拟合)' : (info.oos_return_pct === 0 ? '0.000 (无OOS)' : 'N/A'));
+    const oosRet = info.oos_return_pct.toFixed(2);
+    const fullRet = info.full_return_pct.toFixed(2);
+    const oosDD = info.oos_dd_pct.toFixed(2);
+    const oosSharpe = info.oos_sharpe !== null && info.oos_sharpe !== undefined ? info.oos_sharpe.toFixed(2) : 'N/A';
+    return `
+      <div class="risk-card" style="text-align:left;border-left:4px solid ${info.health_color}">
+        <div class="risk-title" style="font-size:13px">
+          ${healthIcons[info.health] || '·'} ${info.name}
+          <span style="font-size:11px;color:${info.health_color};float:right">${healthLabels[info.health] || ''}</span>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text-muted)">过拟合比 (OOS/完整)</div>
+        <div style="font-size:22px;font-weight:bold;color:${info.health_color}">${ratio}</div>
+        <div style="margin-top:6px;font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between">
+          <span>完整收益</span><span style="color:#94a3b8">${fullRet}%</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between">
+          <span>样本外收益</span><span style="color:${info.health_color};font-weight:bold">${oosRet}%</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between">
+          <span>OOS 最大回撤</span><span style="color:#94a3b8">${oosDD}%</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between">
+          <span>OOS Sharpe</span><span style="color:#94a3b8">${oosSharpe}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function loadWfaOosCurve() {
+  try {
+    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/wfa_oos_curve`);
+    const data = await res.json();
+    if (data.code !== 0) {
+      throw new Error(data.message || 'API 返回错误');
+    }
+    wfaOosCurveData = data.data;
+    renderWfaOosCurveChart(wfaOosCurveData);
+  } catch (e) {
+    console.error('wfa_oos_curve API 失败:', e);
+  }
+}
+
+function renderWfaOosCurveChart(data) {
+  const canvas = document.getElementById('wfaOosCurveChart');
+  if (!canvas || !data) return;
+
+  if (wfaOosCurveChart) wfaOosCurveChart.destroy();
+
+  // 4 策略按健康度排序显示（严重过拟合用 dashed）
+  const datasets = Object.entries(data.strategies).map(([sid, info]) => ({
+    label: info.name,
+    data: info.data,
+    borderColor: info.color,
+    backgroundColor: info.color + '20',
+    borderWidth: 2,
+    borderDash: sid === 'lightning' ? [6, 4] : [],  // lightning 用 dashed 警示
+    pointRadius: 2,
+    pointHoverRadius: 4,
+    tension: 0.2,
+    fill: false,
+  }));
+
+  wfaOosCurveChart = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: data.dates,
+      datasets: datasets,
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top', labels: { color: '#94a3b8', font: { size: 12 } } },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              const val = ctx.parsed.y;
+              return `${ctx.dataset.label}: ¥${val >= 0 ? '+' : ''}${val.toFixed(0)}`;
+            },
+          },
+        },
+        title: {
+          display: true,
+          text: '样本外累计 P&L（4 策略）',
+          color: '#64748b',
+          font: { size: 13 },
+        },
+      },
+      scales: {
+        x: { ticks: { color: '#94a3b8', maxRotation: 45, minRotation: 45 }, grid: { color: '#1e293b' } },
+        y: {
+          ticks: {
+            color: '#94a3b8',
+            callback: function(v) { return '¥' + v.toLocaleString(); },
+          },
+          grid: { color: '#1e293b' },
+        },
+      },
+    },
+  });
+}
+
+// ==================== P9-D v1.0: 参数稳定性监控 ====================
+async function loadParamStability() {
+  try {
+    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/param_stability`);
+    const data = await res.json();
+    if (data.code !== 0) {
+      throw new Error(data.message || 'API 返回错误');
+    }
+    renderParamStabilityCards(data.data);
+    const meta = document.getElementById('param-stability-meta');
+    if (meta && data.data.kpi) {
+      meta.textContent = `${data.data.kpi.run_date} | 13 训练窗口 | 4 策略 × 1 关键参数网格`;
+    }
+  } catch (e) {
+    console.error('param_stability API 失败:', e);
+    const meta = document.getElementById('param-stability-meta');
+    if (meta) meta.textContent = 'API 失败';
+  }
+}
+
+function renderParamStabilityCards(payload) {
+  const cardsEl = document.getElementById('param-stability-cards');
+  if (!cardsEl) return;
+
+  // 策略显示顺序（按稳定性评分从高到低排序）
+  const sidOrder = ['r32', 'lightning', 'sanhe', 'zhuidian', 'qixing'];  // P9-D qixing WFA (2026-07-04)
+
+  // 稳定性评分配色
+  function scoreColor(s) {
+    if (s >= 0.8) return '#10b981';  // 绿
+    if (s >= 0.6) return '#facc15';  // 黄
+    return '#dc2626';                 // 红
+  }
+
+  cardsEl.innerHTML = sidOrder.map(sid => {
+    const info = payload.strategies[sid];
+    if (!info) return '';
+
+    const score = info.stability_score;
+    const sColor = scoreColor(score);
+    const isCurrentMode = info.current_is_mode;
+    const modeMatch = isCurrentMode
+      ? '<span style="color:#10b981;font-size:11px">✅ 当前=众数</span>'
+      : '<span style="color:#f59e0b;font-size:11px">⚠️ 当前≠众数</span>';
+
+    // 参数分布柱状图（HTML/CSS 实现，避免 Chart.js 多次创建）
+    const distBars = info.grid_values.map(v => {
+      // Python 端 key 可能是 "3" 或 "40.0"，JS 兼容多种形式
+      const vNum = Number(v);
+      const count = info.distribution[String(v)]
+                 ?? info.distribution[String(vNum)]
+                 ?? info.distribution[Object.keys(info.distribution).find(k => Number(k) === vNum) || '']
+                 ?? 0;
+      const pct = info.mode_count > 0 ? (count / info.mode_count) * 100 : 0;
+      const isMode = v === info.mode || Number(v) === Number(info.mode);
+      const color = isMode ? sColor : '#475569';
+      // 显示值（40.0 → 40，3 → 3）
+      const displayV = (vNum === Math.floor(vNum)) ? vNum.toString() : String(v);
+      return `
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;margin:3px 0">
+          <span style="width:36px;color:#94a3b8">${displayV}${isCurrentMode ? '<span style="font-size:9px">👈</span>' : ''}</span>
+          <div style="flex:1;background:#1e293b;border-radius:3px;height:14px;overflow:hidden">
+            <div style="width:${pct}%;background:${color};height:100%;transition:width 0.3s"></div>
+          </div>
+          <span style="width:24px;text-align:right;color:#94a3b8">${count}</span>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="risk-card" style="text-align:left;border-left:4px solid ${sColor}">
+        <div class="risk-title" style="font-size:13px">
+          ${info.param_name}
+          <span style="font-size:11px;color:${sColor};float:right">${info.interpretation.split('（')[0]}</span>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text-muted)">稳定性评分</div>
+        <div style="font-size:24px;font-weight:bold;color:${sColor}">${score.toFixed(2)}</div>
+        <div style="margin-top:6px;font-size:11px;color:var(--text-muted)">
+          当前=<b style="color:#94a3b8">${info.current_value}</b> | 众数=<b style="color:${sColor}">${info.mode}</b> ${modeMatch}
+        </div>
+        <div style="margin-top:8px;font-size:10px;color:var(--text-muted)">13 窗口参数分布：</div>
+        ${distBars}
+        <div style="margin-top:6px;font-size:10px;color:var(--text-muted)">
+          std=${info.std.toFixed(2)} | 中位数=${info.median}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ==================== P9-D v1.0: A/B 对照（grid_mode vs hardcode）====================
+async function loadAbComparison() {
+  try {
+    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/ab_comparison?days=60`);
+    const data = await res.json();
+    if (data.code !== 0 || !data.data || !data.data.date) {
+      throw new Error(data.message || 'API 返回错误或无 A/B 数据');
+    }
+    renderAbComparisonKpi(data.data);
+    renderAbComparisonCards(data.data);
+    renderAbDiffTrendChart(data.data.history);
+    const meta = document.getElementById('ab-comparison-meta');
+    if (meta) {
+      meta.textContent = `${data.data.date} | ${data.data.totals.strategies_count || 0} 策略 | 最近 ${data.data.history.length} 天`;
+    }
+  } catch (e) {
+    console.error('ab_comparison API 失败:', e);
+    const meta = document.getElementById('ab-comparison-meta');
+    if (meta) meta.textContent = 'API 失败';
+    const kpiEl = document.getElementById('ab-comparison-kpi');
+    if (kpiEl) kpiEl.innerHTML = '<div class="risk-card" style="text-align:center;color:var(--text-muted)">尚无 A/B 数据（等 P7 daily run 跑出第一份对照）</div>';
+  }
+}
+
+function renderAbComparisonKpi(payload) {
+  const el = document.getElementById('ab-comparison-kpi');
+  if (!el) return;
+  const k = payload.kpi || {};
+  const t = payload.totals || {};
+  el.innerHTML = `
+    <div class="risk-card" style="text-align:left;border-left:4px solid #10b981">
+      <div class="risk-title" style="font-size:12px">Grid Mode Wins</div>
+      <div style="font-size:28px;font-weight:bold;color:#10b981">${k.grid_wins || 0}</div>
+      <div style="font-size:10px;color:var(--text-muted)">grid_mode 收益更高的策略数</div>
+    </div>
+    <div class="risk-card" style="text-align:left;border-left:4px solid #f59e0b">
+      <div class="risk-title" style="font-size:12px">Baseline Wins</div>
+      <div style="font-size:28px;font-weight:bold;color:#f59e0b">${k.baseline_wins || 0}</div>
+      <div style="font-size:10px;color:var(--text-muted)">hardcode 收益更高的策略数</div>
+    </div>
+    <div class="risk-card" style="text-align:left;border-left:4px solid #94a3b8">
+      <div class="risk-title" style="font-size:12px">Ties</div>
+      <div style="font-size:28px;font-weight:bold;color:#94a3b8">${k.ties || 0}</div>
+      <div style="font-size:10px;color:var(--text-muted)">两者持平的策略数（参数相同）</div>
+    </div>
+    <div class="risk-card" style="text-align:left;border-left:4px solid ${(t.diff_sum || 0) >= 0 ? '#10b981' : '#dc2626'}">
+      <div class="risk-title" style="font-size:12px">Total diff_sum</div>
+      <div style="font-size:28px;font-weight:bold;color:${(t.diff_sum || 0) >= 0 ? '#10b981' : '#dc2626'}">${(t.diff_sum >= 0 ? '+' : '') + (t.diff_sum || 0).toLocaleString()}</div>
+      <div style="font-size:10px;color:var(--text-muted)">5 策略 grid_mode - baseline 累计差（元）</div>
+    </div>
+  `;
+}
+
+function renderAbComparisonCards(payload) {
+  const el = document.getElementById('ab-comparison-cards');
+  if (!el) return;
+
+  const sidNames = {
+    'r32': '三驾马车',
+    'zhuidian': '追电策略',
+    'sanhe': '三合策略',
+    'lightning': '闪电策略',
+    'qixing': '七星策略',  // P9 E (2026-07-04)
+  };
+  const sidColors = {
+    'r32': '#10b981',
+    'zhuidian': '#f59e0b',
+    'sanhe': '#a855f7',
+    'lightning': '#facc15',
+    'qixing': '#3b82f6',  // P9 E
+  };
+
+  // 按 diff_cumulative 绝对值排序（震动最大的在前）
+  const sids = Object.keys(payload.strategies || {}).sort((a, b) => {
+    return Math.abs(payload.strategies[b].diff.diff_cumulative) - Math.abs(payload.strategies[a].diff.diff_cumulative);
+  });
+
+  el.innerHTML = sids.map(sid => {
+    const info = payload.strategies[sid];
+    const gm = info.grid_mode;
+    const bl = info.baseline;
+    const diff = info.diff;
+    const winColor = diff.winner === 'grid_mode' ? '#10b981' : (diff.winner === 'baseline' ? '#f59e0b' : '#94a3b8');
+    const winLabel = diff.winner === 'grid_mode' ? '🟢 grid_mode 赢' : (diff.winner === 'baseline' ? '🟠 baseline 赢' : '⚪ 平');
+    const diffSign = diff.diff_cumulative >= 0 ? '+' : '';
+    const paramStr = JSON.stringify(gm.params_used || {});
+
+    return `
+      <div class="risk-card" style="text-align:left;border-left:4px solid ${sidColors[sid]}">
+        <div class="risk-title" style="font-size:13px">
+          ${sidNames[sid] || sid}
+          <span style="font-size:11px;color:${winColor};float:right">${winLabel}</span>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text-muted)">Grid Mode（应用 grid）</div>
+        <div style="font-size:14px;font-weight:bold;color:#10b981">
+          ¥${gm.cumulative.toLocaleString()} (${gm.return_pct.toFixed(2)}%)
+        </div>
+        <div style="font-size:10px;color:var(--text-muted)">params: ${paramStr}</div>
+        <div style="margin-top:6px;font-size:11px;color:var(--text-muted)">Baseline（原 hardcode）</div>
+        <div style="font-size:14px;font-weight:bold;color:#94a3b8">
+          ¥${bl.cumulative.toLocaleString()} (${bl.return_pct.toFixed(2)}%)
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text-muted)">Diff（grid - hardcode）</div>
+        <div style="font-size:16px;font-weight:bold;color:${diff.diff_cumulative >= 0 ? '#10b981' : '#dc2626'}">
+          ${diffSign}¥${diff.diff_cumulative.toLocaleString()} (${diffSign}${diff.diff_return_pct.toFixed(2)}%)
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+let _abChart = null;
+function renderAbDiffTrendChart(history) {
+  const ctx = document.getElementById('abDiffTrendChart');
+  if (!ctx) return;
+  if (_abChart) _abChart.destroy();
+
+  if (!history || history.length === 0) {
+    // 占位
+    _abChart = new Chart(ctx, {
+      type: 'bar',
+      data: { labels: ['尚无数据'], datasets: [{ label: 'diff_sum', data: [0], backgroundColor: '#475569' }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } },
+    });
+    return;
+  }
+
+  const labels = history.map(h => h.date);
+  const data = history.map(h => h.diff_sum);
+  const colors = data.map(v => v >= 0 ? 'rgba(16,185,129,0.7)' : 'rgba(220,38,38,0.7)');
+
+  _abChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'diff_sum（grid - baseline）',
+        data,
+        backgroundColor: colors,
+        borderColor: colors.map(c => c.replace('0.7', '1')),
+        borderWidth: 1,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              const v = ctx.parsed.y;
+              return `diff_sum: ${v >= 0 ? '+' : ''}¥${v.toLocaleString()}`;
+            },
+          },
+        },
+      },
+      scales: {
+        y: {
+          ticks: { callback: v => (v >= 0 ? '+' : '') + '¥' + v.toLocaleString() },
+          grid: { color: '#1e293b' },
+        },
+        x: { grid: { color: '#1e293b' } },
+      },
+    },
+  });
+}
+
+// ========== 键盘快捷键 ==========
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeDrawer(); }
+  if (e.key === 'r' || e.key === 'R') refreshData();
+  if (e.key === '1') openStrategyDetail('qixing');
+  if (e.key === '2') openStrategyDetail('r32');
+  if (e.key === '3') openStrategyDetail('zhuidian');
+  if (e.key === '4') openStrategyDetail('sanhe');
+});
+
+// ========== 初始化 ==========
+window.addEventListener('DOMContentLoaded', () => {
+  initChart();
+  initData();
+  // P9-D: 加载 A/B 对照（grid_mode vs hardcode）
+  if (typeof loadAbComparison === 'function') {
+    loadAbComparison();
+  }
+});
+</script>
+
+</body>
+</html>

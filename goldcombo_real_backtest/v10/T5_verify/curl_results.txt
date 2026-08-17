@@ -1,0 +1,11 @@
+  [200] 5496 B  /api/v1/dashboard/overview
+  [200] 1480 B  /api/v1/dashboard/portfolio_summary
+  [200] 14177 B  /api/v1/dashboard/live_curves
+  [200] 1233 B  /api/v1/dashboard/daily_pnl_trend
+  [200] 688 B  /api/v1/dashboard/nav_curves
+  [200] 1245 B  /api/v1/dashboard/wfa_summary
+  [200] 18309 B  /api/v1/dashboard/wfa_oos_curve
+  [200] 1617 B  /api/v1/dashboard/param_stability
+  [200] 1707 B  /api/v1/dashboard/ab_comparison
+  [200] 2737 B  /api/v1/strategies
+  [404] 207 B  /api/v1/signals
