@@ -50,10 +50,13 @@
     "color": "#ef4444",
     "initial_capital": 10000,
     "description": "极致恐慌反转模型",
-    "version": "v10",
+    "version": "v21b",
     "data_period": "2021-08-14 ~ 2026-08-14 (5Y)",
     "caliber": "5Y · V10 路径B 激进左翼 (CCI>200 泡沫顶 + sizing 修正 5000/只) · setcash(50000.0) + 95% 仓位单只满仓 + 30% 硬止损 (V10 宽容) + 25% 峰值回撤止盈 + CCI>200 泡沫顶离场",
-    "latest_baseline": "/Users/junze/goldcombo_real_backtest/v10/T4_5y/baseline_ashare_real_5y_v10.json",
-    "last_updated": "2026-08-16"
+    "latest_baseline": "/Users/junze/goldcombo_real_backtest/v21b/T4_5y/baseline_ashare_real_5y_v21b.json",
+    "last_updated": "2026-08-17",
+    "class_name": "GoldComboV21b_AssetRot",
+    "pool": "5 ETF (510300/588000/512000/159915/518880) + 本地转债 CSV",
+    "trail_sl_locked": 0.2
   }
 }
