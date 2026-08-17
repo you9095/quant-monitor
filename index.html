@@ -39,7 +39,7 @@
   --lightning-end: #f97316;
   /* 黄金组合A（极致恐慌反转）M01 v11 5Y 集成 2026-08-16：红（避开 5 现有策略色） */
   /* 2026-08-16: v20_NoMA_5Y → V21b_AssetRot_5Y (激进左翼 + CCI>200 泡沫顶 + sizing 修正 5000/只: 95% 仓位单只满仓 + 30% 硬止损 (V10 宽容) + 25% 峰值回撤止盈 + CCI>200 泡沫顶离场) */
-  /* source: /Users/junze/goldcombo_real_backtest/v24/T4_5y/baseline_ashare_real_5y_v24.json */
+  /* source: /Users/junze/goldcombo_real_backtest/v24/T4_5y/baseline_ashare_real_5y_v25.json */
   --goldcombo-start: #ef4444;
   --goldcombo-end: #f87171;
 
@@ -212,7 +212,7 @@ body {
 .action-item.zhuidian { border-left: 3px solid var(--zhuidian-start); }
 .action-item.sanhe { border-left: 3px solid var(--sanhe-start); }
 .action-item.lightning { border-left: 3px solid var(--lightning-start); }
-/* M01 v24 5Y 集成 2026-08-17: goldcombo 卡片左色条 (V24_DMAStrategy_5Y 多品种版 DMA 金叉死叉 + 成交量 1.5x + RSI 30-70 + 市场 MA200 过滤 + 10%止损+15%峰值) */
+/* M01 v24 5Y 集成 2026-08-17: goldcombo 卡片左色条 (V25_DMAStrategy_5Y 多品种版 DMA 金叉死叉 + 成交量 1.5x + RSI 30-70 + 市场 MA200 过滤 + 10%止损+15%峰值) */
 .action-item.goldcombo { border-left: 3px solid var(--goldcombo-start); }
 
 .action-badge {
@@ -1150,7 +1150,7 @@ body {
 </div>
 
   <script src="assets/data.js?v=22"></script>  <!-- 2026-08-14 v22: overview端点 L194 live_total_pnl 兜底 + L238 tr 兜底,黄金组合A 真实显示 -->
-  <!-- 2026-08-17 v45: goldcombo v23 5Y → v24 DMAStrategy 多品种版 baseline (signals/goldcombo_2026-08-15.json + config/strategies.json v24) · 5万本金 + 13 标的池 (5 ETF + 3 STK + 5 CB) + DMA 金叉死叉 + 成交量+RSI+MA200 三重过滤 + 10%止损+15%峰值 →-->
+  <!-- 2026-08-17 v45: goldcombo v24 5Y → v25 DMAStrategy 多品种版 baseline (signals/goldcombo_2026-08-15.json + config/strategies.json v24) · 5万本金 + 13 标的池 (5 ETF + 3 STK + 5 CB) + DMA 金叉死叉 + 成交量+RSI+MA200 三重过滤 + 10%止损+15%峰值 →-->
   <script>
 // ========== 数据状态（从DataLayer加载） ==========
 let strategiesData = {};
