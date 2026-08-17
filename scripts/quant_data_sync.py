@@ -61,6 +61,7 @@ def find_latest_report(strategy_id):
         patterns += list(OUTPUTS_DIR.glob(f"**/*{strategy_id.replace('r32','三驾')}*"))
         patterns += list(OUTPUTS_DIR.glob(f"**/*{strategy_id.replace('sanhe','三合')}*"))
         patterns += list(OUTPUTS_DIR.glob(f"**/*{strategy_id.replace('lightning','闪电')}*"))
+        patterns += list(OUTPUTS_DIR.glob(f"**/*{strategy_id.replace('zhuidian','追电')}*"))
     
     md_files = [p for p in patterns if p.suffix == '.md']
     if md_files:

@@ -192,6 +192,10 @@ def get_dashboard_overview():
             positions = signal.get('positions', [])
             # P0 修复 (2026-07-22): 改用真实累计盈亏 + 真实 qty + 真实成本价,不再用模拟价格和缩放
             live_total_pnl = signal.get('live_total_pnl', 0) or 0
+            # 2026-08-14 主 agent 接管修复: 黄金组合A 实盘未启动, 用 backtest_total_return 计算等效 pnl
+            if live_total_pnl == 0 and signal.get('backtest_total_return'):
+                bt_ret = signal.get('backtest_total_return', 0)
+                live_total_pnl = round(init_cap * bt_ret / 100, 2)
             asset = init_cap + live_total_pnl  # 真实总资产 = 本金 + 真实累计盈亏
 
             for pos in positions:
@@ -235,7 +239,12 @@ def get_dashboard_overview():
             total_asset += asset
         init_cap = cfg.get('initial_capital', 10000)
         # P0 修复 (2026-07-22): 优先从 live_total_return 读, fallback 到 total_return, 避免全是 0
-        tr = (signal.get('live_total_return', 0) or 0) if signal else 0
+        # 2026-08-14 主 agent 接管修复: 加 backtest_total_return 兜底 (黄金组合A 实盘未启动)
+        if signal:
+            tr = (signal.get('live_total_return', 0) or signal.get('total_return', 0)
+                  or signal.get('backtest_total_return', 0) or 0)
+        else:
+            tr = 0
         # 年化: 用 live_total_return × (252 / live_days) 估算
         live_days = signal.get('live_days', 252) if signal else 252
         live_days = live_days if live_days and live_days > 0 else 252

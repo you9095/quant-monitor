@@ -1,0 +1,1258 @@
+{
+  "snapshot_round": 50,
+  "snapshot_at": "2026-08-13 12:22:42",
+  "total_rounds_so_far": 50,
+  "current_baseline_at_r{r}": "R20_DMI_20",
+  "rounds": [
+    {
+      "round_id": 1,
+      "phase": "CCI",
+      "direction": "CCI 阈值 -100 → -40 (越接近 0 越宽松)",
+      "loosen_value": -100,
+      "data_period_2y": {
+        "total_return_pct": 3.4866,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 8.0195,
+        "closed_trades": 3,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 14.2298,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 20.25,
+        "closed_trades": 7,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ACCEPT",
+        "reason": "2Y 收益 3.49% >= 基线 3.49% AND 回撤 -1.50% >= -30% → ACCEPT",
+        "current_version": "R1_CCI_-100"
+      }
+    },
+    {
+      "round_id": 2,
+      "phase": "CCI",
+      "direction": "CCI 阈值 -100 → -40 (越接近 0 越宽松)",
+      "loosen_value": -90,
+      "data_period_2y": {
+        "total_return_pct": 3.4866,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 8.0195,
+        "closed_trades": 3,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 5.9158,
+        "max_drawdown_pct": -3.513,
+        "sharpe_ratio": 3.7997,
+        "closed_trades": 12,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ACCEPT",
+        "reason": "2Y 收益 3.49% >= 基线 3.49% AND 回撤 -1.50% >= -30% → ACCEPT",
+        "current_version": "R2_CCI_-90"
+      }
+    },
+    {
+      "round_id": 3,
+      "phase": "CCI",
+      "direction": "CCI 阈值 -100 → -40 (越接近 0 越宽松)",
+      "loosen_value": -80,
+      "data_period_2y": {
+        "total_return_pct": -2.0437,
+        "max_drawdown_pct": -4.4328,
+        "sharpe_ratio": -3.9686,
+        "closed_trades": 4,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 2.1949,
+        "max_drawdown_pct": -4.4328,
+        "sharpe_ratio": 1.1504,
+        "closed_trades": 17,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 -2.04% < 基线 3.49% OR 回撤 -4.43% < -30% → ROLLBACK",
+        "current_version": "R2_CCI_-90"
+      }
+    },
+    {
+      "round_id": 4,
+      "phase": "CCI",
+      "direction": "CCI 阈值 -100 → -40 (越接近 0 越宽松)",
+      "loosen_value": -70,
+      "data_period_2y": {
+        "total_return_pct": 2.9154,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 3.6228,
+        "closed_trades": 6,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 16.7371,
+        "max_drawdown_pct": -7.2783,
+        "sharpe_ratio": 5.1982,
+        "closed_trades": 24,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 2.92% < 基线 3.49% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R2_CCI_-90"
+      }
+    },
+    {
+      "round_id": 5,
+      "phase": "CCI",
+      "direction": "CCI 阈值 -100 → -40 (越接近 0 越宽松)",
+      "loosen_value": -60,
+      "data_period_2y": {
+        "total_return_pct": 6.5036,
+        "max_drawdown_pct": -2.9775,
+        "sharpe_ratio": 5.4383,
+        "closed_trades": 9,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 21.2968,
+        "max_drawdown_pct": -4.4328,
+        "sharpe_ratio": 4.8922,
+        "closed_trades": 32,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ACCEPT",
+        "reason": "2Y 收益 6.50% >= 基线 6.50% AND 回撤 -2.98% >= -30% → ACCEPT",
+        "current_version": "R5_CCI_-60"
+      }
+    },
+    {
+      "round_id": 6,
+      "phase": "CCI",
+      "direction": "CCI 阈值 -100 → -40 (越接近 0 越宽松)",
+      "loosen_value": -55,
+      "data_period_2y": {
+        "total_return_pct": 6.5036,
+        "max_drawdown_pct": -2.9775,
+        "sharpe_ratio": 5.4383,
+        "closed_trades": 9,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 14.8148,
+        "max_drawdown_pct": -4.9603,
+        "sharpe_ratio": 3.4359,
+        "closed_trades": 33,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ACCEPT",
+        "reason": "2Y 收益 6.50% >= 基线 6.50% AND 回撤 -2.98% >= -30% → ACCEPT",
+        "current_version": "R6_CCI_-55"
+      }
+    },
+    {
+      "round_id": 7,
+      "phase": "CCI",
+      "direction": "CCI 阈值 -100 → -40 (越接近 0 越宽松)",
+      "loosen_value": -50,
+      "data_period_2y": {
+        "total_return_pct": 6.5036,
+        "max_drawdown_pct": -2.9775,
+        "sharpe_ratio": 5.4383,
+        "closed_trades": 9,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 17.6851,
+        "max_drawdown_pct": -10.5357,
+        "sharpe_ratio": 3.9098,
+        "closed_trades": 34,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ACCEPT",
+        "reason": "2Y 收益 6.50% >= 基线 6.50% AND 回撤 -2.98% >= -30% → ACCEPT",
+        "current_version": "R7_CCI_-50"
+      }
+    },
+    {
+      "round_id": 8,
+      "phase": "CCI",
+      "direction": "CCI 阈值 -100 → -40 (越接近 0 越宽松)",
+      "loosen_value": -45,
+      "data_period_2y": {
+        "total_return_pct": 13.5993,
+        "max_drawdown_pct": -4.4328,
+        "sharpe_ratio": 10.6806,
+        "closed_trades": 10,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 31.8806,
+        "max_drawdown_pct": -4.9603,
+        "sharpe_ratio": 6.0865,
+        "closed_trades": 37,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ACCEPT",
+        "reason": "2Y 收益 13.60% >= 基线 13.60% AND 回撤 -4.43% >= -30% → ACCEPT",
+        "current_version": "R8_CCI_-45"
+      }
+    },
+    {
+      "round_id": 9,
+      "phase": "CCI",
+      "direction": "CCI 阈值 -100 → -40 (越接近 0 越宽松)",
+      "loosen_value": -42,
+      "data_period_2y": {
+        "total_return_pct": 13.5993,
+        "max_drawdown_pct": -4.4328,
+        "sharpe_ratio": 10.6806,
+        "closed_trades": 10,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 31.8806,
+        "max_drawdown_pct": -4.9603,
+        "sharpe_ratio": 6.0865,
+        "closed_trades": 37,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ACCEPT",
+        "reason": "2Y 收益 13.60% >= 基线 13.60% AND 回撤 -4.43% >= -30% → ACCEPT",
+        "current_version": "R9_CCI_-42"
+      }
+    },
+    {
+      "round_id": 10,
+      "phase": "CCI",
+      "direction": "CCI 阈值 -100 → -40 (越接近 0 越宽松)",
+      "loosen_value": -40,
+      "data_period_2y": {
+        "total_return_pct": 13.5993,
+        "max_drawdown_pct": -4.4328,
+        "sharpe_ratio": 10.6806,
+        "closed_trades": 10,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 31.8806,
+        "max_drawdown_pct": -4.9603,
+        "sharpe_ratio": 6.0865,
+        "closed_trades": 37,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ACCEPT",
+        "reason": "2Y 收益 13.60% >= 基线 13.60% AND 回撤 -4.43% >= -30% → ACCEPT",
+        "current_version": "R10_CCI_-40"
+      }
+    },
+    {
+      "round_id": 11,
+      "phase": "DMI",
+      "direction": "+DI 上限 10 → 20 (越宽松越宽)",
+      "loosen_value": 10,
+      "data_period_2y": {
+        "total_return_pct": 3.4866,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 8.0195,
+        "closed_trades": 3,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 14.2298,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 20.25,
+        "closed_trades": 7,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 3.49% < 基线 13.60% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R10_CCI_-40"
+      }
+    },
+    {
+      "round_id": 12,
+      "phase": "DMI",
+      "direction": "+DI 上限 10 → 20 (越宽松越宽)",
+      "loosen_value": 11,
+      "data_period_2y": {
+        "total_return_pct": 3.4866,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 8.0195,
+        "closed_trades": 3,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 14.2298,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 20.25,
+        "closed_trades": 7,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 3.49% < 基线 13.60% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R10_CCI_-40"
+      }
+    },
+    {
+      "round_id": 13,
+      "phase": "DMI",
+      "direction": "+DI 上限 10 → 20 (越宽松越宽)",
+      "loosen_value": 12,
+      "data_period_2y": {
+        "total_return_pct": 3.4866,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 8.0195,
+        "closed_trades": 3,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 6.5036,
+        "max_drawdown_pct": -2.9775,
+        "sharpe_ratio": 5.4383,
+        "closed_trades": 9,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 3.49% < 基线 13.60% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R10_CCI_-40"
+      }
+    },
+    {
+      "round_id": 14,
+      "phase": "DMI",
+      "direction": "+DI 上限 10 → 20 (越宽松越宽)",
+      "loosen_value": 13,
+      "data_period_2y": {
+        "total_return_pct": -2.0437,
+        "max_drawdown_pct": -4.4328,
+        "sharpe_ratio": -3.9686,
+        "closed_trades": 4,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 13.5993,
+        "max_drawdown_pct": -4.4328,
+        "sharpe_ratio": 10.6806,
+        "closed_trades": 10,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 -2.04% < 基线 13.60% OR 回撤 -4.43% < -30% → ROLLBACK",
+        "current_version": "R10_CCI_-40"
+      }
+    },
+    {
+      "round_id": 15,
+      "phase": "DMI",
+      "direction": "+DI 上限 10 → 20 (越宽松越宽)",
+      "loosen_value": 14,
+      "data_period_2y": {
+        "total_return_pct": 2.9154,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 3.6228,
+        "closed_trades": 6,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 5.9158,
+        "max_drawdown_pct": -3.513,
+        "sharpe_ratio": 3.7997,
+        "closed_trades": 12,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 2.92% < 基线 13.60% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R10_CCI_-40"
+      }
+    },
+    {
+      "round_id": 16,
+      "phase": "DMI",
+      "direction": "+DI 上限 10 → 20 (越宽松越宽)",
+      "loosen_value": 15,
+      "data_period_2y": {
+        "total_return_pct": 2.9154,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 3.6228,
+        "closed_trades": 6,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 5.9158,
+        "max_drawdown_pct": -3.513,
+        "sharpe_ratio": 3.7997,
+        "closed_trades": 12,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 2.92% < 基线 13.60% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R10_CCI_-40"
+      }
+    },
+    {
+      "round_id": 17,
+      "phase": "DMI",
+      "direction": "+DI 上限 10 → 20 (越宽松越宽)",
+      "loosen_value": 16,
+      "data_period_2y": {
+        "total_return_pct": 14.2298,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 20.25,
+        "closed_trades": 7,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 0.2557,
+        "max_drawdown_pct": -5.4849,
+        "sharpe_ratio": 0.3014,
+        "closed_trades": 13,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ACCEPT",
+        "reason": "2Y 收益 14.23% >= 基线 14.23% AND 回撤 -1.50% >= -30% → ACCEPT",
+        "current_version": "R17_DMI_16"
+      }
+    },
+    {
+      "round_id": 18,
+      "phase": "DMI",
+      "direction": "+DI 上限 10 → 20 (越宽松越宽)",
+      "loosen_value": 17,
+      "data_period_2y": {
+        "total_return_pct": 14.2298,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 20.25,
+        "closed_trades": 7,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 0.2557,
+        "max_drawdown_pct": -5.4849,
+        "sharpe_ratio": 0.3014,
+        "closed_trades": 13,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ACCEPT",
+        "reason": "2Y 收益 14.23% >= 基线 14.23% AND 回撤 -1.50% >= -30% → ACCEPT",
+        "current_version": "R18_DMI_17"
+      }
+    },
+    {
+      "round_id": 19,
+      "phase": "DMI",
+      "direction": "+DI 上限 10 → 20 (越宽松越宽)",
+      "loosen_value": 18,
+      "data_period_2y": {
+        "total_return_pct": 14.2298,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 20.25,
+        "closed_trades": 7,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 0.2557,
+        "max_drawdown_pct": -5.4849,
+        "sharpe_ratio": 0.3014,
+        "closed_trades": 13,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ACCEPT",
+        "reason": "2Y 收益 14.23% >= 基线 14.23% AND 回撤 -1.50% >= -30% → ACCEPT",
+        "current_version": "R19_DMI_18"
+      }
+    },
+    {
+      "round_id": 20,
+      "phase": "DMI",
+      "direction": "+DI 上限 10 → 20 (越宽松越宽)",
+      "loosen_value": 20,
+      "data_period_2y": {
+        "total_return_pct": 14.2298,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 20.25,
+        "closed_trades": 7,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 0.2557,
+        "max_drawdown_pct": -5.4849,
+        "sharpe_ratio": 0.3014,
+        "closed_trades": 13,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ACCEPT",
+        "reason": "2Y 收益 14.23% >= 基线 14.23% AND 回撤 -1.50% >= -30% → ACCEPT",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 21,
+      "phase": "BOLL",
+      "direction": "BOLL 带宽下限 1.0× → 0.88× (越宽松越宽)",
+      "loosen_value": 1.0,
+      "data_period_2y": {
+        "total_return_pct": 3.4866,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 8.0195,
+        "closed_trades": 3,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 14.2298,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 20.25,
+        "closed_trades": 7,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 3.49% < 基线 14.23% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 22,
+      "phase": "BOLL",
+      "direction": "BOLL 带宽下限 1.0× → 0.88× (越宽松越宽)",
+      "loosen_value": 0.98,
+      "data_period_2y": {
+        "total_return_pct": -2.0437,
+        "max_drawdown_pct": -4.4328,
+        "sharpe_ratio": -3.9686,
+        "closed_trades": 4,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 5.9158,
+        "max_drawdown_pct": -3.513,
+        "sharpe_ratio": 3.7997,
+        "closed_trades": 12,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 -2.04% < 基线 14.23% OR 回撤 -4.43% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 23,
+      "phase": "BOLL",
+      "direction": "BOLL 带宽下限 1.0× → 0.88× (越宽松越宽)",
+      "loosen_value": 0.96,
+      "data_period_2y": {
+        "total_return_pct": -2.0437,
+        "max_drawdown_pct": -4.4328,
+        "sharpe_ratio": -3.9686,
+        "closed_trades": 4,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 9.0036,
+        "max_drawdown_pct": -4.4328,
+        "sharpe_ratio": 3.8568,
+        "closed_trades": 18,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 -2.04% < 基线 14.23% OR 回撤 -4.43% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 24,
+      "phase": "BOLL",
+      "direction": "BOLL 带宽下限 1.0× → 0.88× (越宽松越宽)",
+      "loosen_value": 0.95,
+      "data_period_2y": {
+        "total_return_pct": 4.4826,
+        "max_drawdown_pct": -2.9775,
+        "sharpe_ratio": 6.5211,
+        "closed_trades": 5,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 8.402,
+        "max_drawdown_pct": -4.4328,
+        "sharpe_ratio": 3.1388,
+        "closed_trades": 21,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 4.48% < 基线 14.23% OR 回撤 -2.98% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 25,
+      "phase": "BOLL",
+      "direction": "BOLL 带宽下限 1.0× → 0.88× (越宽松越宽)",
+      "loosen_value": 0.94,
+      "data_period_2y": {
+        "total_return_pct": 2.9154,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 3.6228,
+        "closed_trades": 6,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 6.7759,
+        "max_drawdown_pct": -8.6692,
+        "sharpe_ratio": 2.4777,
+        "closed_trades": 22,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 2.92% < 基线 14.23% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 26,
+      "phase": "BOLL",
+      "direction": "BOLL 带宽下限 1.0× → 0.88× (越宽松越宽)",
+      "loosen_value": 0.93,
+      "data_period_2y": {
+        "total_return_pct": 2.9154,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 3.6228,
+        "closed_trades": 6,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 6.7759,
+        "max_drawdown_pct": -8.6692,
+        "sharpe_ratio": 2.4777,
+        "closed_trades": 22,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 2.92% < 基线 14.23% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 27,
+      "phase": "BOLL",
+      "direction": "BOLL 带宽下限 1.0× → 0.88× (越宽松越宽)",
+      "loosen_value": 0.92,
+      "data_period_2y": {
+        "total_return_pct": 12.5164,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 12.8598,
+        "closed_trades": 8,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 13.2612,
+        "max_drawdown_pct": -7.2783,
+        "sharpe_ratio": 3.8916,
+        "closed_trades": 26,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 12.52% < 基线 14.23% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 28,
+      "phase": "BOLL",
+      "direction": "BOLL 带宽下限 1.0× → 0.88× (越宽松越宽)",
+      "loosen_value": 0.91,
+      "data_period_2y": {
+        "total_return_pct": 6.5036,
+        "max_drawdown_pct": -2.9775,
+        "sharpe_ratio": 5.4383,
+        "closed_trades": 9,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 25.7131,
+        "max_drawdown_pct": -5.8663,
+        "sharpe_ratio": 6.8985,
+        "closed_trades": 27,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 6.50% < 基线 14.23% OR 回撤 -2.98% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 29,
+      "phase": "BOLL",
+      "direction": "BOLL 带宽下限 1.0× → 0.88× (越宽松越宽)",
+      "loosen_value": 0.9,
+      "data_period_2y": {
+        "total_return_pct": 6.5036,
+        "max_drawdown_pct": -2.9775,
+        "sharpe_ratio": 5.4383,
+        "closed_trades": 9,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 25.7131,
+        "max_drawdown_pct": -5.8663,
+        "sharpe_ratio": 6.8985,
+        "closed_trades": 27,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 6.50% < 基线 14.23% OR 回撤 -2.98% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 30,
+      "phase": "BOLL",
+      "direction": "BOLL 带宽下限 1.0× → 0.88× (越宽松越宽)",
+      "loosen_value": 0.88,
+      "data_period_2y": {
+        "total_return_pct": 6.5036,
+        "max_drawdown_pct": -2.9775,
+        "sharpe_ratio": 5.4383,
+        "closed_trades": 9,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 1.4795,
+        "max_drawdown_pct": -14.9734,
+        "sharpe_ratio": 0.57,
+        "closed_trades": 28,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 6.50% < 基线 14.23% OR 回撤 -2.98% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 31,
+      "phase": "MACD",
+      "direction": "MACD 双负 → 单负 → DIFF>0 但 <0.5 (逐步放宽)",
+      "loosen_value": "strict_double_negative",
+      "data_period_2y": {
+        "total_return_pct": 3.4866,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 8.0195,
+        "closed_trades": 3,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 14.2298,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 20.25,
+        "closed_trades": 7,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 3.49% < 基线 14.23% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 32,
+      "phase": "MACD",
+      "direction": "MACD 双负 → 单负 → DIFF>0 但 <0.5 (逐步放宽)",
+      "loosen_value": "strict_double_negative",
+      "data_period_2y": {
+        "total_return_pct": 3.4866,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 8.0195,
+        "closed_trades": 3,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 14.2298,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 20.25,
+        "closed_trades": 7,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 3.49% < 基线 14.23% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 33,
+      "phase": "MACD",
+      "direction": "MACD 双负 → 单负 → DIFF>0 但 <0.5 (逐步放宽)",
+      "loosen_value": "strict_double_negative",
+      "data_period_2y": {
+        "total_return_pct": 3.4866,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 8.0195,
+        "closed_trades": 3,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 14.2298,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 20.25,
+        "closed_trades": 7,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 3.49% < 基线 14.23% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 34,
+      "phase": "MACD",
+      "direction": "MACD 双负 → 单负 → DIFF>0 但 <0.5 (逐步放宽)",
+      "loosen_value": "strict_double_negative",
+      "data_period_2y": {
+        "total_return_pct": 3.4866,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 8.0195,
+        "closed_trades": 3,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 14.2298,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 20.25,
+        "closed_trades": 7,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 3.49% < 基线 14.23% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 35,
+      "phase": "MACD",
+      "direction": "MACD 双负 → 单负 → DIFF>0 但 <0.5 (逐步放宽)",
+      "loosen_value": "allow_one_negative",
+      "data_period_2y": {
+        "total_return_pct": 3.4866,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 8.0195,
+        "closed_trades": 3,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 14.2298,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 20.25,
+        "closed_trades": 7,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 3.49% < 基线 14.23% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 36,
+      "phase": "MACD",
+      "direction": "MACD 双负 → 单负 → DIFF>0 但 <0.5 (逐步放宽)",
+      "loosen_value": "allow_one_negative",
+      "data_period_2y": {
+        "total_return_pct": 3.4866,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 8.0195,
+        "closed_trades": 3,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 14.2298,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 20.25,
+        "closed_trades": 7,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 3.49% < 基线 14.23% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 37,
+      "phase": "MACD",
+      "direction": "MACD 双负 → 单负 → DIFF>0 但 <0.5 (逐步放宽)",
+      "loosen_value": "allow_one_negative",
+      "data_period_2y": {
+        "total_return_pct": 3.4866,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 8.0195,
+        "closed_trades": 3,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 14.2298,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 20.25,
+        "closed_trades": 7,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 3.49% < 基线 14.23% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 38,
+      "phase": "MACD",
+      "direction": "MACD 双负 → 单负 → DIFF>0 但 <0.5 (逐步放宽)",
+      "loosen_value": "allow_diff_positive_under_0_5",
+      "data_period_2y": {
+        "total_return_pct": 3.4866,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 8.0195,
+        "closed_trades": 3,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 14.2298,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 20.25,
+        "closed_trades": 7,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 3.49% < 基线 14.23% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 39,
+      "phase": "MACD",
+      "direction": "MACD 双负 → 单负 → DIFF>0 但 <0.5 (逐步放宽)",
+      "loosen_value": "allow_diff_positive_under_0_5",
+      "data_period_2y": {
+        "total_return_pct": 3.4866,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 8.0195,
+        "closed_trades": 3,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 14.2298,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 20.25,
+        "closed_trades": 7,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 3.49% < 基线 14.23% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 40,
+      "phase": "MACD",
+      "direction": "MACD 双负 → 单负 → DIFF>0 但 <0.5 (逐步放宽)",
+      "loosen_value": "allow_diff_positive_under_0_5",
+      "data_period_2y": {
+        "total_return_pct": 3.4866,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 8.0195,
+        "closed_trades": 3,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 14.2298,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 20.25,
+        "closed_trades": 7,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 3.49% < 基线 14.23% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 41,
+      "phase": "COMBO",
+      "direction": "同时放宽 2 个指标 (10 种组合)",
+      "loosen_value": "combo_CCI_DMI",
+      "data_period_2y": {
+        "total_return_pct": 9.6086,
+        "max_drawdown_pct": -2.9775,
+        "sharpe_ratio": 4.8673,
+        "closed_trades": 15,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 47.7883,
+        "max_drawdown_pct": -4.4328,
+        "sharpe_ratio": 8.0944,
+        "closed_trades": 40,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 9.61% < 基线 14.23% OR 回撤 -2.98% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 42,
+      "phase": "COMBO",
+      "direction": "同时放宽 2 个指标 (10 种组合)",
+      "loosen_value": "combo_CCI_DMI",
+      "data_period_2y": {
+        "total_return_pct": 9.6086,
+        "max_drawdown_pct": -2.9775,
+        "sharpe_ratio": 4.8673,
+        "closed_trades": 15,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 47.7883,
+        "max_drawdown_pct": -4.4328,
+        "sharpe_ratio": 8.0944,
+        "closed_trades": 40,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 9.61% < 基线 14.23% OR 回撤 -2.98% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 43,
+      "phase": "COMBO",
+      "direction": "同时放宽 2 个指标 (10 种组合)",
+      "loosen_value": "combo_CCI_BOLL",
+      "data_period_2y": {
+        "total_return_pct": 0.2557,
+        "max_drawdown_pct": -5.4849,
+        "sharpe_ratio": 0.3014,
+        "closed_trades": 13,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 57.8024,
+        "max_drawdown_pct": -4.4328,
+        "sharpe_ratio": 6.0185,
+        "closed_trades": 62,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 0.26% < 基线 14.23% OR 回撤 -5.48% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 44,
+      "phase": "COMBO",
+      "direction": "同时放宽 2 个指标 (10 种组合)",
+      "loosen_value": "combo_CCI_BOLL",
+      "data_period_2y": {
+        "total_return_pct": 0.2557,
+        "max_drawdown_pct": -5.4849,
+        "sharpe_ratio": 0.3014,
+        "closed_trades": 13,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 57.8024,
+        "max_drawdown_pct": -4.4328,
+        "sharpe_ratio": 6.0185,
+        "closed_trades": 62,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 0.26% < 基线 14.23% OR 回撤 -5.48% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 45,
+      "phase": "COMBO",
+      "direction": "同时放宽 2 个指标 (10 种组合)",
+      "loosen_value": "combo_CCI_MACD",
+      "data_period_2y": {
+        "total_return_pct": 2.9154,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 3.6228,
+        "closed_trades": 6,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 16.7371,
+        "max_drawdown_pct": -7.2783,
+        "sharpe_ratio": 5.1982,
+        "closed_trades": 24,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 2.92% < 基线 14.23% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 46,
+      "phase": "COMBO",
+      "direction": "同时放宽 2 个指标 (10 种组合)",
+      "loosen_value": "combo_CCI_MACD",
+      "data_period_2y": {
+        "total_return_pct": 2.9154,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 3.6228,
+        "closed_trades": 6,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 16.7371,
+        "max_drawdown_pct": -7.2783,
+        "sharpe_ratio": 5.1982,
+        "closed_trades": 24,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 2.92% < 基线 14.23% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 47,
+      "phase": "COMBO",
+      "direction": "同时放宽 2 个指标 (10 种组合)",
+      "loosen_value": "combo_DMI_BOLL",
+      "data_period_2y": {
+        "total_return_pct": 6.5036,
+        "max_drawdown_pct": -2.9775,
+        "sharpe_ratio": 5.4383,
+        "closed_trades": 9,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": -1.542,
+        "max_drawdown_pct": -8.2991,
+        "sharpe_ratio": -0.2699,
+        "closed_trades": 30,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 6.50% < 基线 14.23% OR 回撤 -2.98% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 48,
+      "phase": "COMBO",
+      "direction": "同时放宽 2 个指标 (10 种组合)",
+      "loosen_value": "combo_DMI_BOLL",
+      "data_period_2y": {
+        "total_return_pct": 6.5036,
+        "max_drawdown_pct": -2.9775,
+        "sharpe_ratio": 5.4383,
+        "closed_trades": 9,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": -1.542,
+        "max_drawdown_pct": -8.2991,
+        "sharpe_ratio": -0.2699,
+        "closed_trades": 30,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 6.50% < 基线 14.23% OR 回撤 -2.98% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 49,
+      "phase": "COMBO",
+      "direction": "同时放宽 2 个指标 (10 种组合)",
+      "loosen_value": "combo_DMI_MACD",
+      "data_period_2y": {
+        "total_return_pct": 2.9154,
+        "max_drawdown_pct": -1.5,
+        "sharpe_ratio": 3.6228,
+        "closed_trades": 6,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 5.9158,
+        "max_drawdown_pct": -3.513,
+        "sharpe_ratio": 3.7997,
+        "closed_trades": 12,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 2.92% < 基线 14.23% OR 回撤 -1.50% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    },
+    {
+      "round_id": 50,
+      "phase": "COMBO",
+      "direction": "同时放宽 2 个指标 (10 种组合)",
+      "loosen_value": "combo_BOLL_MACD",
+      "data_period_2y": {
+        "total_return_pct": 4.4826,
+        "max_drawdown_pct": -2.9775,
+        "sharpe_ratio": 6.5211,
+        "closed_trades": 5,
+        "win_rate_pct": 55.0
+      },
+      "data_period_5y": {
+        "total_return_pct": 8.402,
+        "max_drawdown_pct": -4.4328,
+        "sharpe_ratio": 3.1388,
+        "closed_trades": 21,
+        "win_rate_pct": 55.0
+      },
+      "decision": {
+        "action": "ROLLBACK",
+        "reason": "2Y 收益 4.48% < 基线 14.23% OR 回撤 -2.98% < -30% → ROLLBACK",
+        "current_version": "R20_DMI_20"
+      }
+    }
+  ]
+}

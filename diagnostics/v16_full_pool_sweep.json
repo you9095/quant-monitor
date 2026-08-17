@@ -1,0 +1,55 @@
+{
+  "stage": "Stage 1c: full pool sweep",
+  "pool_size": 2033,
+  "clean_count": 2031,
+  "suspicious_count": 2,
+  "not_found_count": 0,
+  "error_count": 0,
+  "suspicious_stocks": [
+    {
+      "code": "001279",
+      "rows": 449,
+      "jumps_ge_30": 1,
+      "first_jumps": [
+        {
+          "date": "2024-10-14",
+          "prev_close": 177.7,
+          "curr_open": 100.69,
+          "change_pct": -43.34
+        }
+      ]
+    },
+    {
+      "code": "600066",
+      "rows": 1209,
+      "jumps_ge_30": 4,
+      "first_jumps": [
+        {
+          "date": "2022-04-27",
+          "prev_close": 0.28,
+          "curr_open": 0.18,
+          "change_pct": -35.71
+        },
+        {
+          "date": "2022-04-29",
+          "prev_close": 0.24,
+          "curr_open": 0.33,
+          "change_pct": 37.5
+        },
+        {
+          "date": "2022-08-10",
+          "prev_close": 1.01,
+          "curr_open": 1.59,
+          "change_pct": 57.43
+        },
+        {
+          "date": "2022-08-11",
+          "prev_close": 1.76,
+          "curr_open": 2.31,
+          "change_pct": 31.25
+        }
+      ]
+    }
+  ],
+  "verdict": "pollution_found"
+}
