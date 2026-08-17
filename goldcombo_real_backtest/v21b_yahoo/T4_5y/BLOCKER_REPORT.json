@@ -1,0 +1,47 @@
+{
+  "task_id": "subagent-40",
+  "task_name": "V21b ETF 5 只 5Y 真实回测 (雅虎/通联数据源 + 组合层面收益算法 + 窗口锁死)",
+  "run_at": "2026-08-17",
+  "user_hard_constraints_4": {
+    "1_data_source": "雅虎 / 通联 (不是 akshare)",
+    "2_window": "2021-08-14 ~ 2026-08-14 (5Y 严格锁死)",
+    "3_return_algo": "组合层面 (总初始 vs 总最终差额百分比)",
+    "4_strategy": "GoldComboV21b_AssetRot (trail_sl=0.20 锁死) + 5 万本金"
+  },
+  "step1_data_source": {
+    "status": "FAIL (BLOCKER)",
+    "yahoo_yfinance_attempt": {
+      "result": "FAIL",
+      "errors": [
+        "YFRateLimitError('Too Many Requests. Rate limited.')",
+        "Yahoo Finance 对中国大陆 IP 永久屏蔽 (curl + yfinance 均返回 sad-panda 封锁页)"
+      ]
+    },
+    "tushare_attempt": {
+      "result": "FAIL",
+      "token_found": "4b63baaccf9a2b62e2850992601d4f57528f7bd254d5cd06456939ce (基础版, 在 ~/tushare_config.py)",
+      "error": "pro.fund_daily → '抱歉, 您没有接口(fund_daily)访问权限' / pro.stock_basic 同样无权限",
+      "constraint": "用户 tushare 是基础版, 无 fund_daily 权限 (需要付费 pro 版)"
+    }
+  },
+  "step2_backtest": {
+    "status": "PASS (脚本正确运行) but BLOCKER (无数据源)",
+    "script_path": "/Users/junze/goldcombo_real_backtest/v21b_yahoo/T4_5y/run_backtest_5y_v21b_yahoo.py",
+    "v21b_strategy_class_loaded": "GoldComboV21b_AssetRot",
+    "v21b_strategy_trail_sl": 0.20,
+    "etf_initial_capital": 50000.0,
+    "5_etf_results": "ALL FAIL — 数据文件不存在 (雅虎 5/5 通联 5/5 全部 FAIL)",
+    "portfolio_results": "BLOCKER — 无法计算组合层面收益"
+  },
+  "honest_declaration": "严格遵守用户 P0 铁律: (a) 不准用 akshare 数据源 (用户原话'雅虎/通联, 转债本地无 2021 起数据, 仅跑 5 ETF 验证框架'); (b) 不准掺假数据/不准 mock 数据 (用户 SOUL §11). 在雅虎双重失败 (限流 + 大陆 IP 屏蔽) + tushare 基础版无权限 的双重 blocker 下, 主 agent 必须让用户决策: (a) 升级 tushare pro 获取 fund_daily/stock_basic 权限, 或 (b) 提供可访问 Yahoo Finance 的网络出口 (海外 VPN/IP). 在 blocker 解除前, Step 2 回测脚本无法产生真实数字. 已落盘脚本可立即重跑, 一旦有合法数据源即可输出真实组合层面收益.",
+  "user_decision_needed": [
+    "(a) 是否升级 tushare pro 拿到 fund_daily 权限? 拿到后我可以立即重跑 Step 2",
+    "(b) 或者开放可访问 Yahoo Finance 的网络出口 (VPN/海外 IP)? yfinance / Yahoo chart 接口均可",
+    "(c) 或者您允许临时用 v21b_etf_kline 现有数据 (2023-03-15 起) + 诚实声明数据期不满足窗口锁死?"
+  ],
+  "files_created": [
+    "/Users/junze/goldcombo_real_backtest/v21b_yahoo/T4_5y/run_backtest_5y_v21b_yahoo.py",
+    "/Users/junze/goldcombo_real_backtest/v21b_yahoo/T4_5y/raw_output.log",
+    "/Users/junze/goldcombo_real_backtest/v21b_yahoo/T4_5y/BLOCKER_REPORT.json"
+  ]
+}

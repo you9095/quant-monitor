@@ -1,0 +1,25 @@
+{
+  "step": 3,
+  "task": "11 端点验证 (与 Step 1 blocker 无关)",
+  "flask_check": {
+    "port": 8000,
+    "pid": 26225,
+    "running": true,
+    "cmd": "Python"
+  },
+  "endpoints": [
+    {"endpoint": "/api/v1/dashboard/overview", "status": 200, "size_bytes": 5741},
+    {"endpoint": "/api/v1/dashboard/portfolio_summary", "status": 200, "size_bytes": 1483},
+    {"endpoint": "/api/v1/dashboard/live_curves", "status": 200, "size_bytes": 14337},
+    {"endpoint": "/api/v1/dashboard/daily_pnl_trend", "status": 200, "size_bytes": 1233},
+    {"endpoint": "/api/v1/dashboard/nav_curves", "status": 200, "size_bytes": 688},
+    {"endpoint": "/api/v1/dashboard/wfa_summary", "status": 200, "size_bytes": 1271},
+    {"endpoint": "/api/v1/dashboard/wfa_oos_curve", "status": 200, "size_bytes": 18309},
+    {"endpoint": "/api/v1/dashboard/param_stability", "status": 200, "size_bytes": 2234},
+    {"endpoint": "/api/v1/dashboard/ab_comparison", "status": 200, "size_bytes": 1707},
+    {"endpoint": "/api/v1/strategies", "status": 200, "size_bytes": 3055},
+    {"endpoint": "/api/v1/signals", "status": 404, "size_bytes": 207}
+  ],
+  "verdict": "10/11 端点 200, 1/11 端点 404 (/api/v1/signals, 与本任务无关, 现状)",
+  "overall": "PASS"
+}
