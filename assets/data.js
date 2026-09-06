@@ -232,10 +232,10 @@ const DataLayer = {
     portfolio: {
       // 2026-08-03 修复: 组合总览接真值 — total_pnl=5 策略 signals 最新 live_total_pnl 求和
       // (qixing -147.55 + r32 3080.31 + zhuidian 27030.7 + sanhe 1874.57 + lightning 4712.3 = 36550.33)
-      initial_capital: 50000,
-      total_value: 86550.33,
-      total_pnl: 36550.33,
-      total_return_pct: 73.10,
+      initial_capital: 60000,
+      total_value: 59998.13,
+      total_pnl: -1.87,
+      total_return_pct: -0.0,
       total_return: null,
       last_update: new Date().toISOString()
     },
@@ -263,7 +263,12 @@ const DataLayer = {
   // 本地存储
   storage: {
     get(key) {
-      try { return JSON.parse(localStorage.getItem('quant_' + key)); } catch { return null; }
+      try { return JSON.parse(localStorage.getItem('quant_' + key))      initial_capital: 60000,
+      total_value: 59998.13,
+      total_pnl: -1.87,
+      total_return_pct: -0.0,
+      last_update: new Date().toISOString(),
+ } catch { return null; }
     },
     set(key, value) {
       localStorage.setItem('quant_' + key, JSON.stringify(value));
