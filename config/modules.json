@@ -1,0 +1,192 @@
+{
+  "version": "1.0",
+  "description": "量化监控项目板块注册表 - 定义所有前端板块的配置",
+  "last_updated": "2026-09-12",
+  "modules": [
+    {
+      "id": "module-portfolio-summary",
+      "name": "投资组合摘要",
+      "description": "顶部投资组合总览条，显示组合总资产、总收益、实盘起始日",
+      "enabled": true,
+      "order": 1,
+      "html_element": "portfolio-summary",
+      "css_section": "02_全局组件",
+      "js_functions": ["updatePortfolio", "updateBrandText"],
+      "backend_apis": ["/api/v1/dashboard/portfolio_summary"]
+    },
+    {
+      "id": "module-strategy-cards",
+      "name": "策略卡板块",
+      "description": "6个策略卡 + 详情弹窗 + 今日交易流程，核心板块",
+      "enabled": true,
+      "order": 2,
+      "html_element": "module-strategy-cards",
+      "css_section": "03_策略卡板块",
+      "js_functions": [
+        "renderActionItems",
+        "getTargetCols",
+        "distributeToCols",
+        "calcGridCols",
+        "activeStrategies",
+        "renderStrategyCards",
+        "buildCardHtml",
+        "enhanceCardsForResponsive",
+        "renderCards",
+        "openStrategyDetail",
+        "closeModal"
+      ],
+      "backend_apis": [
+        "/api/v1/dashboard/overview",
+        "/api/v1/<sid>/positions",
+        "/api/v1/<sid>/today_actions",
+        "/api/v1/<sid>/status"
+      ]
+    },
+    {
+      "id": "module-live-sim",
+      "name": "今日交易/实盘模拟",
+      "description": "今日交易流程详情，显示每个策略的买卖动作和持仓明细",
+      "enabled": true,
+      "order": 3,
+      "html_element": "live-sim-section",
+      "css_section": "03_策略卡板块",
+      "js_functions": ["renderTradeDetails"],
+      "backend_apis": [
+        "/api/v1/dashboard/today_actions_all",
+        "/api/v1/dashboard/strategies_flow_summary"
+      ]
+    },
+    {
+      "id": "module-nav-curves",
+      "name": "收益曲线板块",
+      "description": "2Y/5Y/实盘收益对比曲线，多策略净值对比",
+      "enabled": true,
+      "order": 4,
+      "html_element": "module-nav-curves",
+      "css_section": "04_收益曲线板块",
+      "js_functions": [
+        "fetchLiveCurvesOnce",
+        "toggleCardCurve",
+        "openCardCurve",
+        "closeCardCurve",
+        "renderNavCurves",
+        "renderMultiChart",
+        "initChart",
+        "loadNavCurves",
+        "switchChart"
+      ],
+      "backend_apis": [
+        "/api/v1/dashboard/nav_curves",
+        "/api/v1/dashboard/live_curves"
+      ]
+    },
+    {
+      "id": "module-daily-pnl",
+      "name": "每日盈亏趋势",
+      "description": "5策略最近14天Daily P&L趋势图",
+      "enabled": true,
+      "order": 5,
+      "html_element": "module-daily-pnl",
+      "css_section": "04_收益曲线板块",
+      "js_functions": [
+        "loadDailyPnlTrend",
+        "renderDailyPnlTrendChart",
+        "switchDailyPnlView"
+      ],
+      "backend_apis": ["/api/v1/dashboard/daily_pnl_trend"]
+    },
+    {
+      "id": "module-wfa",
+      "name": "WFA分析板块",
+      "description": "WFA过拟合审计 + 样本外P&L曲线，Walk-Forward Analysis",
+      "enabled": true,
+      "order": 6,
+      "html_element": "module-wfa",
+      "css_section": "04_收益曲线板块",
+      "js_functions": [
+        "loadWfaSummary",
+        "renderWfaSummaryCards",
+        "loadWfaOosCurve",
+        "renderWfaOosCurveChart"
+      ],
+      "backend_apis": [
+        "/api/v1/dashboard/wfa_summary",
+        "/api/v1/dashboard/wfa_oos_curve"
+      ]
+    },
+    {
+      "id": "module-param-stability",
+      "name": "参数稳定性板块",
+      "description": "参数稳定性监控，4策略假设网格13训练窗口",
+      "enabled": true,
+      "order": 7,
+      "html_element": "module-param-stability",
+      "css_section": "04_收益曲线板块",
+      "js_functions": [
+        "loadParamStability",
+        "renderParamStabilityCards"
+      ],
+      "backend_apis": ["/api/v1/dashboard/param_stability"]
+    },
+    {
+      "id": "module-ab-comparison",
+      "name": "AB对比板块",
+      "description": "A/B对照（grid_mode vs hardcode），验证WFA优化是否真有效",
+      "enabled": true,
+      "order": 8,
+      "html_element": "module-ab-comparison",
+      "css_section": "04_收益曲线板块",
+      "js_functions": [
+        "loadAbComparison",
+        "renderAbComparisonKpi",
+        "renderAbComparisonCards",
+        "renderAbDiffTrendChart"
+      ],
+      "backend_apis": ["/api/v1/dashboard/ab_comparison"]
+    },
+    {
+      "id": "module-risk",
+      "name": "风险监控板块",
+      "description": "风险监控指标，最大回撤、夏普比率、波动率等",
+      "enabled": true,
+      "order": 9,
+      "html_element": "module-risk",
+      "css_section": "05_风险监控板块",
+      "js_functions": [],
+      "backend_apis": []
+    },
+    {
+      "id": "module-logs",
+      "name": "策略日志板块",
+      "description": "策略变更日志 + 复盘功能，按日期查看历史变更",
+      "enabled": true,
+      "order": 10,
+      "html_element": "module-logs",
+      "css_section": "06_策略日志板块",
+      "js_functions": [
+        "renderLogs",
+        "getLogsForDate",
+        "initReviewDateSelect",
+        "loadReviewByDate"
+      ],
+      "backend_apis": [
+        "/api/v1/review/dates",
+        "/api/v1/review/<date>",
+        "/api/v1/review/range",
+        "/api/v1/review/<date>/notes"
+      ]
+    }
+  ],
+  "global_settings": {
+    "default_enabled": true,
+    "allow_reorder": true,
+    "allow_toggle": true,
+    "min_visible_modules": 3
+  },
+  "usage_notes": [
+    "修改enabled字段可以控制板块是否显示（需前端支持动态渲染）",
+    "修改order字段可以调整板块顺序（需前端支持动态渲染）",
+    "新增板块时，在此文件添加配置，并在前端HTML添加对应section",
+    "css_section和js_functions字段用于快速定位代码位置"
+  ]
+}

@@ -1,3 +1,19 @@
+
+# ============================================================
+# 后端API板块目录（按功能模块组织）
+# ============================================================
+#
+# 00_工具函数
+# 01_策略卡板块
+# 02_收益曲线板块
+# 03_投资组合板块
+# 04_今日交易板块
+# 05_回测分析板块
+# 06_告警板块
+# 07_复盘板块
+# 08_系统路由
+# ============================================================
+
 #!/usr/bin/env python3
 """
 三策略监控面板后端 V2 - 动态策略配置版
@@ -43,6 +59,11 @@ WORK_LOG_DIR = Path('/Users/junze/.hermes/work_logs')
 # P9 E (2026-07-04): 处理 work_log 后缀（_fusion / _fusion_baseline / _baseline）
 # 真实 daily log 主文件优先用 {sid}_{date}.json，没有则用 {sid}_{date}_fusion.json
 # 永远跳过 baseline 文件（不进 trend/review API）
+
+# ============================================================
+# 板块: 00_工具函数
+# ============================================================
+
 def is_baseline_log(filename: str, sid: str) -> bool:
     """判断文件是否是 baseline（A/B 对照的 baseline 分支），是则跳过"""
     return '_baseline' in filename
@@ -159,6 +180,11 @@ def cors(response):
     return response
 
 @app.route('/api/v1/strategies')
+
+# ============================================================
+# 板块: 01_策略卡板块
+# ============================================================
+
 def get_strategies():
     strategies_dict = load_strategies()
     # 转换为数组格式匹配前端 expectations
@@ -327,6 +353,11 @@ def get_dashboard_overview():
     })
 
 @app.route('/api/v1/dashboard/nav_curves')
+
+# ============================================================
+# 板块: 02_收益曲线板块
+# ============================================================
+
 def get_nav_curves():
     strategies_config = load_strategies()
     curves = {}
@@ -359,6 +390,11 @@ def dashboard_live_curves():
 
 
 @app.route('/api/v1/dashboard/portfolio_summary')
+
+# ============================================================
+# 板块: 03_投资组合板块
+# ============================================================
+
 def dashboard_portfolio_summary():
     """组合总览：总资金 / 初始资金 / 总盈亏 / 各策略分项"""
     try:
@@ -369,6 +405,11 @@ def dashboard_portfolio_summary():
 
 
 @app.route('/api/v1/dashboard/today_actions_all')
+
+# ============================================================
+# 板块: 04_今日交易板块
+# ============================================================
+
 def dashboard_today_actions_all():
     """今日交易流程（五策略汇总）"""
     try:
@@ -382,6 +423,11 @@ def dashboard_today_actions_all():
 
 
 @app.route('/api/v1/dashboard/monthly_compare')
+
+# ============================================================
+# 板块: 05_回测分析板块
+# ============================================================
+
 def dashboard_monthly_compare():
     """月度对比图 v1.0 (2026-06-27 P3-1)
 
@@ -1463,6 +1509,11 @@ def get_status(sid):
     return jsonify({'code': 0, 'message': 'success', 'data': {'status': status, 'version': version}})
 
 @app.route('/api/v1/health')
+
+# ============================================================
+# 板块: 08_系统路由
+# ============================================================
+
 def health():
     return jsonify({'code': 0, 'message': 'healthy', 'data': {'status': 'ok'}})
 
@@ -1482,6 +1533,11 @@ def static_files(filename):
     return send_from_directory(BASE_DIR, filename)
 
 @app.route('/api/v1/alerts/check', methods=['GET', 'POST'])
+
+# ============================================================
+# 板块: 06_告警板块
+# ============================================================
+
 def alerts_check():
     """运行健康检查，返回检查结果"""
     results = alert_module.run_health_check()
@@ -1536,6 +1592,11 @@ def start_alert_scheduler():
 # ========== 复盘系统 API v1.0 (2026-06-26 P0) ==========
 
 @app.route('/api/v1/review/dates')
+
+# ============================================================
+# 板块: 07_复盘板块
+# ============================================================
+
 def get_review_dates():
     """列出 review/ 目录下所有复盘日期（用于 review.html 下拉框动态填充）
 
