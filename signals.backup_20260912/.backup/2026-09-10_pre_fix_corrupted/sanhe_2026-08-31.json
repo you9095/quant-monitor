@@ -1,0 +1,92 @@
+{
+  "date": "2026-08-31",
+  "strategy_id": "sanhe",
+  "data_source": "simulated_work_log",
+  "data_period": "起始29天",
+  "caliber": "每日真实行情驱动 · 本金10000",
+  "initial_capital": 10000.0,
+  "positions": [
+    {
+      "code": "588080",
+      "name": "科创50ETF",
+      "qty": 900,
+      "cost": 2.18,
+      "market_value": 1962.0
+    },
+    {
+      "code": "510500",
+      "name": "中证500ETF",
+      "qty": 300,
+      "cost": 8.913,
+      "market_value": 2673.9
+    },
+    {
+      "code": "512100",
+      "name": "中证1000ETF",
+      "qty": 700,
+      "cost": 3.498,
+      "market_value": 2448.6
+    },
+    {
+      "code": "510050",
+      "name": "A50ETF",
+      "qty": 800,
+      "cost": 3.035,
+      "market_value": 2428.0
+    },
+    {
+      "code": "159915",
+      "name": "创业板ETF",
+      "qty": 300,
+      "cost": 3.859,
+      "market_value": 1157.7
+    }
+  ],
+  "action": {
+    "action": "REBALANCE",
+    "target": "588080",
+    "detail": "sanhe 2026-07-13 afternoon | 当日 P&L -321.44 | 成交 1 笔 | 持仓 5 只"
+  },
+  "today_pnl": 96.27,
+  "today_return": 0.009627,
+  "live_total_pnl": 17.22,
+  "live_total_return": 0.0017219999999999998,
+  "live_days": 2,
+  "live_start_date": "2026-06-08",
+  "backtest_total_return": 78.9,
+  "backtest_sharpe": 1.44,
+  "backtest_max_drawdown": -23.4,
+  "backtest_annualized_return": 35.8,
+  "backtest_trades": 303,
+  "backtest_version": "R43_w_zhuidian_0.5",
+  "backtest_data_period": "2024-06 ~ 2026-06",
+  "version": "R44 三合策略",
+  "source_file": "/Users/junze/.hermes/work_logs/sanhe/",
+  "source_file_latest": "/Users/junze/.hermes/work_logs/sanhe/sanhe_2026-07-13.json",
+  "source_file_count": 29,
+  "source_file_first_date": "2026-06-08",
+  "source_file_last_date": "2026-07-13",
+  "validation": {
+    "worklog_days": 29,
+    "worklog_latest_session": "baseline_afternoon",
+    "pnl_source": "daily_pnl.total in NDJSON worklog files",
+    "cumulative_method": "sum(today_pnl) over all daily_run sessions",
+    "initial_capital_source": "INITIAL_CAPITAL constant in bridge script"
+  },
+  "schema_version": "2.0-fixed-2026-08-12",
+  "cash": 1204.37,
+  "schema_fix": {
+    "fix_date": "2026-08-12",
+    "fix_reason": "用户原话 2026-08-12: '511880 银华日利ETF 1,000股 ¥100,000,000' 显示离谱 → 全量审计 + schema 修复",
+    "fixes_applied": [
+      "D2 cost 字段统一为 per-share (修复 qixing 7-30~8-03 cost=total bug)",
+      "D5 name 字段填充中文名 (修复 r32/sanhe name=code bug)",
+      "D6 新增 cash 字段 = max(0, asset - sum(mv))"
+    ],
+    "source_signal_file": "sanhe_2026-08-03.json"
+  },
+  "latest_signal_date": "2026-08-20",
+  "_patch_note_4tag_fix_20260820": "按黄金组合A 4 标签规则调整(8-20):version 简化(禁棘轮编码)/data_period=起始N天(禁 daily_run_xxx)/caliber=每日真实行情驱动·本金X(禁含起始N天)",
+  "refreshed_at": "2026-08-31T15:01:34.827745+00:00",
+  "data_stale_days": 0
+}

@@ -1,0 +1,41 @@
+{
+  "date": "2026-06-30",
+  "strategy_id": "qixing",
+  "data_source": "live_daily_run",
+  "data_period": "daily_run_15天",
+  "caliber": "每日真实行情驱动 · 起始15天 · 本金10000",
+  "initial_capital": 10000.0,
+  "positions": [
+    {
+      "code": "AGGREGATE",
+      "name": "组合净值",
+      "qty": 1,
+      "cost": 90433.5,
+      "market_value": 90433.5
+    }
+  ],
+  "action": {
+    "action": "DEFENSIVE",
+    "target": "511880",
+    "detail": "qixing 2026-06-30 afternoon | 非交易日 | 无价格变动"
+  },
+  "today_pnl": 0.0,
+  "today_return": 0.0,
+  "live_total_pnl": 2.88,
+  "live_total_return": 0.03,
+  "live_days": 15,
+  "live_start_date": "2026-06-06",
+  "backtest_total_return": -9.8,
+  "backtest_sharpe": -0.78,
+  "backtest_max_drawdown": -12.12,
+  "backtest_annualized_return": -5.28,
+  "backtest_trades": 144,
+  "backtest_version": "R120_breadth_0.253_holdings_2",
+  "backtest_data_period": "2024-06-12 ~ 2026-06-12",
+  "version": "R120_breadth_0.253_holdings_2",
+  "source_file": "work_logs/qixing/",
+  "validation": {
+    "worklog_days": 15,
+    "worklog_latest_session": "afternoon"
+  }
+}

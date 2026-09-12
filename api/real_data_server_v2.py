@@ -18,6 +18,9 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 # 让 alerts.py 可被导入
 sys.path.insert(0, str(Path(__file__).parent))
+
+# 2026-09-12 数据告警引擎 — 就地标注机制
+from data_alert_engine import run_alert_engine, get_alerts_summary
 import alerts as alert_module
 import live_data as live_module
 
@@ -184,6 +187,10 @@ def get_dashboard_overview():
     except Exception as e:
         print(f'[实时行情] 获取失败,fallback 到成本价: {e}')
 
+    # 2026-09-12 数据告警引擎：运行全量校验，返回就地标注信息
+    alerts_state = run_alert_engine()
+    alerts_summary = get_alerts_summary(alerts_state)
+
     strategies_data = []
     total_asset = 0
 
@@ -300,6 +307,8 @@ def get_dashboard_overview():
                     'config_caliber_full': cfg.get('caliber_full', cfg.get('caliber', '未指定')),  # 2026-08-31: 完整8段策略详情
                     # 2026-09-12 修复: 使用信号文件真实日期, 不再强制今日, 让前端正确显示数据陈旧警告
                     'signal_date': signal.get('date', signal.get('latest_signal_date', datetime.now().strftime('%Y-%m-%d'))) if signal else datetime.now().strftime('%Y-%m-%d'),
+                    # 2026-09-12 数据告警：就地标注，包含异常类型、消息、首次发现日期
+                    'alerts': alerts_state.get(sid, {}),
         })
     
     return jsonify({
@@ -311,6 +320,8 @@ def get_dashboard_overview():
                 'total_return': round((total_asset - len(strategies_config) * 10000) / (len(strategies_config) * 10000) * 100, 2),
                 'total_asset': round(total_asset, 2)
             },
+            # 2026-09-12 数据告警摘要
+            'alerts_summary': alerts_summary,
             'update_time': datetime.now().isoformat()
         }
     })

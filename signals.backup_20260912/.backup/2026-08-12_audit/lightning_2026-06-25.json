@@ -1,0 +1,54 @@
+{
+  "date": "2026-06-25",
+  "strategy_id": "lightning",
+  "positions": [
+    {
+      "code": "513100",
+      "name": "纳指ETF",
+      "qty": 1200,
+      "cost": 2.205
+    },
+    {
+      "code": "513520",
+      "name": "日经ETF",
+      "qty": 1000,
+      "cost": 1.346
+    },
+    {
+      "code": "513030",
+      "name": "德国ETF",
+      "qty": 800,
+      "cost": 1.44
+    },
+    {
+      "code": "513130",
+      "name": "恒生科技ETF",
+      "qty": 2000,
+      "cost": 0.404
+    }
+  ],
+  "action": {
+    "action": "REBALANCE",
+    "target": "4跨境等权",
+    "detail": "R4_m3 3日动量 - 年化27.34% 回撤-14.06%"
+  },
+  "total_return": 74.06,
+  "annualized_return": 27.34,
+  "today_pnl": 875.0,
+  "today_return": 1.75,
+  "sharpe": 1.2,
+  "max_drawdown": -14.06,
+  "trades": 323,
+  "version": "R4_m3",
+  "data_period": "2024-06 ~ 2026-06",
+  "caliber": "2Y 年化(主)，3日动量+止盈止损",
+  "source_hash": "lightning_30rounds_R1_R30.json_R4_m3",
+  "source_file": "/Users/junze/.hermes/outputs/lightning_strategy_2026-06-14/lightning_30rounds_R1_R30.json",
+  "validation": {
+    "nav_check": true,
+    "return_calc": 74.06,
+    "calculated_nav": 158310.6,
+    "calmar": 1.94,
+    "notes": "R4_m3 2Y 棘轮基线确认, 30轮完整数据"
+  }
+}

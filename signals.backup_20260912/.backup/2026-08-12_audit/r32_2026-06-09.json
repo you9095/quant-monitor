@@ -1,0 +1,27 @@
+{
+  "date": "2026-06-09",
+  "strategy_id": "r32",
+  "positions": [
+    {"code": "159967", "name": "国企红利", "qty": 1650, "cost": 2.82},
+    {"code": "513100", "name": "纳指ETF", "qty": 1120, "cost": 2.15},
+    {"code": "513520", "name": "日经ETF", "qty": 980, "cost": 2.03},
+    {"code": "159915", "name": "创业板ETF", "qty": 1420, "cost": 4.01},
+    {"code": "513500", "name": "标普500", "qty": 880, "cost": 2.38}
+  ],
+  "action": {
+    "action": "REBALANCE",
+    "target": "等权重5只ETF",
+    "detail": "R32棘轮策略等权轮动",
+    "trades": [
+      {"time": "09:30:10", "action": "rebalance", "code": "159967", "qty": 300, "price": 2.82, "amount": 846.0},
+      {"time": "09:30:11", "action": "rebalance", "code": "513100", "qty": -150, "price": 2.15, "amount": -322.5}
+    ]
+  },
+  "total_return": 15.2,
+  "today_pnl": 1250,
+  "today_return": 12.51,
+  "sharpe": 1.88,
+  "max_drawdown": -8.5,
+  "trades": 120,
+  "version": "R32"
+}

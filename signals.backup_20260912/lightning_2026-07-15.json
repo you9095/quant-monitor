@@ -1,0 +1,48 @@
+{
+  "date": "2026-07-15",
+  "strategy_id": "lightning",
+  "data_source": "live_daily_run",
+  "data_period": "daily_run_39天",
+  "caliber": "每日真实行情驱动 · 起始39天 · 本金10000",
+  "initial_capital": 10000.0,
+  "positions": [
+    {
+      "code": "513100",
+      "name": "513100",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    }
+  ],
+  "action": {
+    "action": "HOLD",
+    "target": "513100",
+    "detail": "lightning 2026-07-15 afternoon | 当日 P&L +237.00 | 成交 0 笔 | 持仓 1 只"
+  },
+  "today_pnl": 237.0,
+  "today_return": 2.37,
+  "live_total_pnl": 4763.7,
+  "live_total_return": 47.64,
+  "live_days": 39,
+  "live_start_date": "2026-06-08",
+  "backtest_total_return": 74.06,
+  "backtest_sharpe": 1.2,
+  "backtest_max_drawdown": -14.06,
+  "backtest_annualized_return": 27.34,
+  "backtest_trades": 323,
+  "backtest_version": "R4_m3",
+  "backtest_data_period": "2024-06 ~ 2026-06",
+  "version": "R4_m3",
+  "source_file": "/Users/junze/.hermes/work_logs/lightning/",
+  "source_file_latest": "/Users/junze/.hermes/work_logs/lightning/lightning_2026-07-15.json",
+  "source_file_count": 39,
+  "source_file_first_date": "2026-06-08",
+  "source_file_last_date": "2026-07-15",
+  "validation": {
+    "worklog_days": 39,
+    "worklog_latest_session": "baseline_afternoon",
+    "pnl_source": "daily_pnl.total in NDJSON worklog files",
+    "cumulative_method": "sum(today_pnl) over all daily_run sessions",
+    "initial_capital_source": "INITIAL_CAPITAL constant in bridge script"
+  }
+}

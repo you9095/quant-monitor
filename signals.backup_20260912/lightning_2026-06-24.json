@@ -1,0 +1,46 @@
+{
+  "date": "2026-06-24",
+  "strategy_id": "lightning",
+  "positions": [
+    {
+      "code": "513100",
+      "name": "纳指ETF",
+      "weight": 25,
+      "cost": 2.205
+    },
+    {
+      "code": "513520",
+      "name": "日经ETF",
+      "weight": 25,
+      "cost": 1.346
+    },
+    {
+      "code": "513030",
+      "name": "德国ETF",
+      "weight": 25,
+      "cost": 1.44
+    },
+    {
+      "code": "513130",
+      "name": "恒生ETF",
+      "weight": 25,
+      "cost": 0.404
+    }
+  ],
+  "action": {
+    "action": "REBALANCE",
+    "target": "4跨境等权",
+    "detail": "R4_m3 3日动量 - 年化27.34% 回撤-14.06%",
+    "trades": []
+  },
+  "total_return": 74.06,
+  "annualized_return": 27.34,
+  "today_pnl": 580,
+  "today_return": 1.8,
+  "sharpe": 1.2,
+  "max_drawdown": -14.06,
+  "trades": 323,
+  "version": "R4_m3",
+  "data_period": "2024-06 ~ 2026-06",
+  "caliber": "2Y 年化(主)，3日动量+止盈止损"
+}

@@ -1,0 +1,25 @@
+{
+  "date": "2026-06-10",
+  "strategy_id": "zhuidian",
+  "positions": [
+    {"code": "513100", "name": "纳指ETF", "qty": 1820, "cost": 2.18},
+    {"code": "513520", "name": "日经ETF", "qty": 980, "cost": 2.05},
+    {"code": "513500", "name": "标普500", "qty": 1150, "cost": 2.35}
+  ],
+  "action": {
+    "action": "REBALANCE",
+    "target": "513520,513100",
+    "detail": "跨境动量轮动 - 基于R²加权线性回归",
+    "trades": [
+      {"time": "09:30:12", "action": "buy", "code": "513520", "qty": 420, "price": 2.05, "amount": 861.0},
+      {"time": "09:30:13", "action": "sell", "code": "513500", "qty": -350, "price": 2.35, "amount": -822.5}
+    ]
+  },
+  "total_return": 18.5,
+  "today_pnl": -85,
+  "today_return": -0.9,
+  "sharpe": 1.45,
+  "max_drawdown": -3.2,
+  "trades": 35,
+  "version": "1.0"
+}

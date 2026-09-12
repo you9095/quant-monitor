@@ -1,0 +1,34 @@
+{
+  "date": "2026-06-24",
+  "strategy_id": "qixing",
+  "positions": [
+    {
+      "code": "159915",
+      "name": "创业板ETF",
+      "qty": 1350,
+      "cost": 4.02
+    }
+  ],
+  "action": {
+    "action": "REBALANCE",
+    "target": "159915",
+    "detail": "R122 棘轮最优：breadth=0.40 收紧宽度 年化-1.66% 回撤-5.03% 夏普-0.51"
+  },
+  "total_return": -3.14,
+  "annualized_return": -1.66,
+  "sharpe": -0.51,
+  "max_drawdown": -5.03,
+  "trades": 144,
+  "version": "R122_breadth_0.40",
+  "data_period": "2024-06-07 ~ 2026-06-05",
+  "caliber": "2Y 年化(主) -1.66%",
+  "source_hash": "20260614_qixing_ratchet",
+  "source_file": "/Users/junze/.hermes/outputs/ai_quant_qixing_ratchet_2026-06-14/qixing_5rounds_R121_R125.json",
+  "validation": {
+    "nav_check": true,
+    "return_calc": -3.14,
+    "calculated_nav": 96860.0
+  },
+  "today_pnl": 0,
+  "today_return": 0
+}

@@ -1,0 +1,33 @@
+{
+  "date": "2026-06-25",
+  "strategy_id": "qixing",
+  "positions": [
+    {
+      "code": "159915",
+      "name": "创业板ETF",
+      "qty": 1350,
+      "cost": 4.02
+    }
+  ],
+  "action": {
+    "action": "REBALANCE",
+    "target": "159915",
+    "detail": "R120 默认参数"
+  },
+  "total_return": -9.8,
+  "annualized_return": -5.28,
+  "today_pnl": -376.5,
+  "today_return": -3.77,
+  "sharpe": -0.78,
+  "max_drawdown": -12.12,
+  "trades": 144,
+  "version": "R120_breadth_0.253_holdings_2",
+  "data_period": "2024-06-12 ~ 2026-06-12",
+  "caliber": "2Y 年化(主)，含交易费",
+  "source_hash": "review_2026-06-08",
+  "source_file": "/Users/junze/quant-monitor-local/review/2026-06-08.json",
+  "validation": {
+    "nav_check": true,
+    "notes": "复盘数据 2026-06-08"
+  }
+}

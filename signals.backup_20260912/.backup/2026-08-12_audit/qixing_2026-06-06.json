@@ -1,0 +1,34 @@
+{
+  "date": "2026-06-06",
+  "strategy_id": "qixing",
+  "data_source": "live_daily_run",
+  "data_period": "daily_run_14天",
+  "caliber": "每日真实行情驱动 · 起始14天 · 本金10000",
+  "initial_capital": 10000.0,
+  "positions": [],
+  "action": {
+    "action": "SKIP",
+    "target": null,
+    "detail": "qixing 2026-06-06 | 非交易日 (周六) | 无价格变动"
+  },
+  "today_pnl": 0.0,
+  "today_return": 0.0,
+  "live_total_pnl": 0.0,
+  "live_total_return": 0.0,
+  "live_days": 1,
+  "live_start_date": "2026-06-06",
+  "backtest_total_return": 0.0,
+  "backtest_sharpe": 0.0,
+  "backtest_max_drawdown": 0.0,
+  "backtest_annualized_return": 0.0,
+  "backtest_trades": 0,
+  "backtest_version": "N/A",
+  "backtest_data_period": "N/A",
+  "version": "daily_run_v1",
+  "source_file": "work_logs/qixing/",
+  "validation": {
+    "worklog_days": 1,
+    "worklog_latest_session": "afternoon",
+    "note": "非交易日，daily_pnl=0"
+  }
+}

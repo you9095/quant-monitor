@@ -1,0 +1,33 @@
+{
+  "date": "2026-07-13",
+  "strategy_id": "r32",
+  "data_source": "live_daily_run",
+  "data_period": "daily_run_37天",
+  "caliber": "每日真实行情驱动 · 起始37天 · 本金10000",
+  "initial_capital": 10000.0,
+  "positions": [],
+  "action": {
+    "action": "HOLD",
+    "target": null,
+    "detail": "r32 2026-07-13 afternoon | 当日 P&L +0.00 | 成交 0 笔 | 持仓 0 只"
+  },
+  "today_pnl": 0.0,
+  "today_return": 0.0,
+  "live_total_pnl": 2931.55,
+  "live_total_return": 29.32,
+  "live_days": 37,
+  "live_start_date": "2026-06-08",
+  "backtest_total_return": 114.08,
+  "backtest_sharpe": 1.42,
+  "backtest_max_drawdown": -22.26,
+  "backtest_annualized_return": 17.16,
+  "backtest_trades": 29,
+  "backtest_version": "R35_rebal_15",
+  "backtest_data_period": "2024-06 ~ 2026-06",
+  "version": "R35_crowdness",
+  "source_file": "work_logs/r32/",
+  "validation": {
+    "worklog_days": 37,
+    "worklog_latest_session": "baseline_afternoon"
+  }
+}

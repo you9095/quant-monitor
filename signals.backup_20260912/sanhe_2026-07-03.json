@@ -1,0 +1,69 @@
+{
+  "date": "2026-07-03",
+  "strategy_id": "sanhe",
+  "data_source": "live_daily_run",
+  "data_period": "daily_run_25天",
+  "caliber": "每日真实行情驱动 · 起始25天 · 本金10000",
+  "initial_capital": 10000.0,
+  "positions": [
+    {
+      "code": "513520",
+      "name": "513520",
+      "qty": 1400,
+      "cost": 2.449,
+      "market_value": 3428.6
+    },
+    {
+      "code": "513080",
+      "name": "513080",
+      "qty": 1900,
+      "cost": 1.81,
+      "market_value": 3439.0
+    },
+    {
+      "code": "159967",
+      "name": "159967",
+      "qty": 2000,
+      "cost": 1.033,
+      "market_value": 2066.0
+    },
+    {
+      "code": "588080",
+      "name": "588080",
+      "qty": 900,
+      "cost": 2.18,
+      "market_value": 1962.0
+    },
+    {
+      "code": "159915",
+      "name": "159915",
+      "qty": 500,
+      "cost": 4.236,
+      "market_value": 2118.0
+    }
+  ],
+  "action": {
+    "action": "HOLD",
+    "target": "513520",
+    "detail": "sanhe 2026-07-03 afternoon | 当日 P&L +170.17 | 成交 0 笔 | 持仓 5 只"
+  },
+  "today_pnl": 170.17,
+  "today_return": 1.7,
+  "live_total_pnl": 2512.91,
+  "live_total_return": 25.13,
+  "live_days": 25,
+  "live_start_date": "2026-06-08",
+  "backtest_total_return": 78.9,
+  "backtest_sharpe": 1.44,
+  "backtest_max_drawdown": -23.4,
+  "backtest_annualized_return": 35.8,
+  "backtest_trades": 303,
+  "backtest_version": "R43_w_zhuidian_0.5",
+  "backtest_data_period": "2024-06 ~ 2026-06",
+  "version": "R25_vol_weight",
+  "source_file": "work_logs/sanhe/",
+  "validation": {
+    "worklog_days": 25,
+    "worklog_latest_session": "baseline_afternoon"
+  }
+}

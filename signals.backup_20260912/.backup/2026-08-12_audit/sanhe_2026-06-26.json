@@ -1,0 +1,41 @@
+{
+  "date": "2026-06-26",
+  "strategy_id": "sanhe",
+  "data_source": "live_daily_run",
+  "data_period": "daily_run_14天",
+  "caliber": "每日真实行情驱动 · 起始14天 · 本金10000",
+  "initial_capital": 10000.0,
+  "positions": [
+    {
+      "code": "AGGREGATE",
+      "name": "组合净值",
+      "qty": 1,
+      "cost": 174183.0455,
+      "market_value": 174183.05
+    }
+  ],
+  "action": {
+    "action": "REBALANCE",
+    "target": null,
+    "detail": "sanhe 2026-06-26 afternoon | 累计 +74.18% | 当日 P&L -1066.98"
+  },
+  "today_pnl": -1066.98,
+  "today_return": -10.67,
+  "live_total_pnl": 2380.48,
+  "live_total_return": 23.8,
+  "live_days": 14,
+  "live_start_date": "2026-06-08",
+  "backtest_total_return": 78.9,
+  "backtest_sharpe": 1.44,
+  "backtest_max_drawdown": -23.4,
+  "backtest_annualized_return": 35.8,
+  "backtest_trades": 303,
+  "backtest_version": "R43_w_zhuidian_0.5",
+  "backtest_data_period": "2024-06 ~ 2026-06",
+  "version": "R25_vol_weight",
+  "source_file": "work_logs/sanhe/",
+  "validation": {
+    "worklog_days": 14,
+    "worklog_latest_session": "afternoon"
+  }
+}

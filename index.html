@@ -269,6 +269,73 @@ body {
 }
 .expand-toggle:hover { background: rgba(99, 102, 241, 0.2); border-color: #818cf8; }
 .expand-toggle:active { transform: scale(0.96); }
+
+/* ===== 2026-09-12 数据告警就地标注 ===== */
+.data-alert-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: help;
+  position: relative;
+  vertical-align: middle;
+  margin-left: 4px;
+  animation: alert-pulse 2s ease-in-out infinite;
+}
+.data-alert-badge.error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+.data-alert-badge.warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+.data-alert-badge .alert-date {
+  opacity: 0.8;
+  font-weight: 400;
+}
+.data-alert-badge:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: #f3f4f6;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 400;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  max-width: 300px;
+  white-space: normal;
+  width: max-content;
+}
+@keyframes alert-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+/* 告警字段高亮 */
+.field-with-alert {
+  position: relative;
+}
+.field-with-alert.error {
+  background: rgba(239, 68, 68, 0.08);
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+.field-with-alert.warning {
+  background: rgba(245, 158, 11, 0.08);
+  border-radius: 4px;
+  padding: 2px 4px;
+}
 /* 触摸区扩大: 透明扩展点击范围 */
 .expand-toggle::after {
   content: '';
@@ -1660,6 +1727,24 @@ function buildCardHtml(sid, sname, s) {
   const isBacktest = true; // 策略卡片均为回测数据
   // 从数据中提取字段
   const holdings = s.holdings || [];
+
+  // ===== 2026-09-12 数据告警就地标注 =====
+  const alerts = s.alerts || {};
+  function alertBadge(fieldName) {
+    const alert = alerts[fieldName];
+    if (!alert) return '';
+    const severity = alert.severity || 'warning';
+    const icon = severity === 'error' ? '❌' : '⚠️';
+    const firstSeen = alert.first_seen || '';
+    const shortDate = firstSeen ? firstSeen.slice(5) : ''; // MM-DD
+    const tooltip = `${alert.message || ''}（首次发现: ${firstSeen}）`;
+    return `<span class="data-alert-badge ${severity}" data-tooltip="${tooltip.replace(/"/g, '&quot;')}">${icon}<span class="alert-date">${shortDate}</span></span>`;
+  }
+  function fieldAlertClass(fieldName) {
+    const alert = alerts[fieldName];
+    if (!alert) return '';
+    return `field-with-alert ${alert.severity || 'warning'}`;
+  }
   const totalReturn = s.total_return;
   const position = s.position_pct;
   const cash = s.cash;
@@ -1679,7 +1764,7 @@ function buildCardHtml(sid, sname, s) {
   const todayActionStrip = `
     <div class="today-action-strip ${sid}">
       <div class="tas-header">
-        <span class="tas-title">⚡ 今日交易流程 ${sigDate ? `· ${sigDate}` : ''}</span>
+        <span class="tas-title">⚡ 今日交易流程 ${sigDate ? `· ${sigDate}` : ''}${alertBadge('signal_date')}</span>
         <span class="tas-action ${actionLabel}">${actionLabel}</span>
       </div>
       <div class="tas-flow">${(actionLabel === 'BUY' ? '买入 ' : actionLabel === 'SELL' ? '卖出 ' : actionLabel === 'REBALANCE' ? '调仓至 ' : actionLabel === 'DEFENSIVE' ? '防御 ' : '观望 ') + (s.target || '—')}</div>
@@ -1714,11 +1799,11 @@ function buildCardHtml(sid, sname, s) {
   const returnStr = (totalReturn !== undefined && totalReturn !== null) ? ((totalReturn >= 0 ? '+' : '') + totalReturn.toFixed(2) + '%') : '--';
   const profitBlock = `
     <div class="profit-block">
-      <div class="pb-label">总盈亏（实盘模拟 ${initCap >= 1000 ? (initCap/1000).toFixed(0) + 'k本金' : initCap + '本金'} 至今）</div>
-      <div class="pb-amount ${pnlClass} pb-font-${sid}" data-metric="card-pnl-amount">${pnlStr}</div>
+      <div class="pb-label">总盈亏（实盘模拟 ${initCap >= 1000 ? (initCap/1000).toFixed(0) + 'k本金' : initCap + '本金'} 至今）${alertBadge('live_total_pnl')}</div>
+      <div class="pb-amount ${pnlClass} pb-font-${sid} ${fieldAlertClass('live_total_pnl')}" data-metric="card-pnl-amount">${pnlStr}</div>
       <div class="pb-meta">
         <span class="pb-meta-item"><span class="lbl">收益率</span>${returnStr}</span>
-        <span class="pb-meta-item"><span class="lbl">当前市值</span>¥${curVal.toLocaleString('zh-CN', {minimumFractionDigits: 2})}</span>
+        <span class="pb-meta-item ${fieldAlertClass('total_asset')}"><span class="lbl">当前市值</span>¥${curVal.toLocaleString('zh-CN', {minimumFractionDigits: 2})}${alertBadge('total_asset')}</span>
       </div>
     </div>
   `;

@@ -1,0 +1,135 @@
+{
+  "date": "2026-08-31",
+  "strategy_id": "zhuidian",
+  "data_source": "simulated_work_log",
+  "data_period": "起始50天",
+  "caliber": "每日真实行情驱动 · 本金10000",
+  "initial_capital": 10000.0,
+  "positions": [
+    {
+      "code": "513520",
+      "name": "日经ETF",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    },
+    {
+      "code": "513100",
+      "name": "纳指ETF",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    },
+    {
+      "code": "518880",
+      "name": "黄金ETF",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    },
+    {
+      "code": "159985",
+      "name": "豆粕ETF",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    },
+    {
+      "code": "513130",
+      "name": "恒生科技ETF",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    },
+    {
+      "code": "512890",
+      "name": "红利低波ETF",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    },
+    {
+      "code": "161226",
+      "name": "国泰商品ETF",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    },
+    {
+      "code": "512100",
+      "name": "中证1000ETF",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    },
+    {
+      "code": "159915",
+      "name": "创业板ETF",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    },
+    {
+      "code": "513030",
+      "name": "纳指科技ETF",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    },
+    {
+      "code": "511010",
+      "name": "国债ETF",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    }
+  ],
+  "action": {
+    "action": "HOLD",
+    "target": "513520",
+    "detail": "zhuidian 2026-08-08 afternoon | 当日 P&L +327.00 | 成交 0 笔 | 持仓 11 只"
+  },
+  "today_pnl": -89.31,
+  "today_return": -0.008931,
+  "live_total_pnl": -22.43,
+  "live_total_return": -0.0022429999999999998,
+  "live_days": 2,
+  "live_start_date": "2026-06-08",
+  "backtest_total_return": 288.06,
+  "backtest_sharpe": 2.35,
+  "backtest_max_drawdown": 16.76,
+  "backtest_annualized_return": 110.53,
+  "backtest_trades": 63,
+  "backtest_version": "R17_score_max_38",
+  "backtest_data_period": "2024-06 ~ 2026-06",
+  "version": "R17 追电策略",
+  "source_file": "/Users/junze/.hermes/work_logs/zhuidian/",
+  "source_file_latest": "/Users/junze/.hermes/work_logs/zhuidian/zhuidian_2026-07-29.json",
+  "source_file_count": 31,
+  "source_file_first_date": "2026-06-08",
+  "source_file_last_date": "2026-07-29",
+  "validation": {
+    "worklog_days": 31,
+    "worklog_latest_session": "baseline_afternoon",
+    "pnl_source": "daily_pnl.total in NDJSON worklog files",
+    "cumulative_method": "sum(today_pnl) over all daily_run sessions",
+    "initial_capital_source": "INITIAL_CAPITAL constant in bridge script",
+    "recovered_via": "M01_fix_sync 兜底(quant_data_sync.py 不写 signals/ 目录,按 lightning 7-28 → zhuidian 8-08 schema 手工写)"
+  },
+  "schema_version": "2.0-fixed-2026-08-12",
+  "cash": 37030.7,
+  "schema_fix": {
+    "fix_date": "2026-08-12",
+    "fix_reason": "用户原话 2026-08-12: '511880 银华日利ETF 1,000股 ¥100,000,000' 显示离谱 → 全量审计 + schema 修复",
+    "fixes_applied": [
+      "D2 cost 字段统一为 per-share (修复 qixing 7-30~8-03 cost=total bug)",
+      "D5 name 字段填充中文名 (修复 r32/sanhe name=code bug)",
+      "D6 新增 cash 字段 = max(0, asset - sum(mv))"
+    ],
+    "source_signal_file": "zhuidian_2026-08-08.json"
+  },
+  "latest_signal_date": "2026-08-20",
+  "_patch_note_4tag_fix_20260820": "按黄金组合A 4 标签规则调整(8-20):version 简化(禁棘轮编码)/data_period=起始N天(禁 daily_run_xxx)/caliber=每日真实行情驱动·本金X(禁含起始N天)",
+  "refreshed_at": "2026-08-31T15:01:34.829432+00:00",
+  "data_stale_days": 0
+}

@@ -1,0 +1,23 @@
+{
+  "date": "2026-06-18",
+  "strategy_id": "sanhe",
+  "positions": [],
+  "action": {
+    "action": "PLACEHOLDER",
+    "target": "",
+    "detail": "占位：此策略尚无最新棘轮迭代结果。等待运行 scripts/sync_strategy_results_to_monitor.sh sanhe <result.json> 后自动替换。",
+    "trades": []
+  },
+  "total_return": 0,
+  "annualized_return": 0,
+  "today_pnl": 0,
+  "today_return": 0,
+  "sharpe": 0,
+  "max_drawdown": 0,
+  "trades": 0,
+  "version": "R25_vol_weight",
+  "data_period": "2024-06 ~ 2026-06",
+  "caliber": "2Y 年化(主)，波动率倒数加权仓位",
+  "_placeholder": true,
+  "_placeholder_note": "占位信号文件，棘轮迭代完成后会被实际结果替换"
+}

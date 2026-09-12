@@ -1,0 +1,41 @@
+{
+  "date": "2026-06-26",
+  "strategy_id": "zhuidian",
+  "data_source": "live_daily_run",
+  "data_period": "daily_run_14天",
+  "caliber": "每日真实行情驱动 · 起始14天 · 本金10000",
+  "initial_capital": 10000.0,
+  "positions": [
+    {
+      "code": "AGGREGATE",
+      "name": "组合净值",
+      "qty": 1,
+      "cost": 252159.0044,
+      "market_value": 252159.0
+    }
+  ],
+  "action": {
+    "action": "REBALANCE",
+    "target": null,
+    "detail": "zhuidian 2026-06-26 afternoon | 累计 +152.16% | 当日 P&L -3550.00"
+  },
+  "today_pnl": -3550.0,
+  "today_return": -35.5,
+  "live_total_pnl": 25700.0,
+  "live_total_return": 257.0,
+  "live_days": 14,
+  "live_start_date": "2026-06-08",
+  "backtest_total_return": 288.06,
+  "backtest_sharpe": 2.35,
+  "backtest_max_drawdown": 16.76,
+  "backtest_annualized_return": 110.53,
+  "backtest_trades": 63,
+  "backtest_version": "R17_score_max_38",
+  "backtest_data_period": "2024-06 ~ 2026-06",
+  "version": "R17_score_max_38",
+  "source_file": "work_logs/zhuidian/",
+  "validation": {
+    "worklog_days": 14,
+    "worklog_latest_session": "afternoon"
+  }
+}

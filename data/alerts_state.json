@@ -1,0 +1,11 @@
+{
+  "sanhe": {
+    "signal_date": {
+      "type": "stale_signal",
+      "message": "信号文件陈旧: 2026-08-31（12天前）",
+      "first_seen": "2026-09-12",
+      "last_seen": "2026-09-12",
+      "severity": "warning"
+    }
+  }
+}

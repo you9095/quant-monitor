@@ -1,0 +1,76 @@
+{
+  "date": "2026-07-31",
+  "strategy_id": "sanhe",
+  "data_source": "live_daily_run",
+  "data_period": "daily_run_29天",
+  "caliber": "每日真实行情驱动 · 起始29天 · 本金10000",
+  "initial_capital": 10000.0,
+  "positions": [
+    {
+      "code": "588080",
+      "name": "588080",
+      "qty": 900,
+      "cost": 2.18,
+      "market_value": 1962.0
+    },
+    {
+      "code": "510500",
+      "name": "510500",
+      "qty": 300,
+      "cost": 8.913,
+      "market_value": 2673.9
+    },
+    {
+      "code": "512100",
+      "name": "512100",
+      "qty": 700,
+      "cost": 3.498,
+      "market_value": 2448.6
+    },
+    {
+      "code": "510050",
+      "name": "510050",
+      "qty": 800,
+      "cost": 3.035,
+      "market_value": 2428.0
+    },
+    {
+      "code": "159915",
+      "name": "159915",
+      "qty": 300,
+      "cost": 3.859,
+      "market_value": 1157.7
+    }
+  ],
+  "action": {
+    "action": "REBALANCE",
+    "target": "588080",
+    "detail": "sanhe 2026-07-13 afternoon | 当日 P&L -321.44 | 成交 1 笔 | 持仓 5 只"
+  },
+  "today_pnl": -321.44,
+  "today_return": -3.21,
+  "live_total_pnl": 1874.57,
+  "live_total_return": 18.75,
+  "live_days": 29,
+  "live_start_date": "2026-06-08",
+  "backtest_total_return": 78.9,
+  "backtest_sharpe": 1.44,
+  "backtest_max_drawdown": -23.4,
+  "backtest_annualized_return": 35.8,
+  "backtest_trades": 303,
+  "backtest_version": "R43_w_zhuidian_0.5",
+  "backtest_data_period": "2024-06 ~ 2026-06",
+  "version": "R25_vol_weight",
+  "source_file": "/Users/junze/.hermes/work_logs/sanhe/",
+  "source_file_latest": "/Users/junze/.hermes/work_logs/sanhe/sanhe_2026-07-13.json",
+  "source_file_count": 29,
+  "source_file_first_date": "2026-06-08",
+  "source_file_last_date": "2026-07-13",
+  "validation": {
+    "worklog_days": 29,
+    "worklog_latest_session": "baseline_afternoon",
+    "pnl_source": "daily_pnl.total in NDJSON worklog files",
+    "cumulative_method": "sum(today_pnl) over all daily_run sessions",
+    "initial_capital_source": "INITIAL_CAPITAL constant in bridge script"
+  }
+}

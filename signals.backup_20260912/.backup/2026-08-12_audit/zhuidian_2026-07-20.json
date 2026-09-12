@@ -1,0 +1,118 @@
+{
+  "date": "2026-07-20",
+  "strategy_id": "zhuidian",
+  "data_source": "live_daily_run",
+  "data_period": "daily_run_31天",
+  "caliber": "每日真实行情驱动 · 起始31天 · 本金10000",
+  "initial_capital": 10000.0,
+  "positions": [
+    {
+      "code": "513520",
+      "name": "513520",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    },
+    {
+      "code": "513100",
+      "name": "513100",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    },
+    {
+      "code": "518880",
+      "name": "518880",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    },
+    {
+      "code": "159985",
+      "name": "159985",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    },
+    {
+      "code": "513130",
+      "name": "513130",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    },
+    {
+      "code": "512890",
+      "name": "512890",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    },
+    {
+      "code": "161226",
+      "name": "161226",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    },
+    {
+      "code": "512100",
+      "name": "512100",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    },
+    {
+      "code": "159915",
+      "name": "159915",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    },
+    {
+      "code": "513030",
+      "name": "513030",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    },
+    {
+      "code": "511010",
+      "name": "511010",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    }
+  ],
+  "action": {
+    "action": "HOLD",
+    "target": "513520",
+    "detail": "zhuidian 2026-07-20 afternoon | 当日 P&L +327.00 | 成交 0 笔 | 持仓 11 只"
+  },
+  "today_pnl": 327.0,
+  "today_return": 3.27,
+  "live_total_pnl": 27030.7,
+  "live_total_return": 270.31,
+  "live_days": 31,
+  "live_start_date": "2026-06-08",
+  "backtest_total_return": 288.06,
+  "backtest_sharpe": 2.35,
+  "backtest_max_drawdown": 16.76,
+  "backtest_annualized_return": 110.53,
+  "backtest_trades": 63,
+  "backtest_version": "R17_score_max_38",
+  "backtest_data_period": "2024-06 ~ 2026-06",
+  "version": "R17_score_max_38",
+  "source_file": "/Users/junze/.hermes/work_logs/zhuidian/",
+  "source_file_latest": "/Users/junze/.hermes/work_logs/zhuidian/zhuidian_2026-07-20.json",
+  "source_file_count": 31,
+  "source_file_first_date": "2026-06-08",
+  "source_file_last_date": "2026-07-20",
+  "validation": {
+    "worklog_days": 31,
+    "worklog_latest_session": "baseline_afternoon",
+    "pnl_source": "daily_pnl.total in NDJSON worklog files",
+    "cumulative_method": "sum(today_pnl) over all daily_run sessions",
+    "initial_capital_source": "INITIAL_CAPITAL constant in bridge script"
+  }
+}

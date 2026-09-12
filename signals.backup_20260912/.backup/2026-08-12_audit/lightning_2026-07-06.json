@@ -1,0 +1,41 @@
+{
+  "date": "2026-07-06",
+  "strategy_id": "lightning",
+  "data_source": "live_daily_run",
+  "data_period": "daily_run_27天",
+  "caliber": "每日真实行情驱动 · 起始27天 · 本金10000",
+  "initial_capital": 10000.0,
+  "positions": [
+    {
+      "code": "513030",
+      "name": "513030",
+      "qty": 0,
+      "cost": 0.0,
+      "market_value": 0.0
+    }
+  ],
+  "action": {
+    "action": "HOLD",
+    "target": "513030",
+    "detail": "lightning 2026-07-06 afternoon | 当日 P&L +99.00 | 成交 0 笔 | 持仓 1 只"
+  },
+  "today_pnl": 99.0,
+  "today_return": 0.99,
+  "live_total_pnl": 5071.0,
+  "live_total_return": 50.71,
+  "live_days": 27,
+  "live_start_date": "2026-06-08",
+  "backtest_total_return": 74.06,
+  "backtest_sharpe": 1.2,
+  "backtest_max_drawdown": -14.06,
+  "backtest_annualized_return": 27.34,
+  "backtest_trades": 323,
+  "backtest_version": "R4_m3",
+  "backtest_data_period": "2024-06 ~ 2026-06",
+  "version": "R4_m3",
+  "source_file": "work_logs/lightning/",
+  "validation": {
+    "worklog_days": 27,
+    "worklog_latest_session": "baseline_afternoon"
+  }
+}

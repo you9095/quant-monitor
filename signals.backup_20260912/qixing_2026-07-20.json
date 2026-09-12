@@ -1,0 +1,62 @@
+{
+  "date": "2026-07-20",
+  "strategy_id": "qixing",
+  "data_source": "live_daily_run",
+  "data_period": "daily_run_43天",
+  "caliber": "每日真实行情驱动 · 起始43天 · 本金10000",
+  "initial_capital": 10000.0,
+  "positions": [
+    {
+      "code": "511880",
+      "name": "511880",
+      "qty": 100,
+      "cost": 100.352,
+      "market_value": 10035.2
+    },
+    {
+      "code": "501018",
+      "name": "501018",
+      "qty": 100,
+      "cost": 1.973,
+      "market_value": 197.3
+    },
+    {
+      "code": "159985",
+      "name": "159985",
+      "qty": 100,
+      "cost": 2.153,
+      "market_value": 215.3
+    }
+  ],
+  "action": {
+    "action": "REBALANCE",
+    "target": "511880",
+    "detail": "qixing 2026-07-20 afternoon | 当日 P&L -2.06 | 成交 3 笔 | 持仓 3 只"
+  },
+  "today_pnl": -2.06,
+  "today_return": -0.02,
+  "live_total_pnl": -147.55,
+  "live_total_return": -1.48,
+  "live_days": 43,
+  "live_start_date": "2026-06-06",
+  "backtest_total_return": -9.8,
+  "backtest_sharpe": -0.78,
+  "backtest_max_drawdown": -12.12,
+  "backtest_annualized_return": -5.28,
+  "backtest_trades": 144,
+  "backtest_version": "R120_breadth_0.253_holdings_2",
+  "backtest_data_period": "2024-06-12 ~ 2026-06-12",
+  "version": "?",
+  "source_file": "/Users/junze/.hermes/work_logs/qixing/",
+  "source_file_latest": "/Users/junze/.hermes/work_logs/qixing/qixing_2026-07-20.json",
+  "source_file_count": 43,
+  "source_file_first_date": "2026-06-06",
+  "source_file_last_date": "2026-07-20",
+  "validation": {
+    "worklog_days": 43,
+    "worklog_latest_session": "fusion_baseline_afternoon",
+    "pnl_source": "daily_pnl.total in NDJSON worklog files",
+    "cumulative_method": "sum(today_pnl) over all daily_run sessions",
+    "initial_capital_source": "INITIAL_CAPITAL constant in bridge script"
+  }
+}

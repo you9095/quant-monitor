@@ -53,7 +53,7 @@
   "goldcombo": {
     "name": "黄金组合A",
     "color": "#ef4444",
-    "initial_capital": 50000,
+    "initial_capital": 10000,
     "description": "极致恐慌反转模型",
     "version": "V24 DMAStrategy",
     "data_period": "起始6天",

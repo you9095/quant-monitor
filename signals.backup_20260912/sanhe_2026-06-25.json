@@ -1,0 +1,58 @@
+{
+  "date": "2026-06-25",
+  "strategy_id": "sanhe",
+  "positions": [
+    {
+      "code": "513100",
+      "name": "纳指ETF",
+      "qty": 2000,
+      "cost": 2.205
+    },
+    {
+      "code": "518880",
+      "name": "黄金ETF",
+      "qty": 2000,
+      "cost": 4.62
+    },
+    {
+      "code": "159985",
+      "name": "豆粕ETF",
+      "qty": 2000,
+      "cost": 1.04
+    },
+    {
+      "code": "511010",
+      "name": "国债ETF",
+      "qty": 2000,
+      "cost": 1.378
+    },
+    {
+      "code": "512890",
+      "name": "红利低波",
+      "qty": 1500,
+      "cost": 1.185
+    }
+  ],
+  "action": {
+    "action": "PARAM",
+    "target": null,
+    "detail": "R43 棘轮迭代完成，2Y年化+35.80%，回撤-23.40%"
+  },
+  "total_return": 78.9,
+  "annualized_return": 35.8,
+  "today_pnl": 386.5,
+  "today_return": 3.87,
+  "sharpe": 1.44,
+  "max_drawdown": -23.4,
+  "trades": 303,
+  "version": "R43_w_zhuidian_0.5",
+  "data_period": "2024-06 ~ 2026-06",
+  "caliber": "2Y 年化(主)，周度调仓",
+  "source_hash": "sanhe_rounds_R41_R45_R43_ACCEPT",
+  "source_file": "/Users/junze/.hermes/outputs/ai_quant_global_plan_2026-06-14/memory.json",
+  "validation": {
+    "nav_check": true,
+    "return_calc": 78.9,
+    "calmar": 1.53
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "date": "2026-06-25",
+  "strategy_id": "zhuidian",
+  "positions": [
+    {
+      "code": "513100",
+      "name": "纳指ETF",
+      "qty": 1000,
+      "cost": 2.205
+    }
+  ],
+  "action": {
+    "action": "PARAM",
+    "target": null,
+    "detail": "追电ETF动量轮动策略 1.0，年化+110.53%，回撤-16.76%，夏普2.35"
+  },
+  "total_return": 288.06,
+  "annualized_return": 110.53,
+  "sharpe": 2.35,
+  "max_drawdown": 16.76,
+  "trades": 63,
+  "version": "R17_score_max_38",
+  "data_period": "2024-06 ~ 2026-06",
+  "caliber": "2Y 年化(主)+110.53%",
+  "source_hash": "095bf7a4_r16r25_summary",
+  "source_file": "/Users/junze/.hermes/outputs/ratchet_zhuidian/ratchet_zhuidian_r16r25_summary.json",
+  "validation": {
+    "nav_check": true,
+    "return_calc": 288.06,
+    "calculated_nav": 388061.0
+  },
+  "today_pnl": -412.23,
+  "today_return": -4.12
+}

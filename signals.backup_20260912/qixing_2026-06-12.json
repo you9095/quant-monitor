@@ -1,0 +1,26 @@
+{
+  "date": "2026-06-12",
+  "strategy_id": "qixing",
+  "positions": [
+    {"code": "159915", "name": "创业板ETF", "qty": 2450, "cost": 4.02},
+    {"code": "159967", "name": "国企红利", "qty": 1200, "cost": 2.85},
+    {"code": "513100", "name": "纳指ETF", "qty": 890, "cost": 2.18}
+  ],
+  "action": {
+    "action": "REBALANCE",
+    "target": "159915,513100",
+    "detail": "轮动调仓至宽度0.253最优组合",
+    "trades": [
+      {"time": "09:30:15", "action": "sell", "code": "159915", "qty": -560, "price": 4.01, "amount": -2245.6},
+      {"time": "09:30:16", "action": "buy", "code": "513100", "qty": 340, "price": 2.18, "amount": 741.2}
+    ]
+  },
+  "total_return": 40.3,
+  "annualized_return": 32.35,
+  "today_pnl": 120,
+  "today_return": 4.8,
+  "sharpe": 2.15,
+  "max_drawdown": -6.58,
+  "trades": 40,
+  "version": "R120"
+}

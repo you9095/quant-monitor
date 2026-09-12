@@ -1,0 +1,33 @@
+{
+  "date": "2026-07-10",
+  "strategy_id": "lightning",
+  "data_source": "live_daily_run",
+  "data_period": "daily_run_33天",
+  "caliber": "每日真实行情驱动 · 起始33天 · 本金10000",
+  "initial_capital": 10000.0,
+  "positions": [],
+  "action": {
+    "action": "REBALANCE",
+    "target": null,
+    "detail": "lightning 2026-07-10 afternoon | 当日 P&L +0.00 | 成交 1 笔 | 持仓 0 只"
+  },
+  "today_pnl": 0.0,
+  "today_return": 0.0,
+  "live_total_pnl": 5127.9,
+  "live_total_return": 51.28,
+  "live_days": 33,
+  "live_start_date": "2026-06-08",
+  "backtest_total_return": 74.06,
+  "backtest_sharpe": 1.2,
+  "backtest_max_drawdown": -14.06,
+  "backtest_annualized_return": 27.34,
+  "backtest_trades": 323,
+  "backtest_version": "R4_m3",
+  "backtest_data_period": "2024-06 ~ 2026-06",
+  "version": "R4_m3",
+  "source_file": "work_logs/lightning/",
+  "validation": {
+    "worklog_days": 33,
+    "worklog_latest_session": "baseline_afternoon"
+  }
+}

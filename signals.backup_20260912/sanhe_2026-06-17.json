@@ -1,0 +1,22 @@
+{
+  "date": "2026-06-17",
+  "strategy_id": "sanhe_5y",
+  "positions": [],
+  "action": {
+    "action": "REBALANCE",
+    "target": "R44_weekly_h4_cap2418",
+    "detail": "R41-R45 5Y 棘轮迭代 - 年化23.18% 回撤-24.96% (新基线)",
+    "trades": []
+  },
+  "total_return": 153.59,
+  "annualized_return": 23.18,
+  "today_pnl": 0,
+  "today_return": 0,
+  "sharpe": 1.2,
+  "max_drawdown": -24.96,
+  "trades": 648,
+  "version": "R44_weekly_h4_cap2418",
+  "data_period": "5Y (2021-06-07 ~ 2026-06-05)",
+  "caliber": "5Y 年化(主)，周度调仓+4持仓",
+  "engine_version": "fusion_v6_round3_2y.run_v6"
+}

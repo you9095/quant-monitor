@@ -1,0 +1,63 @@
+{
+  "date": "2026-08-31",
+  "strategy_id": "qixing",
+  "data_source": "live_daily_run",
+  "data_period": "起始52天",
+  "caliber": "每日真实行情驱动 · 本金10000",
+  "initial_capital": 10000.0,
+  "positions": [
+    {
+      "code": "511880",
+      "name": "银华日利ETF",
+      "qty": 1000,
+      "cost": 100.0,
+      "market_value": 100000.0
+    }
+  ],
+  "action": {
+    "action": "DEFENSIVE",
+    "target": "511880",
+    "detail": "环境: normal | 仓位: 100.0% | 目标: 511880"
+  },
+  "today_pnl": 0.0,
+  "today_return": 0.0,
+  "live_total_pnl": -147.55,
+  "live_total_return": -1.48,
+  "live_days": 52,
+  "live_start_date": "2026-06-06",
+  "backtest_total_return": -9.8,
+  "backtest_sharpe": -0.78,
+  "backtest_max_drawdown": -12.12,
+  "backtest_annualized_return": -5.28,
+  "backtest_trades": 144,
+  "backtest_version": "R120_breadth_0.253_holdings_2",
+  "backtest_data_period": "2024-06-12 ~ 2026-06-12",
+  "version": "R120 七星策略",
+  "source_file": "/Users/junze/.hermes/work_logs/qixing/",
+  "source_file_latest": "/Users/junze/.hermes/work_logs/qixing/qixing_2026-08-03.json",
+  "source_file_count": 52,
+  "source_file_first_date": "2026-06-06",
+  "source_file_last_date": "2026-08-03",
+  "validation": {
+    "worklog_days": 52,
+    "worklog_latest_session": "afternoon",
+    "pnl_source": "daily_pnl.total in NDJSON worklog files",
+    "cumulative_method": "sum(today_pnl) over all daily_run sessions",
+    "initial_capital_source": "INITIAL_CAPITAL constant in bridge script"
+  },
+  "schema_version": "2.0-fixed-2026-08-12",
+  "cash": 0,
+  "schema_fix": {
+    "fix_date": "2026-08-12",
+    "fix_reason": "用户原话 2026-08-12: '511880 银华日利ETF 1,000股 ¥100,000,000' 显示离谱 → 全量审计 + schema 修复",
+    "fixes_applied": [
+      "D2 cost 字段统一为 per-share (修复 qixing 7-30~8-03 cost=total bug)",
+      "D5 name 字段填充中文名 (修复 r32/sanhe name=code bug)",
+      "D6 新增 cash 字段 = max(0, asset - sum(mv))"
+    ],
+    "source_signal_file": "qixing_2026-08-03.json"
+  },
+  "latest_signal_date": "2026-08-20",
+  "_patch_note_4tag_fix_20260820": "按黄金组合A 4 标签规则调整(8-20):version 简化(禁棘轮编码)/data_period=起始N天(禁 daily_run_xxx)/caliber=每日真实行情驱动·本金X(禁含起始N天)",
+  "_fix_note_20260910": "2026-09-10 修复: 8-31 模拟模式(simulated_work_log)覆盖正确累计数据, 已从 8-29 正确基准恢复 live_total_pnl/live_total_return/live_days, 收益率统一为百分比格式"
+}

@@ -1,0 +1,48 @@
+{
+  "date": "2026-07-27",
+  "strategy_id": "qixing",
+  "data_source": "live_daily_run",
+  "data_period": "daily_run_47天",
+  "caliber": "每日真实行情驱动 · 起始47天 · 本金10000",
+  "initial_capital": 10000.0,
+  "positions": [
+    {
+      "code": "159985",
+      "name": "豆粕ETF华夏",
+      "qty": 700,
+      "cost": 70000.0,
+      "market_value": 70000.0
+    }
+  ],
+  "action": {
+    "action": "MOMENTUM",
+    "target": "159985",
+    "detail": "环境: normal | 仓位: 70.0% | 目标: 159985"
+  },
+  "today_pnl": 0.0,
+  "today_return": 0.0,
+  "live_total_pnl": -147.55,
+  "live_total_return": -1.48,
+  "live_days": 47,
+  "live_start_date": "2026-06-06",
+  "backtest_total_return": -9.8,
+  "backtest_sharpe": -0.78,
+  "backtest_max_drawdown": -12.12,
+  "backtest_annualized_return": -5.28,
+  "backtest_trades": 144,
+  "backtest_version": "R120_breadth_0.253_holdings_2",
+  "backtest_data_period": "2024-06-12 ~ 2026-06-12",
+  "version": "R120_breadth_0.253_holdings_2",
+  "source_file": "/Users/junze/.hermes/work_logs/qixing/",
+  "source_file_latest": "/Users/junze/.hermes/work_logs/qixing/qixing_2026-07-27.json",
+  "source_file_count": 47,
+  "source_file_first_date": "2026-06-06",
+  "source_file_last_date": "2026-07-27",
+  "validation": {
+    "worklog_days": 47,
+    "worklog_latest_session": "afternoon",
+    "pnl_source": "daily_pnl.total in NDJSON worklog files",
+    "cumulative_method": "sum(today_pnl) over all daily_run sessions",
+    "initial_capital_source": "INITIAL_CAPITAL constant in bridge script"
+  }
+}

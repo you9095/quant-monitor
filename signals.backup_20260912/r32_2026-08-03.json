@@ -1,0 +1,48 @@
+{
+  "date": "2026-08-03",
+  "strategy_id": "r32",
+  "data_source": "live_daily_run",
+  "data_period": "daily_run_67天",
+  "caliber": "每日真实行情驱动 · 起始67天 · 本金10000",
+  "initial_capital": 10000.0,
+  "positions": [
+    {
+      "code": "512040",
+      "name": "512040",
+      "qty": 9900,
+      "cost": 1.2226,
+      "market_value": 12103.85
+    }
+  ],
+  "action": {
+    "action": "HOLD",
+    "target": "512040",
+    "detail": "r32 2026-08-03 afternoon | 当日 P&L +71.93 | 成交 0 笔 | 持仓 1 只"
+  },
+  "today_pnl": 71.93,
+  "today_return": 0.72,
+  "live_total_pnl": 3080.31,
+  "live_total_return": 30.8,
+  "live_days": 67,
+  "live_start_date": "2026-06-08",
+  "backtest_total_return": 114.08,
+  "backtest_sharpe": 1.42,
+  "backtest_max_drawdown": -22.26,
+  "backtest_annualized_return": 17.16,
+  "backtest_trades": 29,
+  "backtest_version": "R35_rebal_15",
+  "backtest_data_period": "2024-06 ~ 2026-06",
+  "version": "R35_crowdness",
+  "source_file": "/Users/junze/.hermes/work_logs/r32/",
+  "source_file_latest": "/Users/junze/.hermes/work_logs/r32/r32_2026-08-03.json",
+  "source_file_count": 67,
+  "source_file_first_date": "2026-06-08",
+  "source_file_last_date": "2026-08-03",
+  "validation": {
+    "worklog_days": 67,
+    "worklog_latest_session": "baseline_afternoon",
+    "pnl_source": "daily_pnl.total in NDJSON worklog files",
+    "cumulative_method": "sum(today_pnl) over all daily_run sessions",
+    "initial_capital_source": "INITIAL_CAPITAL constant in bridge script"
+  }
+}

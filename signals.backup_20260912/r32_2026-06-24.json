@@ -1,0 +1,61 @@
+{
+  "date": "2026-06-24",
+  "strategy_id": "r32",
+  "positions": [
+    {
+      "code": "159967",
+      "name": "国企红利",
+      "weight": 20,
+      "cost": 0.995
+    },
+    {
+      "code": "513100",
+      "name": "纳指ETF",
+      "weight": 20,
+      "cost": 2.205
+    },
+    {
+      "code": "513520",
+      "name": "日经ETF",
+      "weight": 20,
+      "cost": 1.346
+    },
+    {
+      "code": "159915",
+      "name": "创业板",
+      "weight": 20,
+      "cost": 3.977
+    },
+    {
+      "code": "513500",
+      "name": "标普500",
+      "weight": 20,
+      "cost": 2.179
+    },
+    {
+      "code": "518880",
+      "name": "黄金ETF",
+      "weight": 20,
+      "cost": 4.62
+    }
+  ],
+  "action": {
+    "action": "REBALANCE",
+    "target": "等权重6只ETF",
+    "detail": "R35_rebal_15 半月调仓 - 年化17.16% 回撤22.26%",
+    "trades": []
+  },
+  "total_return": 114.08,
+  "annualized_return": 17.16,
+  "today_pnl": 1380,
+  "today_return": 5.2,
+  "sharpe": 1.15,
+  "max_drawdown": -22.26,
+  "trades": 29,
+  "version": "R35_rebal_15",
+  "data_period": "2024-06 ~ 2026-06",
+  "caliber": "2Y 年化(主)，半月调仓",
+  "source_hash": "r32_rounds_R33_R37",
+  "source_file": "/Users/junze/.hermes/outputs/ai_quant_r32_ratchet_2026-06-14/r32_5rounds_R33_R37.json",
+  "validation": {"nav_check": true, "return_calc": 114.08, "calmar": 0.77}
+}

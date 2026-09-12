@@ -1,0 +1,55 @@
+{
+  "date": "2026-06-24",
+  "strategy_id": "zhuidian",
+  "positions": [
+    {
+      "code": "513100",
+      "name": "纳指ETF",
+      "qty": 1820,
+      "cost": 2.18
+    },
+    {
+      "code": "513520",
+      "name": "日经ETF",
+      "qty": 980,
+      "cost": 2.05
+    },
+    {
+      "code": "513500",
+      "name": "标普500",
+      "qty": 1150,
+      "cost": 2.35
+    }
+  ],
+  "action": {
+    "action": "REBALANCE",
+    "target": "513100,513520",
+    "detail": "R17_score_max_38 跨境动量轮动 - 年化103.18%",
+    "trades": [
+      {
+        "time": "09:30:12",
+        "action": "buy",
+        "code": "513520",
+        "qty": 420,
+        "price": 2.05
+      },
+      {
+        "time": "09:30:13",
+        "action": "sell",
+        "code": "513500",
+        "qty": -350,
+        "price": 2.35
+      }
+    ]
+  },
+  "total_return": 288.06,
+  "annualized_return": 103.18,
+  "today_pnl": 680,
+  "today_return": 1.5,
+  "sharpe": 2.35,
+  "max_drawdown": -16.76,
+  "trades": 63,
+  "version": "R17_score_max_38",
+  "data_period": "2024-06 ~ 2026-06",
+  "caliber": "2Y 年化(主)，加权线性回归动量+R²加权"
+}
