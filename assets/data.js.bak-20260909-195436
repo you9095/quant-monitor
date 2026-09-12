@@ -230,12 +230,12 @@ const DataLayer = {
       }
     ],
     portfolio: {
-      // 2026-08-03 修复: 组合总览接真值 — total_pnl=5 策略 signals 最新 live_total_pnl 求和
-      // (qixing -147.55 + r32 3080.31 + zhuidian 27030.7 + sanhe 1874.57 + lightning 4712.3 = 36550.33)
-      initial_capital: 50000,
-      total_value: 86550.33,
-      total_pnl: 36550.33,
-      total_return_pct: 73.10,
+      // 2026-08-03 修复: 组合总览接真值 — 以 API 返回 total_value - initial_capital 为准
+      // 兜底计算: total - initial (防止 total_pnl 被写死数值与实际脱节)
+      initial_capital: 60000,
+      total_value: 59998.13,
+      total_pnl: undefined,
+      total_return_pct: -0.0,
       total_return: null,
       last_update: new Date().toISOString()
     },
@@ -263,7 +263,12 @@ const DataLayer = {
   // 本地存储
   storage: {
     get(key) {
-      try { return JSON.parse(localStorage.getItem('quant_' + key)); } catch { return null; }
+      try { return JSON.parse(localStorage.getItem('quant_' + key))      initial_capital: 60000,
+      total_value: 59998.13,
+      total_pnl: -1.87,
+      total_return_pct: -0.0,
+      last_update: new Date().toISOString(),
+ } catch { return null; }
     },
     set(key, value) {
       localStorage.setItem('quant_' + key, JSON.stringify(value));
@@ -314,29 +319,8 @@ const DataLayer = {
       cash: s.cash || 0,
       total_asset: s.total_asset,
       total_return: s.total_return,
-      total_return_amount: s.total_return_amount,
       today_pnl: s.today_pnl,
       today_return: s.today_return,
-      initial_capital: s.initial_capital || 10000,
-      // 实盘模拟数据（2026-09-11 修复: 完整传递,供策略详情弹窗使用）
-      live_total_pnl: s.live_total_pnl,
-      live_total_return: s.live_total_return,
-      live_days: s.live_days,
-      live_start_date: s.live_start_date,
-      // 2026-09-11 修复: 578a2b7版本期望的顶层字段（data_period_days / config_caliber_full / version_tag / data_period / caliber）
-      version_tag: s.version_tag || null,
-      data_period: s.data_period || null,
-      data_period_days: s.live_days || null,  // 578a2b7版本期望data_period_days，用live_days兜底
-      caliber: s.caliber || null,
-      config_caliber: s.config_caliber || null,
-      config_caliber_full: s.config_caliber_full || null,
-      signal_date: s.signal_date || null,
-      // 回测数据
-      backtest_total_return: s.backtest_total_return,
-      backtest_sharpe: s.sharpe_ratio,
-      backtest_max_drawdown: s.max_drawdown,
-      backtest_trades: s.trades_count || 0,
-      annualized_return: s.annualized_return,
       holdings: (s.positions || s.holdings || []).map(p => ({
         code: p.code,
         name: p.name,
@@ -354,13 +338,10 @@ const DataLayer = {
         annual_volatility: s.annual_volatility,
         trades_count: s.trades_count || 0,
         win_rate: s.win_rate,
-        annualized_return: s.annualized_return,
         // 三层标签（v2.0 路线图 P0-4）
         version_tag: s.version_tag || null,
         data_period: s.data_period || null,
         caliber: s.caliber || null,
-        config_caliber: s.config_caliber || null,
-        config_caliber_full: s.config_caliber_full || null,
         signal_date: s.signal_date || null
       }
     }));

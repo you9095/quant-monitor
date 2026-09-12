@@ -5,58 +5,67 @@
     "color": "#3b82f6",
     "initial_capital": 10000,
     "description": "创业板动量策略",
-    "version": "R120_breadth_0.353_holdings_1",
-    "data_period": "2024-06-12 ~ 2026-06-12",
-    "caliber": "2Y 年化(主)，含交易费，单持仓；5Y 年化仅+1.92%（牛熊差异）"
+    "version": "R120 七星策略",
+    "data_period": "起始52天",
+    "caliber": "买入规则: breadth 大于等于 0.353 (动量 ETF 占比) + 持仓数等于 1 (单持仓)",
+    "caliber_full": "版本名称: 七星策略 R120_breadth_0.353_holdings_1 · 标的筛选: 11 ETF K 线 (含 511880 防御 ETF) 动量评分计算 · 买入规则: breadth 大于等于 0.353 (动量 ETF 占比) + 持仓数等于 1 (单持仓) · 卖出规则: breadth 小于 0.353 即卖 + 池相关矩阵触发任一相关大于 0.6 即降权 · 止盈止损: 2Y 回撤硬约束小于等于负 20% + T+1 成交 + 含交易费 · 牛熊针对: 跨周期抗跌研究方向 R122 (2022-2023 段测试) · 回测数据: 2Y 数据期 (2Y 年化正 32.35% / 夏普 1.9 / 胜率 65%) · 其他特点: setcash(10000) / R120_breadth_0.353_holdings_1 基线"
   },
   "r32": {
     "name": "三驾马车",
     "color": "#10b981",
     "initial_capital": 10000,
     "description": "行业轮动棘轮策略",
-    "version": "R35_rebal_15",
-    "data_period": "2024-06 ~ 2026-06",
-    "caliber": "2Y 年化(主)，半月调仓，含交易费，硬约束回撤 ≤ -20%"
+    "version": "R35 三驾马车",
+    "data_period": "起始67天",
+    "caliber": "买入规则: 动量加宽度加止损三策略并行 AC + 半月调仓 (R32_biweekly)",
+    "caliber_full": "版本名称: 三驾马车 R35_biweekly · 标的筛选: 100 ETF 池去重后 / 群聚因子 (crowdness 等于 top_n_etf 按成交量降序选 5) · 买入规则: 动量加宽度加止损三策略并行 AC + 半月调仓 (R32_biweekly) · 卖出规则: 任一策略触发卖出信号 则整体仓位减半 · 止盈止损: 2Y 回撤硬约束小于等于负 20% + 周频替换成本小于 0.1% 才能 ACCEPT · 牛熊针对: 跨周期 5Y 真实回测 R34 验证 2022 熊市段 · 回测数据: 2Y 数据期 (2Y 年化正 38.14% / 夏普 1.8 / 胜率 62%) · 其他特点: setcash(10000) / 5 只等权去重后 / 5 策略年化冠军"
   },
   "zhuidian": {
     "name": "追电策略",
     "color": "#f59e0b",
     "initial_capital": 10000,
     "description": "跨境ETF动量轮动",
-    "version": "R17_score_max_38",
-    "data_period": "2024-06 ~ 2026-06",
-    "caliber": "2Y 年化(主)+103.18%，5Y 年化+32.65%（牛熊差异，窗口期爆发力）"
+    "version": "R17 追电策略",
+    "data_period": "起始50天",
+    "caliber": "买入规则: 加权线性回归动量 (weight 等于 LinearRegression close 3 coef) 上穿阈值 + score 排名前 38",
+    "caliber_full": "版本名称: 追电策略 R17_score_max_38 (2Y) / R39_bear_filter (5Y) · 标的筛选: 11 ETF 跨大类 / score_max 等于 38 ETF 池排序 / R 平方大于等于 0.5 过滤 · 买入规则: 加权线性回归动量 (weight 等于 LinearRegression close 3 coef) 上穿阈值 + score 排名前 38 · 卖出规则: 动量回归系数小于 0 + R 平方跌破 0.5 即卖 · 止盈止损: 硬止损负 10% + 移动止盈 + 5Y 段熊市过滤 (R39_bear_filter) · 牛熊针对: 跨牛熊 5Y 启用 bear_filter (R39), 2Y 不启用 · 回测数据: 2Y 数据期 (2Y 年化正 103.18% / 跨牛熊 / 短周期) · 其他特点: setcash(10000) / 11 ETF 跨大类 / 5 策略 2Y 最高"
   },
   "sanhe": {
     "name": "三合策略",
     "color": "#a855f7",
     "initial_capital": 10000,
     "description": "三策略融合+波动率倒数加权",
-    "version": "R44_weekly_h4_cap2418",
-    "data_period": "2021-06 ~ 2026-06",
-    "caliber": "2Y 年化(主)+35.80% / 5Y 年化(副)+23.18%"
+    "version": "R44 三合策略",
+    "data_period": "起始29天",
+    "caliber": "买入规则: 三源信号投票机制 R26 / 源信号去冗余 (防同向加杠杆)",
+    "caliber_full": "版本名称: 三合策略 R25_vol_weight · 标的筛选: 5 ETF 池 + 多源信号 (小市值 + ETF 动量 + 一致性风控) 三源融合 · 买入规则: 三源信号投票机制 R26 / 源信号去冗余 (防同向加杠杆) · 卖出规则: 任一源信号触发卖出 或 源信号一致性跌破阈值 · 止盈止损: 2Y 回撤硬约束小于等于负 20% + 熊市过滤 + R26 源信号投票否决 · 牛熊针对: 兼顾牛熊 (R25 波动率倒数加权 + 熊市过滤) · 回测数据: 2Y 数据期 (2Y 年化正 25.0% / 夏普 1.4 / 胜率 55%) · 其他特点: setcash(10000) / 多标的等权 (周度调仓) / 兼顾牛熊"
   },
   "lightning": {
     "name": "闪电策略",
     "color": "#facc15",
     "initial_capital": 10000,
     "description": "3日动量+4只跨境+止盈止损",
-    "version": "R4_m3",
-    "data_period": "2024-06 ~ 2026-06",
-    "caliber": "2Y 年化(主)+27.34%，5Y 未跑（P2 风险点）"
+    "version": "R4 闪电策略",
+    "data_period": "起始65天",
+    "caliber": "买入规则: 3 日动量大于 0 且 R 平方大于等于 0.5 + 4 只池内成交量大于 20 日均量",
+    "caliber_full": "版本名称: 闪电策略 R4_m3 · 标的筛选: 4 只跨境科技 ETF (513100 纳指科技 / 513520 纳指 / 513030 德国科技 / 513130 恒生科技) · 买入规则: 3 日动量大于 0 且 R 平方大于等于 0.5 + 4 只池内成交量大于 20 日均量 · 卖出规则: 3 日动量小于 0 或 R 平方小于 0.5 信号消失 · 止盈止损: 硬止损负 7% + 硬止盈正 5% + 每日调仓再评估 · 牛熊针对: 不针对 (用户授权短期进攻 不跨周期 不跨牛熊) · 回测数据: 2Y 数据期 (2Y 年化正 27.34% / 最大回撤负 14.06% / 夏普 1.20 / 胜率 62%) · 其他特点: setcash(10000) / 单持仓 (max_hold 等于 1, weight_max 等于 2.0) / R4_m3 基线"
   },
   "goldcombo": {
     "name": "黄金组合A",
     "color": "#ef4444",
-    "initial_capital": 10000,
+    "initial_capital": 50000,
     "description": "极致恐慌反转模型",
-    "version": "v24",
-    "data_period": "2021-08-14 ~ 2026-08-14 (5Y)",
-    "caliber": "5Y · V10 路径B 激进左翼 (CCI>200 泡沫顶 + sizing 修正 5000/只) · setcash(50000.0) + 95% 仓位单只满仓 + 30% 硬止损 (V10 宽容) + 25% 峰值回撤止盈 + CCI>200 泡沫顶离场",
+    "version": "V24 DMAStrategy",
+    "data_period": "起始6天",
+    "caliber": "买入规则: DMA 金叉 + 成交量 1.5 倍 + RSI 30 至 70 + 市场 MA200 之上 (三重过滤)",
     "latest_baseline": "/Users/junze/goldcombo_real_backtest/v24/T4_5y/baseline_ashare_real_5y_v24.json",
     "last_updated": "2026-08-17",
     "class_name": "GoldComboV21b_AssetRot",
     "pool": "5 ETF (510300/588000/512000/159915/518880) + 本地转债 CSV",
-    "trail_sl_locked": 0.2
+    "trail_sl_locked": 0.2,
+    "data_source": "live_daily_run",
+    "is_live_simulated": true,
+    "note": "V24 是 5Y 真实回测 baseline (v1-v25 全部版本最优 +4.4311% / 21笔 / -8.24% DD), 接入实盘模拟 (起始4天). 用户原话硬约束: 6 卡全部每日真实行情驱动.",
+    "caliber_full": "版本名称: 黄金组合A V24_DMAStrategy · 标的筛选: V24 默认池 (5 ETF + 3 STK + 5 CB) / 5 万本金锁死 · 买入规则: DMA 金叉 + 成交量 1.5 倍 + RSI 30 至 70 + 市场 MA200 之上 (三重过滤) · 卖出规则: 死叉卖出 · 止盈止损: 10% 硬止损 + 15% 峰值 + 死叉卖出 · 牛熊针对: 多品种版 (不区分牛熊, 5 ETF + 3 STK + 5 CB 多源) · 回测数据: 5Y 数据期 (5Y 正 4.4311% / 21 笔 / 最大回撤负 8.24%) · 其他特点: setcash(50000.0) / 20% 仓位 5 只占 95% / 多品种版"
   }
 }

@@ -163,6 +163,10 @@ def get_strategies():
     for sid, s in strategies_dict.items():
         s['strategy_id'] = sid
         s['strategy_name'] = s.get('name', sid)
+        # 2026-09-11 修复: data_source 默认值为 work_logs（实盘模拟真实日P&L）
+        # 弹窗数据源banner需要此字段判断是否为实盘数据
+        if not s.get('data_source'):
+            s['data_source'] = 'work_logs'
         strategies.append(s)
     return jsonify({
         'code': 0,
@@ -241,8 +245,10 @@ def get_dashboard_overview():
         # P0 修复 (2026-07-22): 优先从 live_total_return 读, fallback 到 total_return, 避免全是 0
         # 2026-08-14 主 agent 接管修复: 加 backtest_total_return 兜底 (黄金组合A 实盘未启动)
         if signal:
-            tr = (signal.get('live_total_return', 0) or signal.get('total_return', 0)
+            # 2026-09-10 修复: _normalize_return_pct 自动检测小数/百分比格式 (8-31 模拟模式 bug 防御)
+            raw_tr = (signal.get('live_total_return', 0) or signal.get('total_return', 0)
                   or signal.get('backtest_total_return', 0) or 0)
+            tr = live_module._normalize_return_pct(raw_tr)
         else:
             tr = 0
         # 年化: 用 live_total_return × (252 / live_days) 估算
@@ -252,10 +258,11 @@ def get_dashboard_overview():
         if signal and signal.get('annualized_return'):
             ann_return = signal.get('annualized_return')
         # 三层标签：version + data_period + caliber
-        # 优先用 signal 文件里的，否则从 strategies.json 配置读取
-        version_tag = (signal.get('version') if signal else None) or cfg.get('version', 'latest')
-        data_period = (signal.get('data_period') if signal else None) or cfg.get('data_period', '未指定')
-        caliber = (signal.get('caliber') if signal else None) or cfg.get('caliber', '未指定')
+        # TC-DT-05 修复：优先从 config/strategies.json 读取，signal 作为兜底
+        # 确保 version/data_period/caliber 100% 对应 config，而非 signal file
+        version_tag = cfg.get('version', 'latest')  # 始终从 config 读
+        data_period = cfg.get('data_period', '未指定')  # 始终从 config 读
+        caliber = cfg.get('caliber', '未指定')  # 始终从 config 读
         # 占位标记：signal 文件含 _placeholder 时显式提示
         is_placeholder = bool(signal and signal.get('_placeholder'))
         status_label = 'placeholder' if is_placeholder else ('running' if signal else 'waiting')
@@ -286,10 +293,13 @@ def get_dashboard_overview():
             'max_drawdown': signal.get('backtest_max_drawdown', 0) or 0 if signal else 0,
             'trades_count': signal.get('backtest_trades', 0) or 0 if signal else 0,
             # 三层标签
-            'version_tag': version_tag,
-            'data_period': data_period,
-            'caliber': caliber,
-            'signal_date': datetime.now().strftime('%Y-%m-%d'),  # 2026-08-09: 强制今日, 避免 isStrategyActive 过期过滤
+                    'version_tag': version_tag,
+                    'data_period': data_period,
+                    'caliber': caliber,
+                    'config_caliber': cfg.get('caliber', '未指定'),  # 2026-09-02: 显式从 config 读，避免 signal.caliber 遮蔽
+                    'config_caliber_full': cfg.get('caliber_full', cfg.get('caliber', '未指定')),  # 2026-08-31: 完整8段策略详情
+                    # 2026-09-12 修复: 使用信号文件真实日期, 不再强制今日, 让前端正确显示数据陈旧警告
+                    'signal_date': signal.get('date', signal.get('latest_signal_date', datetime.now().strftime('%Y-%m-%d'))) if signal else datetime.now().strftime('%Y-%m-%d'),
         })
     
     return jsonify({
@@ -352,12 +362,9 @@ def dashboard_today_actions_all():
     """今日交易流程（五策略汇总）"""
     try:
         data = live_module.get_today_actions()
-        # 2026-08-09: 强制 signal_date = today, 避免前端 isStrategyActive 过期过滤
-        today_str = datetime.now().strftime('%Y-%m-%d')
-        if isinstance(data, dict) and 'strategies' in data:
-            for sid, info in data['strategies'].items():
-                if isinstance(info, dict):
-                    info['signal_date'] = today_str
+        # 2026-09-12 修复: 不再强制 signal_date = today, 使用信号文件真实日期
+        # 原注释: 2026-08-09: 强制 signal_date = today, 避免前端 isStrategyActive 过期过滤
+        # 修复原因: 强制今日掩盖了真实的数据陈旧问题, 应该让前端正确显示警告
         return jsonify({'code': 0, 'message': 'success', 'data': data})
     except Exception as e:
         return jsonify({'code': 1, 'message': str(e), 'data': None}), 500

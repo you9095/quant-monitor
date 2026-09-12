@@ -1,0 +1,80 @@
+{
+  "_comment": "策略配置 + 三层标签（version / data_period / caliber）+ 买入/卖出规则。v3.0 (2026-09-11) 新增 buy_rule / sell_rule / strategy_detail 字段，用于策略详情弹窗展示",
+  "qixing": {
+    "name": "七星策略",
+    "color": "#3b82f6",
+    "initial_capital": 10000,
+    "description": "创业板动量策略",
+    "version": "R120_breadth_0.353_holdings_1",
+    "data_period": "2024-06-12 ~ 2026-06-12",
+    "caliber": "2Y 年化(主)，含交易费，单持仓；5Y 年化仅+1.92%（牛熊差异）",
+    "buy_rule": "7只ETF动量轮动：20日/60日/120日加权动量评分最高的ETF，环境判断（宽基/行业/跨境比例）允许时买入，单持仓集中配置",
+    "sell_rule": "止损-7%；动量评分下降至阈值以下卖出；环境判断转为防御时卖出；波动率过滤（20日ATR）触发时减仓",
+    "strategy_detail": "七星策略1.7.2修复版 + 动量环境策略。聚宽老牌开源策略，37个ETF池子里挑最强的1只买。核心创新：加权最小二乘+R²趋势稳定性验证，不只看涨多少还看涨得稳不稳。"
+  },
+  "r32": {
+    "name": "三驾马车",
+    "color": "#10b981",
+    "initial_capital": 10000,
+    "description": "行业轮动棘轮策略",
+    "version": "R35_rebal_15",
+    "data_period": "2024-06 ~ 2026-06",
+    "caliber": "2Y 年化(主)，半月调仓，含交易费，硬约束回撤 ≤ -20%",
+    "buy_rule": "行业轮动棘轮策略：半月调仓，根据行业动量/景气度排序，买入强势行业ETF，棘轮机制锁定收益",
+    "sell_rule": "硬约束回撤≤-20%强制止损；半月调仓时卖出弱势行业；棘轮机制触发时锁定利润",
+    "strategy_detail": "三驾马车行业轮动棘轮策略。通过行业景气度和动量排序进行半月调仓，棘轮机制确保收益只增不减，硬约束回撤控制在-20%以内。"
+  },
+  "zhuidian": {
+    "name": "追电策略",
+    "color": "#f59e0b",
+    "initial_capital": 10000,
+    "description": "跨境ETF动量轮动",
+    "version": "R17_score_max_38",
+    "data_period": "2024-06 ~ 2026-06",
+    "caliber": "2Y 年化(主)+103.18%，5Y 年化+32.65%（牛熊差异，窗口期爆发力）",
+    "buy_rule": "跨境ETF动量轮动：R17_score_max_38评分模型，对跨境ETF（纳指/标普/港股/科技/医药等）进行多因子评分，买入评分最高的ETF",
+    "sell_rule": "评分下降至阈值以下卖出；动量反转信号触发时卖出；窗口期爆发力策略，快进快出",
+    "strategy_detail": "追电策略R17_score_max_38。跨境ETF动量轮动策略，2Y年化+103.18%，窗口期爆发力极强。通过多因子评分模型在跨境ETF中捕捉强势品种，快进快出。"
+  },
+  "sanhe": {
+    "name": "三合策略",
+    "color": "#a855f7",
+    "initial_capital": 10000,
+    "description": "三策略融合+波动率倒数加权",
+    "version": "R44_weekly_h4_cap2418",
+    "data_period": "2021-06 ~ 2026-06",
+    "caliber": "2Y 年化(主)+35.80% / 5Y 年化(副)+23.18%",
+    "buy_rule": "三策略融合+波动率倒数加权：融合三个子策略的信号，按波动率倒数加权配置（低波动高权重，高波动低权重），每周调仓",
+    "sell_rule": "波动率变化时再平衡；子策略信号反转时卖出；周度调仓时调整权重",
+    "strategy_detail": "三合策略R44_weekly_h4_cap2418。三个子策略融合，通过波动率倒数加权实现风险平价，每周调仓。2Y年化+35.80%，5Y年化+23.18%。"
+  },
+  "lightning": {
+    "name": "闪电策略",
+    "color": "#facc15",
+    "initial_capital": 10000,
+    "description": "3日动量+4只跨境+止盈止损",
+    "version": "R4_m3",
+    "data_period": "2024-06 ~ 2026-06",
+    "caliber": "2Y 年化(主)+27.34%，5Y 未跑（P2 风险点）",
+    "buy_rule": "3日动量+4只跨境：计算跨境ETF的3日动量，买入动量最强的4只跨境ETF，等权配置",
+    "sell_rule": "止盈止损机制：达到止盈目标卖出；触发止损线卖出；3日动量反转时卖出",
+    "strategy_detail": "闪电策略R4_m3。3日动量短线策略，聚焦4只跨境ETF，配合止盈止损机制。2Y年化+27.34%，短线交易频率高。"
+  },
+  "goldcombo": {
+    "name": "黄金组合A",
+    "color": "#ef4444",
+    "initial_capital": 10000,
+    "description": "极致恐慌反转模型",
+    "version": "V24 DMAStrategy",
+    "data_period": "2021-08-14 ~ 2026-08-14 (5Y)",
+    "caliber": "5Y · V10 路径B 激进左翼 (CCI>200 泡沫顶 + sizing 修正 5000/只) · setcash(50000.0) + 95% 仓位单只满仓 + 30% 硬止损 (V10 宽容) + 25% 峰值回撤止盈 + CCI>200 泡沫顶离场",
+    "buy_rule": "V24 DMAStrategy多品种版：DMA(5,20,5)金叉买入 + 成交量1.5x放大确认 + RSI在30-70区间 + MA200市场过滤（价格在MA200上方才做多），6只行业ETF轮动",
+    "sell_rule": "DMA死叉卖出；10%硬止损；15%峰值回撤止盈；CCI>200泡沫顶离场；MA200跌破时清仓",
+    "strategy_detail": "黄金组合A V24 DMAStrategy多品种版。v1-v25全部版本最优（5Y +4.43% / 21笔 / -8.24% DD）。DMA金叉死叉+成交量+RSI+MA200三重过滤，极致恐慌反转模型，激进左翼风格。",
+    "latest_baseline": "/Users/junze/goldcombo_real_backtest/v24/T4_5y/baseline_ashare_real_5y_v24.json",
+    "last_updated": "2026-08-17",
+    "class_name": "GoldComboV21b_AssetRot",
+    "pool": "6 行业ETF (DMA多品种版) + 本地转债 CSV",
+    "trail_sl_locked": 0.2
+  }
+}
