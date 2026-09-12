@@ -6,6 +6,15 @@
 <title>AI量化 · 多策略监控面板</title>
 <script src="assets/chart.umd.min.js"></script>  <!-- 2026-08-16 v28: CDN 在 ClashX 出口下不可达,改用本地 assets/chart.umd.min.js (205KB) (回退 V20 → V10 路径B) -->
 <style>
+/* ============================================================
+   CSS板块目录（按功能模块组织）
+   ============================================================ */
+
+
+/* ============================================================
+   板块: 00_基础系统
+   ============================================================ */
+
 /* ========== CSS变量设计系统 ========== */
 :root {
   --strategy-card-gap: 20px;
@@ -108,7 +117,14 @@ body {
 
 /* ========== 自适应栅格: col-row-N 占 N 分之一宽度 ========== */
 .col-row-1, .col-row-2, .col-row-3, .col-row-4, .col-row-5, .col-row-6, .col-row-7,
-.col-row-8, .col-row-9, .col-row-10, .col-row-11, /* ========== 2026-08-21 v2: 6 级响应式布局 ========== */
+.col-row-8, .col-row-9, .col-row-10, .col-row-11,
+
+
+/* ============================================================
+   板块: 01_响应式布局
+   ============================================================ */
+
+/* ========== 2026-08-21 v2: 6 级响应式布局 ========== */
 .col-row-1 {display: flex; align-items: stretch;}
 .col-row-2 {display: flex; align-items: stretch;}
 .col-row-3 {display: flex; align-items: stretch;}
@@ -270,82 +286,10 @@ body {
 .expand-toggle:hover { background: rgba(99, 102, 241, 0.2); border-color: #818cf8; }
 .expand-toggle:active { transform: scale(0.96); }
 
-/* ===== 2026-09-12 数据告警就地标注 ===== */
-.data-alert-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 1px 6px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  cursor: help;
-  position: relative;
-  vertical-align: middle;
-  margin-left: 4px;
-  animation: alert-pulse 2s ease-in-out infinite;
-}
-.data-alert-badge.error {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.4);
-}
-.data-alert-badge.warning {
-  background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.4);
-}
-.data-alert-badge .alert-date {
-  opacity: 0.8;
-  font-weight: 400;
-}
-.data-alert-badge:hover::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #1f2937;
-  color: #f3f4f6;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 400;
-  white-space: nowrap;
-  z-index: 1000;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  max-width: 300px;
-  white-space: normal;
-  width: max-content;
-}
-@keyframes alert-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
-/* 告警字段高亮 */
-.field-with-alert {
-  position: relative;
-}
-.field-with-alert.error {
-  background: rgba(239, 68, 68, 0.08);
-  border-radius: 4px;
-  padding: 2px 4px;
-}
-.field-with-alert.warning {
-  background: rgba(245, 158, 11, 0.08);
-  border-radius: 4px;
-  padding: 2px 4px;
-}
-/* 触摸区扩大: 透明扩展点击范围 */
-.expand-toggle::after {
-  content: '';
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  bottom: -8px;
-  left: -8px;
-  z-index: -1;
-}
+
+/* ============================================================
+   板块: 02_全局组件
+   ============================================================ */
 
 /* ========== 顶部栏 ========== */
 .topbar {
@@ -483,6 +427,18 @@ body {
   transform: scale(1.02);
 }
 
+/* ========== 工具类 ========== */
+.hidden { display: none !important; }
+.text-mono { font-family: var(--font-mono); }
+.text-up { color: var(--color-up); }
+.text-down { color: var(--color-down); }
+.text-warn { color: var(--color-warn); }
+
+
+/* ============================================================
+   板块: 03_策略卡板块
+   ============================================================ */
+
 /* ========== 策略卡片 ========== */
 .strategy-section {
   padding: var(--space-lg);
@@ -504,7 +460,6 @@ body {
 .strategy-card.r32:hover { box-shadow: var(--shadow-hover), var(--shadow-glow-r32); }
 .strategy-card.zhuidian:hover { box-shadow: var(--shadow-hover), var(--shadow-glow-zhuidian); }
 .strategy-card.sanhe:hover { box-shadow: var(--shadow-hover), 0 0 20px rgba(168,85,247,0.15); }
-
 
 /* ========== 回测策略卡片（降低视觉层级） ========== */
 .strategy-card.backtest { opacity: 0.85; }
@@ -738,264 +693,82 @@ body {
   color: var(--text-secondary);
 }
 
-/* ========== 收益对比区 ========== */
-.chart-section {
-  padding: var(--space-lg);
-  background: var(--bg-elevated);
-  border-top: 1px solid var(--border-subtle);
-  border-bottom: 1px solid var(--border-subtle);
-}
-.section-header {
-  display: flex;
+/* ===== 2026-09-12 数据告警就地标注 ===== */
+.data-alert-badge {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-lg);
-}
-.section-title {
-  font-size: 14px;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
   font-weight: 600;
+  cursor: help;
+  position: relative;
+  vertical-align: middle;
+  margin-left: 4px;
+  animation: alert-pulse 2s ease-in-out infinite;
 }
-.section-tabs {
-  display: flex;
-  gap: var(--space-xs);
+.data-alert-badge.error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
 }
-.tab {
-  padding: 4px 12px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  cursor: pointer;
-  border: 1px solid transparent;
-  color: var(--text-secondary);
-  transition: all 0.2s;
+.data-alert-badge.warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
 }
-.tab:hover { color: var(--text-primary); }
-.tab.active {
-  background: var(--bg-surface);
-  border-color: var(--border-medium);
-  color: var(--text-primary);
+.data-alert-badge .alert-date {
+  opacity: 0.8;
+  font-weight: 400;
 }
-
-.chart-container {
-  height: 320px;
+.data-alert-badge:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: #f3f4f6;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 400;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  max-width: 300px;
+  white-space: normal;
+  width: max-content;
+}
+@keyframes alert-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+/* 告警字段高亮 */
+.field-with-alert {
   position: relative;
 }
-
-/* ========== 风险监控区 ========== */
-.risk-section {
-  padding: var(--space-lg);
-}
-.risk-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-md);
-}
-@media (max-width: 1024px) {
-  .risk-grid { grid-template-columns: 1fr; }
-}
-.risk-card {
-  background: var(--bg-surface);
-  border-radius: var(--radius-md);
-  padding: var(--space-lg);
-  border: 1px solid var(--border-subtle);
-}
-.risk-card.danger {
-  border-color: rgba(239,68,68,0.3);
-  animation: pulse-danger 2s ease-in-out infinite;
-}
-@keyframes pulse-danger {
-  0%, 100% { box-shadow: 0 0 0 rgba(239,68,68,0); }
-  50% { box-shadow: 0 0 12px rgba(239,68,68,0.15); }
-}
-.risk-title {
-  font-size: 12px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: var(--space-sm);
-}
-.risk-value {
-  font-family: var(--font-mono);
-  font-size: 24px;
-  font-weight: 700;
-}
-.risk-value.danger { color: var(--color-danger); }
-.risk-desc {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-top: 4px;
-}
-
-/* ========== 策略日志区 ========== */
-.log-section {
-  padding: var(--space-lg);
-  background: var(--bg-elevated);
-  border-top: 1px solid var(--border-subtle);
-}
-.log-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-}
-.log-item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  padding: var(--space-sm) var(--space-md);
-  background: var(--bg-surface);
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-}
-.log-time {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-muted);
-  min-width: 140px;
-}
-.log-strategy {
-  padding: 2px 8px;
+.field-with-alert.error {
+  background: rgba(239, 68, 68, 0.08);
   border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  min-width: 80px;
-  text-align: center;
+  padding: 2px 4px;
 }
-.log-strategy.qixing { background: rgba(59,130,246,0.15); color: var(--qixing-start); }
-.log-strategy.r32 { background: rgba(16,185,129,0.15); color: var(--r32-start); }
-.log-strategy.zhuidian { background: rgba(245,158,11,0.15); color: var(--zhuidian-start); }
-.log-strategy.sanhe { background: rgba(168,85,247,0.15); color: var(--sanhe-start); }
-.log-strategy.lightning { background: rgba(250,204,21,0.15); color: var(--lightning-start); }
-.log-action {
-  font-weight: 600;
+.field-with-alert.warning {
+  background: rgba(245, 158, 11, 0.08);
+  border-radius: 4px;
+  padding: 2px 4px;
 }
-.log-action.buy { color: var(--color-up); }
-.log-action.sell { color: var(--color-down); }
-.log-detail {
-  color: var(--text-secondary);
-  flex: 1;
+/* 触摸区扩大: 透明扩展点击范围 */
+.expand-toggle::after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  bottom: -8px;
+  left: -8px;
+  z-index: -1;
 }
-
-/* ========== 模态面板 ========== */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(4px);
-  z-index: 200;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-.modal-overlay.active {
-  display: flex;
-  opacity: 1;
-}
-.modal-panel {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-medium);
-  width: 90%;
-  max-width: 800px;
-  max-height: 85vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transform: scale(0.95);
-  transition: transform 0.3s;
-}
-.modal-overlay.active .modal-panel {
-  transform: scale(1);
-}
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-lg);
-  border-bottom: 1px solid var(--border-subtle);
-}
-.modal-title {
-  font-size: 16px;
-  font-weight: 600;
-}
-.modal-close {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 20px;
-  cursor: pointer;
-  padding: 4px;
-  line-height: 1;
-}
-.modal-close:hover { color: var(--text-primary); }
-.modal-body {
-  padding: var(--space-lg);
-  overflow-y: auto;
-  flex: 1;
-}
-
-/* ========== 侧滑面板 ========== */
-.drawer {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 420px;
-  max-width: 90vw;
-  height: 100vh;
-  background: var(--bg-elevated);
-  border-left: 1px solid var(--border-medium);
-  z-index: 200;
-  transform: translateX(100%);
-  transition: transform 0.3s ease;
-  display: flex;
-  flex-direction: column;
-}
-.drawer.active { transform: translateX(0); }
-.drawer-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-lg);
-  border-bottom: 1px solid var(--border-subtle);
-}
-.drawer-body {
-  padding: var(--space-lg);
-  overflow-y: auto;
-  flex: 1;
-}
-
-/* ========== 对比模式 ========== */
-.compare-mode .strategy-card {
-  cursor: default;
-}
-.compare-mode .strategy-card:hover {
-  transform: none;
-}
-.compare-indicator {
-  display: none;
-  font-size: 11px;
-  color: var(--text-muted);
-  text-align: center;
-  padding: var(--space-xs);
-}
-.compare-mode .compare-indicator {
-  display: block;
-}
-
-/* ========== 响应式 ========== */
-@media (max-width: 768px) {
-  .action-items { flex-direction: column; }
-  .metric-value { font-size: 22px; }
-  .risk-grid { grid-template-columns: 1fr; }
-  .drawer { width: 100%; }
-}
-
-/* ========== 工具类 ========== */
-.hidden { display: none !important; }
-.text-mono { font-family: var(--font-mono); }
-.text-up { color: var(--color-up); }
-.text-down { color: var(--color-down); }
-.text-warn { color: var(--color-warn); }
 
 /* ========== v1.1 (2026-06-26) 顶部总览条 ========== */
 .portfolio-summary {
@@ -1080,7 +853,6 @@ body {
   .portfolio-summary .item .val { font-size: 18px !important; }
   .portfolio-summary .item.total .val { font-size: 20px !important; }
 }
-
 
 /* ========== v1.1 (2026-06-26) 卡片顶部：今日交易条 ========== */
 .today-action-strip {
@@ -1183,6 +955,289 @@ body {
   font-size: 10px;
   margin-right: 4px;
 }
+
+
+/* ============================================================
+   板块: 04_收益曲线板块
+   ============================================================ */
+
+/* ========== 收益对比区 ========== */
+.chart-section {
+  padding: var(--space-lg);
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+}
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+.section-tabs {
+  display: flex;
+  gap: var(--space-xs);
+}
+.tab {
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+.tab:hover { color: var(--text-primary); }
+.tab.active {
+  background: var(--bg-surface);
+  border-color: var(--border-medium);
+  color: var(--text-primary);
+}
+
+.chart-container {
+  height: 320px;
+  position: relative;
+}
+
+
+/* ============================================================
+   板块: 05_风险监控板块
+   ============================================================ */
+
+/* ========== 风险监控区 ========== */
+.risk-section {
+  padding: var(--space-lg);
+}
+.risk-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+}
+@media (max-width: 1024px) {
+  .risk-grid { grid-template-columns: 1fr; }
+}
+.risk-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  border: 1px solid var(--border-subtle);
+}
+.risk-card.danger {
+  border-color: rgba(239,68,68,0.3);
+  animation: pulse-danger 2s ease-in-out infinite;
+}
+@keyframes pulse-danger {
+  0%, 100% { box-shadow: 0 0 0 rgba(239,68,68,0); }
+  50% { box-shadow: 0 0 12px rgba(239,68,68,0.15); }
+}
+.risk-title {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--space-sm);
+}
+.risk-value {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 700;
+}
+.risk-value.danger { color: var(--color-danger); }
+.risk-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+
+/* ============================================================
+   板块: 06_策略日志板块
+   ============================================================ */
+
+/* ========== 策略日志区 ========== */
+.log-section {
+  padding: var(--space-lg);
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border-subtle);
+}
+.log-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+.log-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+.log-time {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  min-width: 140px;
+}
+.log-strategy {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 80px;
+  text-align: center;
+}
+.log-strategy.qixing { background: rgba(59,130,246,0.15); color: var(--qixing-start); }
+.log-strategy.r32 { background: rgba(16,185,129,0.15); color: var(--r32-start); }
+.log-strategy.zhuidian { background: rgba(245,158,11,0.15); color: var(--zhuidian-start); }
+.log-strategy.sanhe { background: rgba(168,85,247,0.15); color: var(--sanhe-start); }
+.log-strategy.lightning { background: rgba(250,204,21,0.15); color: var(--lightning-start); }
+.log-action {
+  font-weight: 600;
+}
+.log-action.buy { color: var(--color-up); }
+.log-action.sell { color: var(--color-down); }
+.log-detail {
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+
+/* ============================================================
+   板块: 07_弹窗面板
+   ============================================================ */
+
+/* ========== 模态面板 ========== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.modal-overlay.active {
+  display: flex;
+  opacity: 1;
+}
+.modal-panel {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-medium);
+  width: 90%;
+  max-width: 800px;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform: scale(0.95);
+  transition: transform 0.3s;
+}
+.modal-overlay.active .modal-panel {
+  transform: scale(1);
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.modal-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+.modal-close:hover { color: var(--text-primary); }
+.modal-body {
+  padding: var(--space-lg);
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ========== 侧滑面板 ========== */
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 420px;
+  max-width: 90vw;
+  height: 100vh;
+  background: var(--bg-elevated);
+  border-left: 1px solid var(--border-medium);
+  z-index: 200;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+.drawer.active { transform: translateX(0); }
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.drawer-body {
+  padding: var(--space-lg);
+  overflow-y: auto;
+  flex: 1;
+}
+
+
+/* ============================================================
+   板块: 08_对比模式
+   ============================================================ */
+
+/* ========== 对比模式 ========== */
+.compare-mode .strategy-card {
+  cursor: default;
+}
+.compare-mode .strategy-card:hover {
+  transform: none;
+}
+.compare-indicator {
+  display: none;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: var(--space-xs);
+}
+.compare-mode .compare-indicator {
+  display: block;
+}
+
+
+/* ============================================================
+   板块: 09_响应式覆盖
+   ============================================================ */
+
+/* ========== 响应式 ========== */
+@media (max-width: 768px) {
+  .action-items { flex-direction: column; }
+  .metric-value { font-size: 22px; }
+  .risk-grid { grid-template-columns: 1fr; }
+  .drawer { width: 100%; }
+}
+
 </style>
 </head>
 <body>
@@ -1206,8 +1261,11 @@ body {
   </div>
 </header>
 
-<!-- 策略卡片区 -->
-<section class="strategy-section">
+<!-- ============================================================
+     板块: 02_策略卡板块 (module-strategy-cards)
+     功能: 6个策略卡 + 详情弹窗 + 今日交易
+     ============================================================ -->
+<section class="strategy-section" id="module-strategy-cards">
   <div class="container">
 
     <div id="strategy-cards">
@@ -1359,8 +1417,11 @@ body {
 
 </script>
 
-<!-- 收益对比区 -->
-<section class="chart-section">
+<!-- ============================================================
+     板块: 04_收益曲线板块 (module-nav-curves)
+     功能: 2Y/5Y/实盘收益对比曲线
+     ============================================================ -->
+<section class="chart-section" id="module-nav-curves">
   <div class="container">
     <div class="section-header">
       <span class="section-title">收益对比</span>
@@ -1376,8 +1437,11 @@ body {
   </div>
 </section>
 
-<!-- Daily P&L 趋势区 (P8 v1.0, 2026-06-28) -->
-<section class="chart-section" style="border-top:1px solid var(--border-subtle)">
+<!-- ============================================================
+     板块: 06_每日盈亏趋势 (module-daily-pnl)
+     功能: 5策略最近14天Daily P&L趋势
+     ============================================================ -->
+<section class="chart-section" id="module-daily-pnl" style="border-top:1px solid var(--border-subtle)">
   <div class="container">
     <div class="section-header">
       <span class="section-title">📈 Daily P&L 趋势（5 策略最近 14 天）</span>
@@ -1395,8 +1459,11 @@ body {
   </div>
 </section>
 
-<!-- WFA 过拟合审计区 (P9 v1.0, 2026-07-03) -->
-<section class="chart-section" style="border-top:1px solid var(--border-subtle)">
+<!-- ============================================================
+     板块: 07_WFA分析板块 (module-wfa)
+     功能: WFA过拟合审计 + 样本外P&L曲线
+     ============================================================ -->
+<section class="chart-section" id="module-wfa" style="border-top:1px solid var(--border-subtle)">
   <div class="container">
     <div class="section-header">
       <span class="section-title">🔬 WFA 过拟合审计（4 策略 Walk-Forward Analysis）</span>
@@ -1422,8 +1489,11 @@ body {
   </div>
 </section>
 
-<!-- 参数稳定性监控区 (P9-D v1.0, 2026-07-03) -->
-<section class="chart-section" style="border-top:1px solid var(--border-subtle)">
+<!-- ============================================================
+     板块: 08_参数稳定性板块 (module-param-stability)
+     功能: 参数稳定性监控
+     ============================================================ -->
+<section class="chart-section" id="module-param-stability" style="border-top:1px solid var(--border-subtle)">
   <div class="container">
     <div class="section-header">
       <span class="section-title">🎯 参数稳定性监控（4 策略"假设网格"·13 训练窗口）</span>
@@ -1445,7 +1515,11 @@ body {
 </section>
 
 <!-- P9-D A/B 对照区（grid_mode vs hardcode） (2026-07-04) -->
-<section class="chart-section" style="border-top:1px solid var(--border-subtle);background:rgba(99,102,241,0.04)">
+<!-- ============================================================
+     板块: 09_AB对比板块 (module-ab-comparison)
+     功能: A/B对照（grid_mode vs hardcode）
+     ============================================================ -->
+<section class="chart-section" id="module-ab-comparison" style="border-top:1px solid var(--border-subtle);background:rgba(99,102,241,0.04)">
   <div class="container">
     <div class="section-header">
       <span class="section-title">⚖️ A/B 对照（grid_mode vs hardcode · 验证 WFA 优化是否真有效）</span>
@@ -1482,8 +1556,11 @@ body {
   </div>
 </section>
 
-<!-- 风险监控区 -->
-<section class="risk-section">
+<!-- ============================================================
+     板块: 10_风险监控板块 (module-risk)
+     功能: 风险监控指标
+     ============================================================ -->
+<section class="risk-section" id="module-risk">
   <div class="container">
     <div class="section-header">
       <span class="section-title">风险监控</span>
@@ -1508,8 +1585,11 @@ body {
   </div>
 </section>
 
-<!-- 策略日志区 -->
-<section class="log-section">
+<!-- ============================================================
+     板块: 11_策略日志板块 (module-logs)
+     功能: 策略变更日志 + 复盘功能
+     ============================================================ -->
+<section class="log-section" id="module-logs">
   <div class="container">
     <div class="section-header">
       <span class="section-title">策略变更日志</span>
@@ -1552,11 +1632,37 @@ body {
   <script src="assets/data.js?v=34"></script>  <!-- cache-bust: 2026-08-29 v34 数据陈旧警告条 v2 重做样式 (用户硬反馈: 不丑/不突兀/不跳跃/融合 — 苏晏清 AI 团队) -->
   <!-- 2026-08-17 v45: goldcombo v25 5Y → v24 DMAStrategy (v1-v25 最优回退) 多品种版 baseline (signals/goldcombo_2026-08-15.json + config/strategies.json v24) · 5万本金 + 13 标的池 (5 ETF + 3 STK + 5 CB) + DMA 金叉死叉 + 成交量+RSI+MA200 三重过滤 + 10%止损+15%峰值 →-->
   <script>
+
+/* ============================================================
+   JS板块目录（按功能模块组织）
+   ============================================================ */
+/*
+   00_全局状态与初始化
+   01_数据渲染总控
+   02_策略卡板块
+   03_收益曲线板块
+   04_今日交易板块
+   05_投资组合板块
+   06_每日盈亏趋势
+   07_WFA分析板块
+   08_参数稳定性板块
+   09_AB对比板块
+   10_策略日志板块
+   11_弹窗面板
+   12_复盘功能
+   13_工具函数
+   ============================================================ */
+
 // ========== 数据状态（从DataLayer加载） ==========
 let strategiesData = {};
 let currentChart = null;
 
 // 初始化数据
+
+/* ============================================================
+   板块: 00_全局状态与初始化
+   ============================================================ */
+
 async function initData() {
   const data = await DataLayer.fetchStrategies();
   strategiesData = data;
@@ -1567,6 +1673,11 @@ async function initData() {
 
 
 // 渲染全部
+
+/* ============================================================
+   板块: 01_数据渲染总控
+   ============================================================ */
+
 async function renderAll(data) {
   // v1.1 (2026-06-26): 预取实盘模拟总览 + 今日动作，让卡片可以读到
   try {
@@ -1615,6 +1726,11 @@ async function renderAll(data) {
 }
 
 // 2026-08-25 v5: 简化今日动作条 (A 版) — 只显示 策略名 + 动作徽章
+
+/* ============================================================
+   板块: 02_策略卡板块
+   ============================================================ */
+
 function renderActionItems(strategies) {
   const container = document.getElementById('action-items');
   if (!container) return;
@@ -1909,6 +2025,11 @@ function buildCardHtml(sid, sname, s) {
 const __cardCurveCache = { payload: null };
 const __cardCurveCharts = {};   // sid -> Chart 实例 (切回今日动作时 destroy)
 
+
+/* ============================================================
+   板块: 03_收益曲线板块
+   ============================================================ */
+
 async function fetchLiveCurvesOnce() {
   if (__cardCurveCache.payload) return __cardCurveCache.payload;
   const res = await fetch(`${DataLayer.config.apiBase}/dashboard/live_curves`);
@@ -1997,6 +2118,11 @@ function renderCards(strategies) {
 }
 
 // 渲染交易明细 (3+1 四策略)
+
+/* ============================================================
+   板块: 04_今日交易板块
+   ============================================================ */
+
 function renderTradeDetails(strategies) {
   const container = document.getElementById('trade-details');
   if (!container) return;
@@ -2284,6 +2410,11 @@ function renderMultiChart(curves, period) {
 }
 
 // 更新总资金 / 总盈亏 / 总收益率 (v1.1 - 2026-06-26)
+
+/* ============================================================
+   板块: 05_投资组合板块
+   ============================================================ */
+
 async function updateBrandText(strategies) {
   // 2026-08-21: 顶部 banner 品牌名动态 ("N 策略监控面板")
   const brandEl = document.getElementById('brand-text');
@@ -2501,6 +2632,11 @@ async function updatePortfolio(portfolio) {
 }
 
 // 渲染策略变更日志 (动态生成 4 策略)
+
+/* ============================================================
+   板块: 10_策略日志板块
+   ============================================================ */
+
 function renderLogs(strategies) {
   const container = document.getElementById('strategy-logs');
   if (!container) return;
@@ -2545,6 +2681,11 @@ function renderLogs(strategies) {
 }
 
 // ========== 时钟更新 ==========
+
+/* ============================================================
+   板块: 13_工具函数
+   ============================================================ */
+
 function getTodayStr() {
   const now = new Date();
   const y = now.getFullYear();
@@ -2565,6 +2706,11 @@ function updateClock() {
     if (todayOpt) todayOpt.textContent = `${todayStr} (今日)`;
   }
 }
+
+
+/* ============================================================
+   板块: 12_复盘功能
+   ============================================================ */
 
 function initReviewDateSelect() {
   const sel = document.getElementById('review-date-select');
@@ -2636,6 +2782,11 @@ function getLogsForDate(date) {
 }
 
 // ========== 执行动作 ==========
+
+/* ============================================================
+   板块: 11_弹窗面板
+   ============================================================ */
+
 function executeAction(strategyId) {
   const all = strategiesData.strategies || strategiesData.mockData?.strategies || [];
   const s = all.find(x => x.id === strategyId);
@@ -2762,6 +2913,11 @@ function switchChart(period) {
 let dailyPnlTrendChart = null;
 let dailyPnlData = null;  // 缓存 API 数据
 
+
+/* ============================================================
+   板块: 06_每日盈亏趋势
+   ============================================================ */
+
 async function loadDailyPnlTrend(days = 14) {
   try {
     const res = await fetch(`${DataLayer.config.apiBase}/dashboard/daily_pnl_trend?days=${days}&cumulative=true`);
@@ -2875,6 +3031,11 @@ async function switchDailyPnlView(viewMode) {
 // ==================== P9 v1.0: WFA 过拟合审计 ====================
 let wfaOosCurveChart = null;
 let wfaOosCurveData = null;
+
+
+/* ============================================================
+   板块: 07_WFA分析板块
+   ============================================================ */
 
 async function loadWfaSummary() {
   try {
@@ -3024,6 +3185,11 @@ function renderWfaOosCurveChart(data) {
 }
 
 // ==================== P9-D v1.0: 参数稳定性监控 ====================
+
+/* ============================================================
+   板块: 08_参数稳定性板块
+   ============================================================ */
+
 async function loadParamStability() {
   try {
     const res = await fetch(`${DataLayer.config.apiBase}/dashboard/param_stability`);
@@ -3114,6 +3280,11 @@ function renderParamStabilityCards(payload) {
 }
 
 // ==================== P9-D v1.0: A/B 对照（grid_mode vs hardcode）====================
+
+/* ============================================================
+   板块: 09_AB对比板块
+   ============================================================ */
+
 async function loadAbComparison() {
   // 2026-08-22 江予白 v3 改: 多重 fallback 链 + 详细错误显示
   const meta = document.getElementById('ab-comparison-meta');
