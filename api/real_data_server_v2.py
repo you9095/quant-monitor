@@ -28,6 +28,39 @@ import time
 from datetime import datetime
 from flask import Flask, jsonify, request
 from pathlib import Path
+
+# ============================================================
+# 内存缓存层：启动时加载所有 signals，后续请求直接读内存
+# ============================================================
+_signals_cache = {}  # {sid_date: signal_dict}
+_signals_cache_lock = threading.Lock()
+
+def load_signals_to_cache():
+    """启动时加载所有信号文件到内存缓存"""
+    signals_dir = Path(__file__).parent.parent / 'signals'
+    if not signals_dir.exists():
+        return
+    count = 0
+    for f in signals_dir.glob('*_*.json'):
+        try:
+            key = f.stem  # e.g. "qixing_2026-09-30"
+            _signals_cache[key] = json.loads(f.read_text(encoding='utf-8'))
+            count += 1
+        except:
+            continue
+    print(f'[缓存] 已加载 {count} 个信号文件到内存')
+
+def get_all_signals():
+    """获取所有信号"""
+    return _signals_cache
+
+def refresh_cache():
+    """刷新缓存（新信号生成后调用）"""
+    with _signals_cache_lock:
+        global _signals_cache
+        _signals_cache = {}
+        load_signals_to_cache()
+
 # 实盘成交数据
 sys.path.insert(0, os.path.dirname(__file__))
 # 2026-08-03 kimi 独立: 删除 import live_pnl (kimi 自动化交易脚本不属于本监控项目)
@@ -397,6 +430,158 @@ def get_dashboard_overview():
             'update_time': datetime.now().isoformat()
         }
     })
+
+
+# ============================================================
+# 板块: 03_子页面API（盈亏历史/买卖记录/对账单）
+# ============================================================
+
+@app.route('/api/v1/dashboard/pnl_history')
+def api_pnl_history():
+    """盈亏历史：从内存缓存汇总每日 P&L，支持 strategy/start/end 筛选"""
+    strategy = request.args.get('strategy', '')
+    start = request.args.get('start', '')
+    end = request.args.get('end', '')
+
+    all_signals = get_all_signals()
+    if not all_signals:
+        return jsonify({'code': 0, 'message': 'success', 'data': {'history': []}})
+
+    # 汇总所有策略的每日信号
+    daily = {}  # {date: {strategy_id: {pnl, return}}}
+    for key, d in all_signals.items():
+        parts = key.rsplit('_', 1)
+        if len(parts) != 2:
+            continue
+        sid, date = parts
+        if strategy and sid != strategy:
+            continue
+        if start and date < start:
+            continue
+        if end and date > end:
+            continue
+        if date not in daily:
+            daily[date] = {}
+        daily[date][sid] = {
+            'pnl': d.get('live_total_pnl', 0) or 0,
+            'return_pct': d.get('live_total_return', 0) or 0,
+            'today_pnl': d.get('today_pnl', 0) or 0,
+        }
+
+    # 转换为历史数组
+    history = []
+    for date in sorted(daily.keys()):
+        strategies_data = daily[date]
+        daily_pnl = sum(s.get('today_pnl', 0) for s in strategies_data.values())
+        cum_pnl = sum(s.get('pnl', 0) for s in strategies_data.values())
+        history.append({
+            'date': date,
+            'daily_pnl': round(daily_pnl, 2),
+            'cumulative_pnl': round(cum_pnl, 2),
+            'cumulative_return_pct': round(cum_pnl / 60000 * 100, 2),
+            'strategies': list(strategies_data.keys()),
+        })
+
+    return jsonify({'code': 0, 'message': 'success', 'data': {'history': history}})
+
+
+@app.route('/api/v1/dashboard/trades')
+def api_trades():
+    """买卖记录：从内存缓存提取交易，支持 strategy/action/start/end 筛选"""
+    strategy = request.args.get('strategy', '')
+    action = request.args.get('action', '')
+    start = request.args.get('start', '')
+    end = request.args.get('end', '')
+
+    all_signals = get_all_signals()
+    if not all_signals:
+        return jsonify({'code': 0, 'message': 'success', 'data': {'trades': []}})
+
+    trades = []
+    act_map = {'BUY': '买入', 'SELL': '卖出', 'HOLD': '持有', 'FLAT': '空仓'}
+    for key, d in sorted(all_signals.items()):
+        parts = key.rsplit('_', 1)
+        if len(parts) != 2:
+            continue
+        sid, date = parts
+        if strategy and sid != strategy:
+            continue
+        if start and date < start:
+            continue
+        if end and date > end:
+            continue
+        try:
+            action_info = d.get('action', {})
+            act = action_info.get('type', '')
+            act_label = act_map.get(act, act)
+            if action and act_label != action:
+                continue
+            trades.append({
+                'strategy_id': sid,
+                'strategy_name': d.get('strategy_name', sid),
+                'action': act_label,
+                'filled_time': date + 'T15:00:00',
+                'code': action_info.get('target_etf', ''),
+                'name': action_info.get('target_etf', ''),
+                'filled_qty': 0,
+                'filled_price': 0,
+                'amount': 0,
+                'commission': 0,
+                'stamp_tax': 0,
+                'transfer_fee': 0,
+                'slippage': 0,
+                'pnl': 0,
+                'pnl_pct': 0,
+                'cost_price': 0,
+                'source': 'work_logs',
+            })
+        except:
+            continue
+
+    return jsonify({'code': 0, 'message': 'success', 'data': {'trades': trades}})
+
+
+@app.route('/api/v1/dashboard/reconciliation')
+def api_reconciliation():
+    """对账单：从内存缓存读取每日持仓和现金"""
+    strategy = request.args.get('strategy', '')
+    start = request.args.get('start', '')
+    end = request.args.get('end', '')
+
+    all_signals = get_all_signals()
+    if not all_signals:
+        return jsonify({'code': 0, 'message': 'success', 'data': {'reconciliation': []}})
+
+    reconciliation = []
+    for key, d in sorted(all_signals.items(), reverse=True):
+        parts = key.rsplit('_', 1)
+        if len(parts) != 2:
+            continue
+        sid, date = parts
+        if strategy and sid != strategy:
+            continue
+        if start and date < start:
+            continue
+        if end and date > end:
+            continue
+        try:
+            positions = d.get('positions', [])
+            reconciliation.append({
+                'date': date,
+                'strategy_id': sid,
+                'strategy_name': d.get('strategy_name', sid),
+                'cash': d.get('cash', 0),
+                'total_asset': d.get('total_asset', 0),
+                'position_count': len(positions),
+                'positions': positions,
+                'live_total_pnl': d.get('live_total_pnl', 0),
+                'live_total_return': d.get('live_total_return', 0),
+            })
+        except:
+            continue
+
+    return jsonify({'code': 0, 'message': 'success', 'data': {'reconciliation': reconciliation}})
+
 
 @app.route('/api/v1/dashboard/nav_curves')
 
@@ -1941,6 +2126,7 @@ if __name__ == '__main__':
     print(f'Starting server on http://0.0.0.0:{port}')
     print(f'Strategies: {list(load_strategies().keys())}')
     print(f'Signals dir: {SIGNALS_DIR}')
+    load_signals_to_cache()  # 启动时加载信号到内存缓存
     start_alert_scheduler()
     app.run(host='0.0.0.0', port=port, debug=False)
 
