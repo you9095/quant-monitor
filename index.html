@@ -15,82 +15,171 @@
    板块: 00_基础系统
    ============================================================ */
 
-/* ========== CSS变量设计系统 ========== */
+/* ========== CSS变量设计系统 ==========
+   2026-09-16 升级: Apple HIG 2026 语义色体系 + Liquid Glass 材料
+   旧变量名保留向后兼容, 值映射到 Apple HIG 深色模式语义色 */
 :root {
-  --strategy-card-gap: 20px;
-  /* 背景层级 */
-  --bg-base: #0a0a0f;
-  --bg-elevated: #12121a;
-  --bg-surface: #1a1a28;
-  --bg-hover: #222236;
-  --bg-active: #2a2a40;
+  --strategy-card-gap: 24px;
 
-  /* 文字 */
-  --text-primary: #e8e8f0;
-  --text-secondary: #a0a0b8;
-  --text-muted: #606078;
-  --text-inverse: #0a0a0f;
+  /* ===== Apple HIG 2026 语义色 (深色模式) ===== */
+  --systemBackground: #000000;
+  --secondarySystemBackground: #1C1C1E;
+  --tertiarySystemBackground: #2C2C2E;
+  --systemGroupedBackground: #000000;
+  --secondarySystemGroupedBackground: #1C1C1E;
+  --tertiarySystemGroupedBackground: #2C2C2E;
+  --label: #FFFFFF;
+  --secondaryLabel: rgba(255,255,255,0.55);
+  --tertiaryLabel: rgba(255,255,255,0.25);
+  --quaternaryLabel: rgba(255,255,255,0.10);
+  --separator: rgba(255,255,255,0.10);
+  --opaqueSeparator: rgba(255,255,255,0.20);
+  --fill: rgba(120,120,128,0.20);
+  --secondaryFill: rgba(120,120,128,0.16);
+  --tertiaryFill: rgba(120,120,128,0.12);
 
-  /* 边框 */
-  --border-subtle: rgba(255,255,255,0.06);
-  --border-medium: rgba(255,255,255,0.10);
+  /* Apple 系统色 (深色模式) */
+  --systemBlue: #0A84FF;
+  --systemGreen: #30D158;
+  --systemOrange: #FF9F0A;
+  --systemRed: #FF453A;
+  --systemPurple: #BF5AF2;
+  --systemPink: #FF375F;
+  --systemTeal: #64D2FF;
+  --systemYellow: #FFD60A;
+  --systemIndigo: #5E5CE6;
 
-  /* 四策略色彩编码 */
+  /* ===== 旧变量名 → Apple HIG 映射 (向后兼容) ===== */
+  --bg-base: var(--systemBackground);
+  --bg-elevated: var(--tertiarySystemBackground);
+  --bg-surface: var(--secondarySystemBackground);
+  --bg-hover: #3A3A3C;
+  --bg-active: #48484A;
+  --text-primary: var(--label);
+  --text-secondary: var(--secondaryLabel);
+  --text-muted: var(--tertiaryLabel);
+  --text-inverse: var(--systemBackground);
+  --border-subtle: var(--separator);
+  --border-medium: var(--opaqueSeparator);
+
+  /* ===== Liquid Glass 材料变量 ===== */
+  --glass-ultraThin-blur: 8px;
+  --glass-thin-blur: 14px;
+  --glass-regular-blur: 20px;
+  --glass-thick-blur: 30px;
+  --glass-ultraThick-blur: 45px;
+  --glass-saturate: 180%;
+  --glass-bg-dark: rgba(28,28,30,0.65);
+  --glass-bg-dark-thick: rgba(28,28,30,0.80);
+  --glass-border-dark: rgba(255,255,255,0.12);
+  --glass-highlight-dark: rgba(255,255,255,0.18);
+
+  /* 四策略色彩编码 (保持用户既定全局色不变) */
   --qixing-start: #3b82f6;
   --qixing-end: #8b5cf6;
   --r32-start: #10b981;
   --r32-end: #06b6d4;
-  --zhuidian-start: #f59e0b;
-  --zhuidian-end: #f97316;
-  /* 三合策略（Fusion R31_vol_weight）：紫金渐变 - 三策略合一的尊贵感 */
+  --zhuidian-start: #94a3b8;
+  --zhuidian-end: #64748b;
   --sanhe-start: #a855f7;
   --sanhe-end: #facc15;
   --lightning-start: #eab308;
   --lightning-end: #f97316;
-  /* 黄金组合A（极致恐慌反转）每日真实行情驱动 · M01 v24 5Y baseline 集成 2026-08-17：红（避开 5 现有策略色） */
-  /* 2026-08-17: calib 加 "每日真实行情驱动" 前缀 (用户原话硬约束: 6 卡必须全部真实行情驱动) · V24 DMAStrategy 多品种版 (DMA 金叉死叉 + 成交量+RSI+MA200三重过滤) · setcash(10000) + 20%仓位5只 + 10%止损+15%峰值+死叉卖出 · live_start_date=2026-08-13 live_days=4 */
-  /* source: /Users/junze/goldcombo_real_backtest/v24/T4_5y/baseline_ashare_real_5y_v24.json */
   --goldcombo-start: #ef4444;
   --goldcombo-end: #f87171;
 
-  /* 状态色 */
-  --color-up: #10b981;
-  --color-down: #ef4444;
-  --color-warn: #f59e0b;
-  --color-danger: #ef4444;
-  --color-live: #06b6d4;
+  /* 状态色 → Apple 系统色 */
+  --color-up: var(--systemGreen);
+  --color-down: var(--systemRed);
+  --color-warn: var(--systemOrange);
+  --color-danger: var(--systemRed);
+  --color-live: var(--systemBlue);
 
   /* 实盘卡片光效 */
-  --shadow-live: 0 0 30px rgba(6,182,212,0.25), 0 4px 16px rgba(6,182,212,0.15);
+  --shadow-live: 0 0 30px rgba(10,132,255,0.25), 0 4px 16px rgba(10,132,255,0.15);
 
-  /* 字体 */
+  /* 字体 → SF Pro 优先 */
   --font-mono: "SF Mono", "Consolas", "Monaco", monospace;
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
 
-  /* 间距 */
+  /* 间距 → Apple HIG */
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 16px;
   --space-lg: 24px;
   --space-xl: 32px;
 
-  /* 圆角 */
-  --radius-sm: 6px;
-  --radius-md: 10px;
+  /* 圆角 → Apple HIG (sm 8 / md 12 / lg 16) */
+  --radius-sm: 8px;
+  --radius-md: 12px;
   --radius-lg: 16px;
+  --radius-xl: 20px;
 
-  /* 阴影 */
-  --shadow-card: 0 2px 8px rgba(0,0,0,0.3);
-  --shadow-hover: 0 8px 24px rgba(0,0,0,0.4);
+  /* 阴影 → Apple 柔和投影 */
+  --shadow-card: 0 2px 12px rgba(0,0,0,0.25);
+  --shadow-hover: 0 8px 30px rgba(0,0,0,0.35);
   --shadow-glow-qixing: 0 0 20px rgba(59,130,246,0.15);
   --shadow-glow-r32: 0 0 20px rgba(16,185,129,0.15);
-  --shadow-glow-zhuidian: 0 0 20px rgba(245,158,11,0.15);
+  --shadow-glow-zhuidian: 0 0 20px rgba(148,163,184,0.15);
 
-  /* 2026-08-29 苏晏清 AI 团队 v2 重做：数据陈旧警告条 - 暗色主题适配 */
-  --stale-bg: rgba(245, 158, 11, 0.10);
+  /* 数据陈旧警告条 */
+  --stale-bg: rgba(255,159,10,0.10);
   --stale-border: 2px solid var(--color-warn);
   --stale-text: var(--text-primary);
   --stale-accent: var(--color-warn);
+}
+
+/* ========== Liquid Glass 磨砂玻璃材料系统 (Apple HIG 2026) ========== */
+.glass {
+  background: var(--glass-bg-dark);
+  backdrop-filter: blur(var(--glass-regular-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-regular-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border-dark);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight-dark),
+    inset 0 -1px 0 rgba(0,0,0,0.15),
+    0 4px 24px rgba(0,0,0,0.25);
+}
+.glass-ultraThin {
+  background: rgba(28,28,30,0.35);
+  backdrop-filter: blur(var(--glass-ultraThin-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-ultraThin-blur)) saturate(var(--glass-saturate));
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.glass-thin {
+  background: rgba(28,28,30,0.50);
+  backdrop-filter: blur(var(--glass-thin-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-thin-blur)) saturate(var(--glass-saturate));
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+}
+.glass-regular {
+  background: var(--glass-bg-dark);
+  backdrop-filter: blur(var(--glass-regular-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-regular-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border-dark);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight-dark),
+    0 4px 24px rgba(0,0,0,0.25);
+}
+.glass-thick {
+  background: var(--glass-bg-dark-thick);
+  backdrop-filter: blur(var(--glass-thick-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-thick-blur)) saturate(var(--glass-saturate));
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.20),
+    0 8px 40px rgba(0,0,0,0.40);
+}
+.glass-ultraThick {
+  background: rgba(28,28,30,0.92);
+  backdrop-filter: blur(var(--glass-ultraThick-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-ultraThick-blur)) saturate(var(--glass-saturate));
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.22),
+    0 16px 60px rgba(0,0,0,0.50);
 }
 
 /* ========== 基础重置 ========== */
@@ -98,7 +187,11 @@
 html { font-size: 14px; }
 body {
   font-family: var(--font-sans);
-  background: var(--bg-base);
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(44,44,46,0.6) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(58,58,60,0.3) 0%, transparent 50%),
+    var(--systemBackground);
+  background-attachment: fixed;
   color: var(--text-primary);
   min-height: 100vh;
   line-height: 1.5;
@@ -106,7 +199,7 @@ body {
 }
 
 /* ========== 12列栅格 ========== */
-.container { max-width: 1400px; margin: 0 auto; padding: 0 var(--space-lg); }
+.container { max-width: 1400px; margin: 0 auto; padding: 0 var(--space-xl); }
 .row { display: flex; flex-wrap: wrap; margin: 0 calc(-1 * var(--space-sm)); }
 .col { flex: 1; padding: 0 var(--space-sm); }
 .col-4 { flex: 0 0 33.333%; max-width: 33.333%; padding: 0 var(--space-sm); }
@@ -216,7 +309,10 @@ body {
 
 /* 手机端 (< 768px): 默认精简 v1 */
 @media (max-width: 767px) {
-  .strategy-card { padding: var(--space-md); }
+  /* 2026-09-14 修复: padding 不能加在整张 .strategy-card 上, 否则内部顶部彩色条 .card-header
+     会向内/向下缩进 16px, 看起来"悬浮在卡片中间"。padding 只作用于内容区 .card-body, 彩色条贴边对齐 */
+  .strategy-card { padding: 0; }
+  .strategy-card .card-body { padding: var(--space-md); }
   .strategy-card .full-only { display: none; }
   .strategy-card .compact-only { display: block; }
   /* 展开后 */
@@ -247,44 +343,67 @@ body {
   .strategy-card .compact-only { display: none; }
 }
 
+/* 移动端精简摘要: 默认隐藏, 展开时显示 (持仓X只 / 交易X笔) */
+.strategy-card .compact-summary { display: none; }
+.strategy-card.is-expanded .compact-summary { display: block; }
+.compact-summary {
+  margin-top: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: rgba(255,255,255,0.03);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+.compact-summary .cs-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.compact-summary .cs-row + .cs-row { margin-top: 6px; }
+.compact-summary .cs-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.compact-summary .cs-value {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
 .strategy-card .expand-toggle { display: none; }
 @media (max-width: 1279px) { .strategy-card .expand-toggle { display: flex; } }
 
 /* 展开/收起按钮 — 右下角, 触摸区扩大 */
 .expand-toggle {
   position: absolute;
-  right: 12px;
-  bottom: 12px;
-  /* 触摸区比按钮本身大 10-30% (padding 12px vs 按钮 10px) */
-  padding: 12px 16px;
-  min-width: 60px;
-  min-height: 32px;
-  background: rgba(99, 102, 241, 0.12);
-  border: 1px solid rgba(99, 102, 241, 0.4);
-  border-radius: 8px;
-  color: #818cf8;
-  font-size: 12px;
-  font-weight: 600;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 4px;
+  padding: 10px 32px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 16px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
   z-index: 10;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease;
 }
 .expand-toggle::before {
   content: '▾';
-  font-size: 14px;
+  font-size: 16px;
   transition: transform 0.2s;
 }
 .strategy-card.is-expanded .expand-toggle::before {
   content: '▴';
 }
-.expand-toggle:hover { background: rgba(99, 102, 241, 0.2); border-color: #818cf8; }
-.expand-toggle:active { transform: scale(0.96); }
+.expand-toggle:hover { color: var(--text-primary); }
+.expand-toggle:active { transform: translateX(-50%) scale(0.92); }
 
 
 /* ============================================================
@@ -293,16 +412,33 @@ body {
 
 /* ========== 顶部栏 ========== */
 .topbar {
-  height: 56px;
-  background: var(--bg-elevated);
-  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(28,28,30,0.55);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  box-shadow: inset 0 -1px 0 rgba(255,255,255,0.05);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 var(--space-lg);
+  flex-direction: column;
+  padding: 10px var(--space-lg) 8px;
   position: sticky;
   top: 0;
   z-index: 100;
+  gap: 6px;
+}
+.topbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+.topbar-time {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-family: var(--font-mono);
+  flex-shrink: 0;
 }
 .topbar-brand {
   display: flex;
@@ -338,37 +474,82 @@ body {
   font-size: 12px;
   flex-shrink: 0;
 }
-.topbar-meta .refresh-btn {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-medium);
+
+/* ========== 顶部导航 ========== */
+.topbar-nav {
+  display: flex;
+  gap: 8px;
+}
+.nav-link {
+  padding: 6px 14px;
+  border-radius: 6px;
   color: var(--text-secondary);
-  padding: var(--space-xs) var(--space-sm);
+  text-decoration: none;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.nav-link:hover, .nav-link.active {
+  background: rgba(255,255,255,0.1);
+  color: var(--text-primary);
+}
+
+.refresh-btn {
+  background: transparent;
+  border: 1px solid var(--border-medium);
+  color: var(--text-muted);
+  padding: 6px 14px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-family: var(--font-sans);
   font-size: 12px;
   transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
 }
-.topbar-meta .refresh-btn:hover {
+.refresh-btn:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
 }
 
 
 .action-items {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-md);
+  max-height: 400px;
+  overflow-y: auto;
 }
+/* 2026-09-13: 收益曲线板块两行三列, 每行 400px, 标签上下版式 */
+.action-items::-webkit-scrollbar { width: 6px; }
+.action-items::-webkit-scrollbar-track { background: transparent; }
+.action-items::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
 .action-item {
-  flex: 1;
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: var(--space-md);
-  padding: var(--space-md);
+  justify-content: space-between;
+  gap: 8px;
+  padding: var(--space-md) var(--space-lg);
   background: var(--bg-surface);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
   transition: all 0.2s;
+  min-height: 60px;
+}
+.action-item .action-detail {
+  flex: 1;
+  text-align: left;
+  min-width: 0;
+}
+.action-item .action-detail .target {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.action-item .action-badge {
+  flex-shrink: 0;
 }
 .action-item:hover {
   border-color: var(--border-medium);
@@ -394,6 +575,8 @@ body {
 .action-badge.sell { background: rgba(239,68,68,0.15); color: var(--color-down); }
 .action-badge.rebalance { background: rgba(6,182,212,0.15); color: var(--r32-end); }
 .action-badge.hold { background: rgba(160,160,184,0.15); color: var(--text-secondary); }
+.action-badge.flat { background: rgba(120,120,140,0.12); color: var(--text-muted); }
+.action-badge.defensive { background: rgba(245,158,11,0.15); color: var(--color-warn); }
 
 .action-detail {
   flex: 1;
@@ -441,12 +624,17 @@ body {
 
 /* ========== 策略卡片 ========== */
 .strategy-section {
-  padding: var(--space-lg);
+  padding: var(--space-xl);
 }
 .strategy-card {
-  background: var(--bg-surface);
+  background: rgba(28,28,30,0.72);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    0 2px 12px rgba(0,0,0,0.25);
   overflow: hidden;
   transition: all 0.3s ease;
   cursor: pointer;
@@ -485,11 +673,16 @@ body {
 
 .card-header {
   height: 4px;
+  width: 100%;
+  flex-shrink: 0;  /* 2026-09-14: flex column 下防止彩色条被压缩, 保证与卡片顶部/左右严格对齐 */
+  margin: 0;
+  padding: 0;
 }
 /* 2026-08-09 v5: 5 色实色 (蓝/绿/橙/紫/黄), 默认降饱和+降亮度, hover 恢复 */
 .card-header.qixing    { background: #3b82f6; filter: saturate(0.7) brightness(0.8); }
 .card-header.r32       { background: #10b981; filter: saturate(0.7) brightness(0.8); }
-.card-header.zhuidian  { background: #f97316; filter: saturate(0.7) brightness(0.8); }
+/* 2026-09-14: 追电全局统一为灰色 (原 #f97316 橙色与闪电明黄混淆, 此处为遗漏同步点) */
+.card-header.zhuidian  { background: #94a3b8; filter: saturate(0.7) brightness(0.85); }
 .card-header.sanhe     { background: #a855f7; filter: saturate(0.7) brightness(0.8); }
 .card-header.lightning { background: #eab308; filter: saturate(0.7) brightness(0.8); }
 /* M01 v24 5Y 集成 2026-08-17: goldcombo 卡片顶部色条 */
@@ -562,6 +755,10 @@ body {
   border-radius: 50%;
   background: currentColor;
 }
+.status-badge.not-started, .status-badge.waiting {
+  background: rgba(148,163,184,0.12);
+  color: #94a3b8;
+}
 
 /* 三层标签：version / data_period / caliber（v2.0 路线图 P0-4） */
 .three-layer-tags {
@@ -624,7 +821,7 @@ body {
   flex: 1;
 }
 .metric-label {
-  font-size: 9px;
+  font-size: 10px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -632,17 +829,17 @@ body {
 }
 .metric-value {
   font-family: var(--font-mono);
-  font-size: 20px;
-  font-weight: 400;
-  line-height: 1.2;
-  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--text-primary);
 }
 .metric-value.up { color: var(--text-secondary); }
 .metric-value.down { color: var(--text-secondary); }
 .metric-value.neutral { color: var(--text-secondary); }
 
 .metric-sub {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-muted);
   margin-top: 2px;
 }
@@ -656,7 +853,7 @@ body {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr;
   gap: var(--space-sm);
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -667,7 +864,8 @@ body {
   grid-template-columns: 2fr 1fr 1fr 1fr;
   gap: var(--space-sm);
   padding: var(--space-sm) 0;
-  font-size: 13px;
+  font-size: 12px;
+  color: var(--text-secondary);
   border-bottom: 1px solid var(--border-subtle);
 }
 .holding-row:last-child { border-bottom: none; }
@@ -689,8 +887,8 @@ body {
   align-items: center;
   padding-top: var(--space-md);
   border-top: 1px solid var(--border-subtle);
-  font-size: 12px;
-  color: var(--text-secondary);
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
 /* ===== 2026-09-12 数据告警就地标注 ===== */
@@ -885,17 +1083,20 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 2px 8px;
-  border-radius: 10px;
+  padding: 4px 10px;
+  border-radius: 20px;
   font-size: 11px;
-  font-weight: 700;
-  font-family: var(--font-mono);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 .today-action-strip .tas-action.BUY { background: rgba(16,185,129,0.18); color: var(--color-up); }
 .today-action-strip .tas-action.SELL { background: rgba(239,68,68,0.18); color: var(--color-down); }
 .today-action-strip .tas-action.REBALANCE { background: rgba(6,182,212,0.18); color: var(--r32-end); }
 .today-action-strip .tas-action.DEFENSIVE { background: rgba(245,158,11,0.18); color: var(--color-warn); }
 .today-action-strip .tas-action.HOLD { background: rgba(160,160,184,0.18); color: var(--text-secondary); }
+/* 2026-09-14: 空仓状态(动作信号为持有/调仓/防御但实际无持仓时,统一显示空仓,消除左右矛盾) */
+.today-action-strip .tas-action.FLAT { background: rgba(120,120,140,0.12); color: var(--text-muted); }
 .today-action-strip .tas-flow {
   font-family: var(--font-mono);
   font-size: 13px;
@@ -963,7 +1164,7 @@ body {
 
 /* ========== 收益对比区 ========== */
 .chart-section {
-  padding: var(--space-lg);
+  padding: var(--space-xl);
   background: var(--bg-elevated);
   border-top: 1px solid var(--border-subtle);
   border-bottom: 1px solid var(--border-subtle);
@@ -990,6 +1191,8 @@ body {
   border: 1px solid transparent;
   color: var(--text-secondary);
   transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .tab:hover { color: var(--text-primary); }
 .tab.active {
@@ -1021,10 +1224,14 @@ body {
   .risk-grid { grid-template-columns: 1fr; }
 }
 .risk-card {
-  background: var(--bg-surface);
+  background: rgba(28,28,30,0.68);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
   border-radius: var(--radius-md);
   padding: var(--space-lg);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
+  min-width: 0;
 }
 .risk-card.danger {
   border-color: rgba(239,68,68,0.3);
@@ -1064,6 +1271,11 @@ body {
   background: var(--bg-elevated);
   border-top: 1px solid var(--border-subtle);
 }
+/* ============================================================
+   2026-09-14 策略变更日志重新设计: 卡片式时间线
+   - 左策略色条 + 卡片, 视觉层级: 标题行(策略名+动作) > 详情 > 时间
+   - 全局策略色统一, 移动端自然堆叠, 不再固定 min-width 挤屏
+   ============================================================ */
 .log-list {
   display: flex;
   flex-direction: column;
@@ -1071,40 +1283,75 @@ body {
 }
 .log-item {
   display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  padding: var(--space-sm) var(--space-md);
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--space-md) var(--space-lg);
   background: var(--bg-surface);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--border-medium);
+  border-radius: var(--radius-md);
   font-size: 13px;
+  transition: background 0.2s, border-color 0.2s;
 }
-.log-time {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-muted);
-  min-width: 140px;
+.log-item:hover { background: var(--bg-hover); }
+/* 左侧策略色条与全局策略色严格一致 */
+.log-item.qixing { border-left-color: var(--qixing-start); }
+.log-item.r32 { border-left-color: var(--r32-start); }
+.log-item.zhuidian { border-left-color: var(--zhuidian-start); }
+.log-item.sanhe { border-left-color: var(--sanhe-start); }
+.log-item.lightning { border-left-color: var(--lightning-start); }
+.log-item.goldcombo { border-left-color: var(--goldcombo-start); }
+/* 第一行: 策略名 + 动作徽章 (左右分布) */
+.log-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
 }
+.log-top-left { display: flex; align-items: center; gap: var(--space-sm); min-width: 0; }
 .log-strategy {
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
   font-weight: 600;
-  min-width: 80px;
-  text-align: center;
+  white-space: nowrap;
 }
 .log-strategy.qixing { background: rgba(59,130,246,0.15); color: var(--qixing-start); }
 .log-strategy.r32 { background: rgba(16,185,129,0.15); color: var(--r32-start); }
-.log-strategy.zhuidian { background: rgba(245,158,11,0.15); color: var(--zhuidian-start); }
+.log-strategy.zhuidian { background: rgba(148,163,184,0.15); color: var(--zhuidian-start); }
 .log-strategy.sanhe { background: rgba(168,85,247,0.15); color: var(--sanhe-start); }
-.log-strategy.lightning { background: rgba(250,204,21,0.15); color: var(--lightning-start); }
+.log-strategy.lightning { background: rgba(234,179,8,0.15); color: var(--lightning-start); }
+.log-strategy.goldcombo { background: rgba(239,68,68,0.15); color: var(--goldcombo-start); }
+/* 动作徽章: 语义化配色, 圆角统一 */
 .log-action {
-  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  background: rgba(148,163,184,0.12);
+  color: var(--text-secondary);
 }
-.log-action.buy { color: var(--color-up); }
-.log-action.sell { color: var(--color-down); }
+.log-action.buy { background: rgba(16,185,129,0.15); color: var(--color-up); }
+.log-action.sell { background: rgba(239,68,68,0.15); color: var(--color-down); }
+.log-action.rebalance { background: rgba(6,182,212,0.15); color: var(--r32-end); }
+.log-action.defensive { background: rgba(245,158,11,0.15); color: var(--color-warn); }
+.log-action.hold, .log-action.flat { background: rgba(148,163,184,0.12); color: var(--text-muted); }
+.log-action.param { background: rgba(139,92,246,0.15); color: #a78bfa; }
+/* 第二行: 详情 */
 .log-detail {
   color: var(--text-secondary);
-  flex: 1;
+  font-size: 12.5px;
+  line-height: 1.55;
+  word-break: break-word;
+}
+/* 第三行: 时间 (弱化, 右对齐) */
+.log-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: right;
 }
 
 
@@ -1130,9 +1377,14 @@ body {
   opacity: 1;
 }
 .modal-panel {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-medium);
+  background: rgba(28,28,30,0.82);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.20),
+    0 16px 60px rgba(0,0,0,0.50);
   width: 90%;
   max-width: 800px;
   max-height: 85vh;
@@ -1232,10 +1484,211 @@ body {
 
 /* ========== 响应式 ========== */
 @media (max-width: 768px) {
-  .action-items { flex-direction: column; }
+  /* 2026-09-14 根因修复: 全局防止水平溢出(顶部栏topbar-meta的nowrap+flex-shrink:0
+     曾把页面撑到474px,视口仅316px,导致所有内容集中在左侧) */
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+  /* 2026-09-14: 修复收益曲线板块移动端布局
+     - 原 flex-direction:column 对 grid 无效,导致布局混乱
+     - 改为单列 grid,标签左右排列,严格遵循桌面端圆角/彩色标签头/间距规则 */
+  .action-items {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-sm);
+    padding: 0 var(--space-sm);
+  }
+  .action-item {
+    flex-direction: row !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    padding: var(--space-md) var(--space-lg);
+    border-radius: var(--radius-md);
+    min-height: 56px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .action-item .action-badge {
+    flex-shrink: 0;
+  }
+  .action-item .action-detail {
+    flex: 1;
+    text-align: left;
+    min-width: 0;
+  }
+  .action-item .action-detail .target {
+    font-size: 14px;
+    font-weight: 600;
+  }
   .metric-value { font-size: 22px; }
   .risk-grid { grid-template-columns: 1fr; }
   .drawer { width: 100%; }
+  /* 图表板块移动端适配:减小padding和图表高度 */
+  .chart-section {
+    padding: var(--space-md) var(--space-sm);
+  }
+  .chart-container {
+    height: 240px;
+    position: relative;
+    width: 100%;
+  }
+  .section-header {
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+  }
+  /* 顶部栏移动端: 两行布局适配 */
+  .topbar {
+    padding: 8px var(--space-md);
+    gap: 4px;
+  }
+  .topbar-brand {
+    font-size: 13px;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+  .topbar-time {
+    font-size: 11px;
+    gap: 4px;
+  }
+  /* 手机端隐藏日期,只显示时间,节省空间 */
+  #current-date { display: none; }
+  .topbar-row-sub {
+    align-items: flex-start;
+  }
+  .portfolio-summary {
+    flex-wrap: wrap;
+    gap: 4px !important;
+    width: 100%;
+  }
+  .portfolio-summary .item {
+    flex: 1 1 calc(50% - 4px) !important;
+    padding: 2px 4px !important;
+    white-space: normal;
+  }
+  .refresh-btn {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+  /* 策略卡片区域移动端适配 */
+  .strategy-section {
+    padding: var(--space-md) var(--space-sm);
+  }
+  .strategy-card {
+    border-radius: var(--radius-lg);
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .container {
+    padding: 0 var(--space-sm);
+    width: 100%;
+    box-sizing: border-box;
+  }
+  /* 确保所有标签元素移动端都有圆角 */
+  .tab, .action-badge, .status-badge, .tas-action, .log-action {
+    border-radius: var(--radius-sm);
+  }
+  /* 2026-09-14: 覆盖内联样式导致的WFA/AB板块手机端不响应
+     minmax(0,1fr) 强制等宽: 1fr=minmax(auto,1fr) 会被长数字撑成不等宽列, 窄列中文逐字竖排 */
+  #wfa-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  #ab-comparison-kpi {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  #ab-comparison-cards {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  /* 窄屏卡片内边距收窄, 给中文标题/数字留横向空间, 防止逐字竖排 */
+  #wfa-cards .risk-card,
+  #ab-comparison-kpi .risk-card,
+  #ab-comparison-cards .risk-card {
+    padding: 12px 14px;
+  }
+  #ab-comparison-kpi .risk-card > div:nth-child(2) { font-size: 22px !important; }
+  #ab-comparison-kpi .risk-card .risk-title { white-space: nowrap; }
+  /* 2026-09-14: 参数稳定性监控板块移动端适配 (内联 repeat(5,1fr) 在窄屏挤成5列,改单列) */
+  #param-stability-cards {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-sm) !important;
+  }
+  #param-stability-cards .risk-card {
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+  }
+  /* 图表canvas防止溢出 */
+  canvas { max-width: 100%; }
+  /* 表格横向滚动而非撑破页面 */
+  table { max-width: 100%; display: block; overflow-x: auto; }
+}
+
+/* 2026-09-14: 768-1024px 平板/桌面模式手机 后备适配 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .action-items {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  #wfa-cards, #ab-comparison-kpi {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  #ab-comparison-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  #param-stability-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* OOS 小多图布局 — 对齐项目配色规范 */
+.oos-small-multiples {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+.oos-sm-card {
+  background: rgba(28,28,30,0.68);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: var(--radius-md);
+  padding: 8px 10px 4px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
+  transition: border-color 0.2s;
+}
+.oos-sm-card:hover {
+  border-color: rgba(255,255,255,0.20);
+}
+.oos-sm-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.oos-sm-name {
+  font-size: 11px;
+  font-weight: 600;
+}
+.oos-sm-value {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-family: monospace;
+}
+.oos-sm-canvas-wrap {
+  height: 90px;
+}
+@media (max-width: 1024px) {
+  .oos-small-multiples {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 768px) {
+  .oos-small-multiples {
+    grid-template-columns: 1fr;
+  }
+  .oos-sm-canvas-wrap {
+    height: 80px;
+  }
 }
 
 </style>
@@ -1244,13 +1697,23 @@ body {
 
 <!-- 顶部栏 -->
 <header class="topbar">
-  <div class="topbar-brand">
-    <span class="dot"></span>
-    <span id="brand-text">AI量化 · 多策略监控面板</span>
+  <div class="topbar-row topbar-row-main">
+    <div class="topbar-brand">
+      <span class="dot"></span>
+      <span id="brand-text">AI量化 · 多策略监控面板</span>
+    </div>
+    <nav class="topbar-nav">
+      <a href="index.html" class="nav-link">📊 概览</a>
+      <a href="reconciliation.html" class="nav-link">📋 对账单</a>
+      <a href="trades.html" class="nav-link">📝 买卖记录</a>
+      <a href="pnl_history.html" class="nav-link">📈 盈亏历史</a>
+    </nav>
+    <div class="topbar-time">
+      <span id="current-date"></span>
+      <span id="current-time">15:00:00</span>
+    </div>
   </div>
-  <div class="topbar-meta">
-    <span id="current-date"></span>
-    <span id="current-time">15:00:00</span>
+  <div class="topbar-row topbar-row-sub">
     <div class="portfolio-summary" id="portfolio-summary">
       <div class="item"><span class="label">初始</span><span class="val text-mono" id="ps-initial">¥50,000.00</span></div>
       <div class="item pnl"><span class="label">总盈亏</span><span class="val" id="ps-pnl">--</span></div>
@@ -1261,19 +1724,7 @@ body {
   </div>
 </header>
 
-<!-- ============================================================
-     板块: 02_策略卡板块 (module-strategy-cards)
-     功能: 6个策略卡 + 详情弹窗 + 今日交易
-     ============================================================ -->
-<section class="strategy-section" id="module-strategy-cards">
-  <div class="container">
-
-    <div id="strategy-cards">
-      <!-- 动态填充 (calcGridRows 决定 1-3 排布局) -->
-    </div>
-  </div>
-</section>
-
+<!-- 2026-09-13: 收益曲线·实盘模拟移至页面最顶部 (用户要求) -->
 <!-- 2026-08-25 v5: A+B 合并区 (原独立"今日动作"条并入实盘模拟区)
      默认显示 A(今日动作简版: 策略名+动作徽章), 点击整区切换到 B(成交明细) -->
 <section class="chart-section live-sim-section" id="live-sim-section" style="border-top:none">
@@ -1291,6 +1742,19 @@ body {
     </div>
     <div class="trade-grid hidden" id="trade-details">
       <!-- B: 成交明细 (默认隐藏, 点击展开), 动态填充 -->
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     板块: 02_策略卡板块 (module-strategy-cards)
+     功能: 6个策略卡 + 详情弹窗 + 今日交易
+     ============================================================ -->
+<section class="strategy-section" id="module-strategy-cards">
+  <div class="container">
+
+    <div id="strategy-cards">
+      <!-- 动态填充 (calcGridRows 决定 1-3 排布局) -->
     </div>
   </div>
 </section>
@@ -1321,7 +1785,11 @@ body {
 </script>
 
 <style>
-.trade-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-md); }
+.trade-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md); max-height: 400px; overflow-y: auto; }
+/* 2026-09-13: 成交明细展开后最高 400px, 超出上下滚动 (用户要求) */
+.trade-grid::-webkit-scrollbar { width: 6px; }
+.trade-grid::-webkit-scrollbar-track { background: transparent; }
+.trade-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
 @media (max-width: 1024px) { .trade-grid { grid-template-columns: 1fr; } }
 .trade-card {
   background: var(--bg-surface);
@@ -1444,12 +1912,12 @@ body {
 <section class="chart-section" id="module-daily-pnl" style="border-top:1px solid var(--border-subtle)">
   <div class="container">
     <div class="section-header">
-      <span class="section-title">📈 Daily P&L 趋势（5 策略最近 14 天）</span>
+      <span class="section-title">📈 每日盈亏趋势（5 策略最近 14 天）</span>
       <div style="display:flex;gap:8px;align-items:center">
         <span style="font-size:12px;color:var(--text-muted)" id="daily-pnl-meta">加载中...</span>
         <div class="section-tabs">
-          <span class="tab active" id="tab-daily-pnl-cumulative" onclick="switchDailyPnlView('cumulative')">累计 P&L</span>
-          <span class="tab" id="tab-daily-pnl-daily" onclick="switchDailyPnlView('daily')">每日 P&L</span>
+          <span class="tab active" id="tab-daily-pnl-cumulative" onclick="switchDailyPnlView('cumulative')">累计盈亏</span>
+          <span class="tab" id="tab-daily-pnl-daily" onclick="switchDailyPnlView('daily')">每日盈亏</span>
         </div>
       </div>
     </div>
@@ -1466,7 +1934,7 @@ body {
 <section class="chart-section" id="module-wfa" style="border-top:1px solid var(--border-subtle)">
   <div class="container">
     <div class="section-header">
-      <span class="section-title">🔬 WFA 过拟合审计（4 策略 Walk-Forward Analysis）</span>
+      <span class="section-title">🔬 WFA 滚动前推过拟合审计（5 策略）</span>
       <div style="display:flex;gap:8px;align-items:center">
         <span style="font-size:12px;color:var(--text-muted)" id="wfa-meta">加载中...</span>
       </div>
@@ -1479,13 +1947,12 @@ body {
       </div>
     </div>
 
-    <!-- WFA 样本外 P&L 折线 -->
+    <!-- WFA 样本外 P&L 小多图 -->
     <div class="section-header" style="margin-top:10px">
-      <span style="font-size:13px;color:var(--text-muted)">📊 样本外（OOS）累计 P&L · 4 策略拼接 13 个测试窗口</span>
+      <span style="font-size:13px;color:var(--text-muted)">📊 样本外（OOS）累计盈亏 · 5 策略拼接 13 个测试窗口</span>
     </div>
-    <div class="chart-container">
-      <canvas id="wfaOosCurveChart"></canvas>
-    </div>
+    <div id="wfaOosSmallMultiples" class="oos-small-multiples"></div>
+    <canvas id="wfaOosCurveChart" style="display:none"></canvas>
   </div>
 </section>
 
@@ -1496,7 +1963,7 @@ body {
 <section class="chart-section" id="module-param-stability" style="border-top:1px solid var(--border-subtle)">
   <div class="container">
     <div class="section-header">
-      <span class="section-title">🎯 参数稳定性监控（4 策略"假设网格"·13 训练窗口）</span>
+      <span class="section-title">🎯 参数稳定性监控（5 策略"假设网格"·13 训练窗口）</span>
       <div style="display:flex;gap:8px;align-items:center">
         <span style="font-size:12px;color:var(--text-muted)" id="param-stability-meta">加载中...</span>
       </div>
@@ -1522,14 +1989,14 @@ body {
 <section class="chart-section" id="module-ab-comparison" style="border-top:1px solid var(--border-subtle);background:rgba(99,102,241,0.04)">
   <div class="container">
     <div class="section-header">
-      <span class="section-title">⚖️ A/B 对照（grid_mode vs hardcode · 验证 WFA 优化是否真有效）</span>
+      <span class="section-title">⚖️ A/B 对照（网格优选 vs 原参数 · 验证 WFA 优化是否真有效）</span>
       <div style="display:flex;gap:8px;align-items:center">
         <span style="font-size:12px;color:var(--text-muted)" id="ab-comparison-meta">加载中...</span>
       </div>
     </div>
     <p style="font-size:12px;color:var(--text-muted);margin:4px 0 12px 0">
-      同一截止日同一份数据，分别用 <b>grid_mode（应用 P9 WFA 网格最优）</b> 和 <b>hardcode（策略代码原参数）</b> 跑 backtest。
-      每日对比 → 6 个月后判断 grid mode 是否真的有效（vs 单纯过拟合）。
+      同一截止日同一份数据，分别用 <b>网格优选（应用 P9 WFA 网格最优参数）</b> 和 <b>原参数（策略代码硬编码参数）</b> 跑回测。
+      每日对比 → 6 个月后判断网格优选是否真的有效（vs 单纯过拟合）。
     </p>
 
     <!-- 总览 KPI 条 -->
@@ -1548,7 +2015,7 @@ body {
 
     <!-- 时序曲线（diff_sum 走势） -->
     <div style="margin-top:20px">
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">📈 diff_sum 时序（grid_mode - baseline 之和走势；正值=grid_mode 整体更优）</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">📈 累计差值时序（网格优选 − 原参数之和走势；正值=网格优选整体更优）</div>
       <div class="chart-container" style="height:200px">
         <canvas id="abDiffTrendChart"></canvas>
       </div>
@@ -1599,8 +2066,11 @@ body {
         <a href="review.html" style="font-size:12px;color:var(--r32-end);text-decoration:none">查看完整复盘 →</a>
       </div>
     </div>
+    <p style="font-size:12px;color:var(--text-muted);margin:4px 0 12px 0">
+      汇总各策略最新信号动作、迭代轮次与运行状态，按信号日期倒序排列；左侧色条与策略全局配色一致。
+    </p>
     <div class="log-list" id="strategy-logs">
-      <!-- 动态生成四策略日志 -->
+      <!-- 动态生成策略日志卡片 -->
     </div>
   </div>
 </section>
@@ -1690,7 +2160,10 @@ async function renderAll(data) {
       // 注入真实实盘起始日 (2026-08-03 审计陷阱#5: 后端 LIVE_START_DATE=2026-05-25)
       if (psRes.data.live_start_date) {
         const lbl = document.getElementById('live-start-label');
-        if (lbl) lbl.textContent = `${psRes.data.live_start_date} 实盘模拟起始日 · 全自动执行`;
+        // 2026-09-20: 若图表已算出真实数据范围(meta.data_range), 不得用起始日占位覆盖(异步时序竞争)
+        if (lbl && !(window.__liveCurveMeta && window.__liveCurveMeta.data_range)) {
+          lbl.textContent = `${psRes.data.live_start_date} 实盘模拟起始日 · 全自动执行`;
+        }
       }
     }
     if (taRes && taRes.code === 0) {
@@ -1735,15 +2208,22 @@ function renderActionItems(strategies) {
   const container = document.getElementById('action-items');
   if (!container) return;
   if (!strategies || strategies.length === 0) { container.innerHTML = ''; return; }
+  // 2026-09-13: 英文动作标签全部中文化; 2026-09-14 增加 FLAT空仓
+  const actionLabelMap = { 'HOLD': '持有', 'REBALANCE': '调仓', 'DEFENSIVE': '防御', 'BUY': '买入', 'SELL': '卖出', 'FLAT': '空仓', 'NONE': '未启动' };
   container.innerHTML = strategies.map(s => {
     const sid = s.id || s.strategy_id;
     const sname = s.name || sid;
-    const action = (s.today_action || s.action || 'HOLD').toUpperCase();
+    // 2026-09-14 动作-持仓一致性校正: 无有效持仓时,持有/调仓/防御统一显示空仓
+    const _hs = s.holdings || [];
+    const _hasPos = _hs.some(h => (h.qty != null && h.qty > 0) || (h.weight != null && parseFloat(h.weight) > 0));
+    let action = (s.today_action || s.action || 'HOLD').toUpperCase();
+    if (!_hasPos && ['HOLD','REBALANCE','DEFENSIVE'].includes(action)) action = 'FLAT';
+    const actionLabel = actionLabelMap[action] || action;
     return `<div class="action-item ${sid}">
-      <span class="action-badge ${action.toLowerCase()}">${action}</span>
       <div class="action-detail">
         <div class="target">${sname}</div>
       </div>
+      <span class="action-badge ${action.toLowerCase()}">${actionLabel}</span>
     </div>`;
   }).join('');
 }
@@ -1865,43 +2345,64 @@ function buildCardHtml(sid, sname, s) {
   const position = s.position_pct;
   const cash = s.cash;
   const status = s.status || 'running';
-  const statusLabel = status === 'placeholder' ? '占位' : status === 'running' ? '运行中' : status;
+  const isLive = status === 'running';  // 2026-09-20: 仅 running=真实在跑每日模拟; not_started=仅有回测未启动
+  const statusLabel = status === 'placeholder' ? '占位' : status === 'running' ? '运行中' : status === 'not_started' ? '未启动' : status === 'waiting' ? '待启动' : status;
   const todayAction = s.today_action || s.action || 'HOLD';
   // R 标签
   const latestRound = s.metrics?.latest_round || s.metrics?.latest_desc || '';
 
+  // ===== 2026-09-14 动作-持仓一致性校正 =====
+  // 有效持仓: qty>0 或 weight>0 (过滤 qty=0 的零持仓占位,如 lightning/zhuidian)
+  const validHoldings = holdings.filter(h => (h.qty != null && h.qty > 0) || (h.weight != null && parseFloat(h.weight) > 0));
+  const hasPosition = validHoldings.length > 0;
   // ===== v1.1 (2026-06-26) 卡片顶部：今日交易条 =====
-  const actionLabel = (todayAction || 'HOLD').toUpperCase();
+  let actionLabel = (todayAction || 'HOLD').toUpperCase();
+  // 无实际持仓时,持有/调仓/防御类动作统一校正为"空仓",消除"标签持有却无持仓"的左右矛盾
+  if (!hasPosition && ['HOLD','REBALANCE','DEFENSIVE'].includes(actionLabel)) {
+    actionLabel = 'FLAT';
+  }
+  // 2026-09-13: 动作徽章显示中文, CSS类名保持英文; 2026-09-14 增加 FLAT空仓
+  const _actionCn = { 'HOLD': '持有', 'REBALANCE': '调仓', 'DEFENSIVE': '防御', 'BUY': '买入', 'SELL': '卖出', 'FLAT': '空仓', 'NONE': '未启动' }[actionLabel] || actionLabel;
   const targetText = s.target ? `→ ${s.target}` : '';
-  const todayDetail = (s.metrics && s.metrics.latest_desc) || (holdings.length > 0 ? `${holdings.length}只持仓` : '空仓观望');
+  const todayDetail = actionLabel === 'NONE' ? '仅有棘轮回测, 未接入每日模拟' : ((hasPosition && s.metrics && s.metrics.latest_desc) || (hasPosition ? `${validHoldings.length}只持仓` : '空仓观望'));
   // 信号日期
   // 2026-08-27 修复: signal_date 顶层优先
   const sigDate = s.signal_date || s.metrics?.signal_date || (window.__todayActions && window.__todayActions[sid]?.signal_date) || '';
+  const _flowVerb = { 'BUY': '买入 ', 'SELL': '卖出 ', 'REBALANCE': '调仓至 ', 'DEFENSIVE': '防御 ', 'FLAT': '空仓观望', 'HOLD': '观望 ' }[actionLabel] || '观望 ';
   const todayActionStrip = `
     <div class="today-action-strip ${sid}">
       <div class="tas-header">
         <span class="tas-title">⚡ 今日交易流程 ${sigDate ? `· ${sigDate}` : ''}${alertBadge('signal_date')}</span>
-        <span class="tas-action ${actionLabel}">${actionLabel}</span>
+        <span class="tas-action ${actionLabel}">${_actionCn}</span>
       </div>
-      <div class="tas-flow">${(actionLabel === 'BUY' ? '买入 ' : actionLabel === 'SELL' ? '卖出 ' : actionLabel === 'REBALANCE' ? '调仓至 ' : actionLabel === 'DEFENSIVE' ? '防御 ' : '观望 ') + (s.target || '—')}</div>
+      <div class="tas-flow">${_flowVerb}${actionLabel === 'FLAT' ? '' : (s.target || '—')}</div>
       <div class="tas-detail">${todayDetail}</div>
     </div>
   `;
 
   // ===== v1.1 (2026-06-26) + 2026-08-03 P0 fix: 总盈亏大字区块 =====
   // 优先用后端真实持仓市值(__portfolioPerStrategy.current_value),否则从本地 holdings 算市值
-  const initCap = s.initial_capital || (window.__portfolioPerStrategy && window.__portfolioPerStrategy[sid]?.initial_capital) || 10000;
+  const initCap = isLive ? (s.initial_capital || (window.__portfolioPerStrategy && window.__portfolioPerStrategy[sid]?.initial_capital) || 10000) : 0;
   let curVal = window.__portfolioPerStrategy && window.__portfolioPerStrategy[sid]?.current_value;
   if (curVal == null) {
     // 本地 fallback: sum(qty * price) + cash; 没有 qty*price 时 sum(cost-weight) + cost
     const livePnL = s.metrics && (s.metrics.live_total_pnl != null ? s.metrics.live_total_pnl : null);
-    if (livePnL != null) {
-      curVal = initCap + livePnL;  // signals 有 live_total_pnl → 直接换算市值
+    // 2026-09-20 真实性根治: 仅当有真实持仓时才用 live_total_pnl 计算市值
+    // 当无持仓(如 zhuidian/lightning/goldcombo 空仓策略)时，绝不用回测 live_total_pnl
+    // 冒充实盘盈亏/市值，否则会显示 +143.65% 实盘收益实为 0 持仓理论值
+    if (livePnL != null && hasPosition) {
+      curVal = initCap + livePnL;  // 有真实持仓 → 真实市值 = 本金 + 真实累计盈亏
+    } else if (livePnL != null && !hasPosition) {
+      // 无真实持仓 → 不用 live_total_pnl 冒充，退化用总收益率（仍可能包含回测成分，但至少不直接用 PnL 补位）
+      curVal = initCap * (1 + (totalReturn || 0) / 100);
+      // 并标记 live_total_pnl 为理论值，前端会在利润块中注明
+      curVal_from_live_pnl_theory = livePnL;  // 保留供数据源标签使用
     } else {
       // 退化: 用总收益率 × 本金
       curVal = initCap * (1 + (totalReturn || 0) / 100);
     }
   }
+  if (!isLive) curVal = 0;  // 2026-09-20 未启动每日模拟 → 市值留空(0), 不用回测本金/收益填充
   const pnlAmount = curVal - initCap;
   const pnlClass = pnlAmount > 0 ? 'up' : pnlAmount < 0 ? 'down' : 'neutral';
   const pnlAbs = Math.abs(pnlAmount);
@@ -1913,18 +2414,26 @@ function buildCardHtml(sid, sname, s) {
   // 2026-08-09 v4: 删 ¥符号, 删 .00 段, 只留 +/- + 整数主体
   const pnlStr = `<span class="pb-sign">${pnlSign}</span><span class="pb-int">${pnlInt}</span>`;
   const returnStr = (totalReturn !== undefined && totalReturn !== null) ? ((totalReturn >= 0 ? '+' : '') + totalReturn.toFixed(2) + '%') : '--';
-  const profitBlock = `
+  const profitBlock = isLive ? `
     <div class="profit-block">
       <div class="pb-label">总盈亏（实盘模拟 ${initCap >= 1000 ? (initCap/1000).toFixed(0) + 'k本金' : initCap + '本金'} 至今）${alertBadge('live_total_pnl')}</div>
       <div class="pb-amount ${pnlClass} pb-font-${sid} ${fieldAlertClass('live_total_pnl')}" data-metric="card-pnl-amount">${pnlStr}</div>
       <div class="pb-meta">
         <span class="pb-meta-item"><span class="lbl">收益率</span>${returnStr}</span>
-        <span class="pb-meta-item ${fieldAlertClass('total_asset')}"><span class="lbl">当前市值</span>¥${curVal.toLocaleString('zh-CN', {minimumFractionDigits: 2})}${alertBadge('total_asset')}</span>
+        <span class="pb-meta-item full-only ${fieldAlertClass('total_asset')}"><span class="lbl">当前市值</span>¥${curVal.toLocaleString('zh-CN', {minimumFractionDigits: 2})}${alertBadge('total_asset')}</span>
+      </div>
+    </div>
+  ` : `
+    <div class="profit-block">
+      <div class="pb-label">未启动每日模拟 · 仅有棘轮回测（回测不进入实盘）</div>
+      <div class="pb-amount neutral pb-font-${sid}" data-metric="card-pnl-amount" style="font-size:34px">—</div>
+      <div class="pb-meta">
+        <span class="pb-meta-item"><span class="lbl">实盘</span>无真实每日数据</span>
       </div>
     </div>
   `;
 
-  let holdingsHtml = holdings.map(h => {
+  let holdingsHtml = validHoldings.map(h => {
     const qty = h.qty ? h.qty.toLocaleString() : (h.weight ? h.weight + '%' : '--');
     // 2026-08-12 P0 fix: cost 字段是 per-share,显示"成本"用持仓市值 (qty*price 或 qty*cost)
     // 才是用户期望的金额,直接显示 cost=100 会被误读为"总市值 100 元"
@@ -1943,9 +2452,11 @@ function buildCardHtml(sid, sname, s) {
     </div>`;
   }).join('');
 
-  // 兼容无 holdings 的情况
-  if (holdings.length === 0) {
-    holdingsHtml = '<div class="holding-row" style="justify-content:center;color:var(--text-muted)">无持仓</div>';
+  // 兼容无有效持仓的情况 (2026-09-14: 改用 validHoldings,过滤 qty=0 零持仓)
+  // bug修复: 占位行不能用 holding-row 类,否则精简视图 querySelectorAll('.holding-row')
+  // 会把"无持仓"占位行数成 1 只持仓,导致默认显示"1只"、展开却"无持仓"的矛盾
+  if (validHoldings.length === 0) {
+    holdingsHtml = '<div class="holding-empty" style="grid-column:1/-1;justify-content:center;color:var(--text-muted);padding:8px 0;text-align:center">无持仓</div>';
   }
 
   // 2026-08-24 任务C: 移除整卡 onclick=openStrategyDetail — 弹窗改由 .three-layer-tags 标签区触发 (绑定见 enhanceCardsForResponsive); 卡片其余区域 = 今日动作⇄收益曲线 toggle (任务B)
@@ -1954,7 +2465,7 @@ function buildCardHtml(sid, sname, s) {
     <div class="card-body">
       <div class="card-title-row">
         <span class="card-title">${sname} ${latestRound ? `<span style="font-size:10px;color:var(--${sid}-start);margin-left:4px">${latestRound}</span>` : ''}</span>
-        <span class="status-badge">${statusLabel}</span>
+        <span class="status-badge ${isLive ? '' : 'not-started'}">${statusLabel}</span>
       </div>
       ${(() => {
         // 2026-08-28 苏晏清 AI 团队 P0 fix: signal_date > 5天时在卡片顶部加 ⚠️ 警告条
@@ -1982,37 +2493,36 @@ function buildCardHtml(sid, sname, s) {
         <span class="tlt-tag tlt-version" title="策略版本号">📦 ${s.version_tag != null ? s.version_tag : '—'}</span>
         <!-- 字段2: 运行天数 — 来自 signal.live_days (数字, 用户要"运行天数"语义) -->
         <span class="tlt-tag tlt-period" title="已运行天数 (live_days, 来自 signal JSON)">📅 ${s.data_period_days != null ? '运行 ' + s.data_period_days + ' 天' : '—'}</span>
-        <!-- 字段3: 策略设计 caliber — config.caliber 简版 (来自 s.metrics.caliber) -->
-        <span class="tlt-tag tlt-caliber" title="策略设计描述 (config.caliber 简版)">⚙️ ${s.metrics?.caliber != null && s.metrics.caliber !== '' ? s.metrics.caliber.slice(0, 24) : '—'}</span>
+        <!-- 字段3(原caliber简版"买入规则"标签)已移除: 与第4个详情标签内容重复, 用户确认多余 2026-09-15 -->
         <!-- 字段4: 6 段 caliber_full — config.caliber_full 完整版, 弹窗 tooltip 显示 -->
         <span class="tlt-tag tlt-detail" title="${(s.config_caliber_full || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'&#10;')}">${(s.config_caliber_full || '').slice(0, 24)}${(s.config_caliber_full || '').length > 24 ? '…' : (s.config_caliber_full ? '' : '—')}</span>
       </div>
       ${todayActionStrip}
       ${profitBlock}
       <div class="metric-row">
-        <div class="metric">
+        <div class="metric full-only">
           <div class="metric-label">实盘总收益</div>
           <div class="metric-value ${s.live_total_return != null ? (s.live_total_return >= 0 ? 'up' : 'down') : 'neutral'}" data-metric="live-total-return">${s.live_total_return != null ? (s.live_total_return >= 0 ? '+' : '') + s.live_total_return.toFixed(2) + '%' : '--'}</div>
           <div class="metric-sub">${s.live_total_pnl != null ? (s.live_total_pnl >= 0 ? '+' : '') + s.live_total_pnl.toFixed(2) + ' 元 / ' + (s.data_period_days || '?') + ' 天' : '--'}</div>
         </div>
-        <div class="metric">
+        <div class="metric full-only">
           <div class="metric-label">2Y 年化 (主)</div>
           <div class="metric-value ${(() => { const _ar = s.metrics?.annualized_return_2y ?? s.annualized_return_2y ?? s.annualized_return ?? null; return _ar !== null && _ar !== undefined ? (_ar >= 0 ? 'up' : 'down') : 'neutral'; })()}" data-metric="annualized-return" data-period="2y">${(() => { const _ar = s.metrics?.annualized_return_2y ?? s.annualized_return_2y ?? s.annualized_return ?? null; return _ar !== null && _ar !== undefined ? (_ar >= 0 ? '+' : '') + _ar.toFixed(2) + '%' : '--'; })()}</div>
           <div class="metric-sub">回撤 ${s.metrics?.max_dd_2y != null ? s.metrics.max_dd_2y.toFixed(2) + '%' : '--'}</div>
         </div>
-        <div class="metric">
+        <div class="metric full-only">
           <div class="metric-label">仓位 / 现金</div>
           <div class="metric-value neutral" style="font-size:13px;color:var(--text-muted)">${position !== undefined ? position.toFixed(1) + '%' : '--'}</div>
           <div class="metric-sub">¥${cash !== undefined ? cash.toFixed(2) : '--'}</div>
         </div>
       </div>
-      <div class="holdings-list">
+      <div class="holdings-list full-only">
         <div class="holdings-header">
-          <span>标的</span><span>${holdings.length > 0 && holdings[0].weight ? '权重' : '数量'}</span><span>成本</span><span>盈亏</span>
+          <span>标的</span><span>${validHoldings.length > 0 && validHoldings[0].weight ? '权重' : '数量'}</span><span>成本</span><span>盈亏</span>
         </div>
         ${holdingsHtml}
       </div>
-      <div class="card-footer">
+      <div class="card-footer full-only">
         <span class="card-footer-cash">交易 ${s.metrics?.trades_count || 0} 笔</span>
         <span>成本 ¥${(s.metrics?.trades_count !== undefined ? (s.metrics.trades_count * 6).toFixed(2) : '0.00')}</span>
       </div>
@@ -2060,8 +2570,10 @@ async function openCardCurve(card, sid) {
     const c = curves[sid];
     const panel = card.querySelector('.card-curve-panel');
     if (!panel) return;
-    if (!c || !Array.isArray(c.dates) || !Array.isArray(c.values) || c.dates.length < 2) {
-      panel.innerHTML = '<div class="ccc-loading">暂无收益曲线数据</div>';
+    // 2026-09-20: 无任何真实数据点(如 goldcombo 黄金组合A策略未接入每日模拟) → 明确留空提示, 不显示 0/0% 假装在运行
+    const __hasRealPt = Array.isArray(c && c.values) && c.values.some(v => v != null);
+    if (!c || !Array.isArray(c.dates) || !Array.isArray(c.values) || c.dates.length < 2 || !__hasRealPt) {
+      panel.innerHTML = '<div class="ccc-loading">暂无真实每日模拟数据</div>';
       return;
     }
     const firstV = c.values[0] || 0;
@@ -2133,7 +2645,8 @@ function renderTradeDetails(strategies) {
   container.innerHTML = strategies.map(s => {
     const sid = s.id || s.strategy_id;
     const sname = s.name || s.strategy_name || sid;
-    const holdings = s.holdings || [];
+    // 2026-09-14: 过滤 qty=0 的零持仓占位,与策略卡口径一致
+    const holdings = (s.holdings || []).filter(h => (h.qty != null && h.qty > 0) || (h.weight != null && parseFloat(h.weight) > 0));
     const totalCount = holdings.length;
     const totalAmt = holdings.reduce((sum, h) => {
       // 2026-08-12 P0 fix: signals JSON 的 cost 字段语义是"总成本"(= market_value),
@@ -2146,10 +2659,15 @@ function renderTradeDetails(strategies) {
     // 原因: cash = total_asset - holdings_sum, 但 trade-card 已列 holdings 各项 amount, 合计应等于 total_asset
     // 视觉一致性: 让"共 N 笔交易 合计 ¥X"显示真实总资产
     const totalAsset = s.total_asset != null ? s.total_asset : (totalAmt + cash);
+    // 2026-09-13: 动作徽章中文化; 2026-09-14: 无持仓时持有/调仓/防御统一校正为空仓
+    let _ta = (s.today_action || 'HOLD').toUpperCase();
+    if (holdings.length === 0 && ['HOLD','REBALANCE','DEFENSIVE'].includes(_ta)) _ta = 'FLAT';
+    const _taLabel = { 'HOLD': '持有', 'REBALANCE': '调仓', 'DEFENSIVE': '防御', 'BUY': '买入', 'SELL': '卖出', 'FLAT': '空仓', 'NONE': '未启动' }[_ta] || _ta;
+    const _taCls = _ta === 'BUY' ? 'buy' : (_ta === 'SELL' ? 'sell' : (_ta === 'FLAT' ? 'hold' : 'rebalance'));
     return `<div class="trade-card ${sid}">
       <div class="trade-card-header">
         <span class="trade-card-title">${sname}</span>
-        <span class="trade-card-badge ${s.today_action === 'BUY' ? 'buy' : (s.today_action === 'SELL' ? 'sell' : 'rebalance')}">${s.today_action || 'HOLD'}</span>
+        <span class="trade-card-badge ${_taCls}">${_taLabel}</span>
       </div>
       <div class="trade-card-body">
         ${holdings.length === 0 ? '<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:12px">无持仓</div>' :
@@ -2185,10 +2703,10 @@ async function renderNavCurves(strategies) {
   const colors = {
     qixing:   { border: '#3b82f6', bg: 'rgba(59,130,246,0.08)' },
     r32:      { border: '#10b981', bg: 'rgba(16,185,129,0.08)' },
-    zhuidian: { border: '#f59e0b', bg: 'rgba(245,158,11,0.08)' },
+    zhuidian: { border: '#94a3b8', bg: 'rgba(148,163,184,0.08)' },
     sanhe:    { border: '#a855f7', bg: 'rgba(168,85,247,0.08)' },
-    lightning:{ border: '#facc15', bg: 'rgba(250,204,21,0.08)' },
-    goldcombo: { border: '#ef4444', bg: 'rgba(239,68,68,0.08)' }  // 2026-08-21 v3: 新增黄金组合A 颜色
+    lightning:{ border: '#eab308', bg: 'rgba(234,179,8,0.08)' },
+    goldcombo: { border: '#ef4444', bg: 'rgba(239,68,68,0.08)' }
   };
 
   // 2026-08-21 v3: 只用真实 /live_curves API (移除 mockData fallback, mock 是假数据)
@@ -2201,23 +2719,36 @@ async function renderNavCurves(strategies) {
     console.error('live_curves API 失败:', err);
   }
 
-  // 2026-08-25 v4: 只保留实盘模拟数据从 2026-05-25 开始，剔除更早的回测数据
+  // 2026-09-13: X轴从 2026-06-06 开始, 之前的数据删除 (用户要求)
+  // 2026-09-14: 修复"数据突变点"误报 —— 首个真实点之前的 forward-fill 补0 置为 null,
+  //   消除"0 → 首个真实累计收益"的起始假阶跃 (如 lightning 6-08 0→57.3%)
   if (liveData && liveData.curves) {
-    const cutoff = '2026-05-25';
+    const cutoff = '2026-06-06';
     const filteredCurves = {};
     Object.entries(liveData.curves).forEach(([sid, curve]) => {
-      const { dates, returns } = curve;
+      const { dates, returns, values } = curve;
       if (!dates || !returns) return;
+      const interp = curve.is_interpolated || [];
       const filteredDates = [];
       const filteredReturns = [];
+      const filteredValues = [];
+      const filteredInterp = [];
+      let firstRealSeen = false;  // 是否已遇到第一个真实(is_interpolated=false)点
       for (let i = 0; i < dates.length; i++) {
         if (dates[i] >= cutoff) {
+          const isReal = interp[i] === false;
+          if (isReal) firstRealSeen = true;
           filteredDates.push(dates[i]);
-          filteredReturns.push(returns[i]);
+          // 首个真实点之前的填充值置 null, 曲线从首个真实点开始画, 不连起始假阶跃
+          filteredReturns.push(firstRealSeen ? returns[i] : null);
+          if (values) filteredValues.push(firstRealSeen ? values[i] : null);
+          filteredInterp.push(interp[i]);
         }
       }
+      const rebuilt = { ...curve, dates: filteredDates, returns: filteredReturns, is_interpolated: filteredInterp };
+      if (filteredValues.length) rebuilt.values = filteredValues;
       if (filteredDates.length > 0) {
-        filteredCurves[sid] = { ...curve, dates: filteredDates, returns: filteredReturns };
+        filteredCurves[sid] = rebuilt;
       }
     });
     liveData.curves = filteredCurves;
@@ -2233,21 +2764,29 @@ async function renderNavCurves(strategies) {
   if (liveData && liveData.curves) {
     // 2026-08-21 v3: 透明化数据源 + v4 异常检测
     const dsMap = {};
-    Object.entries(liveData.curves).forEach(([sid, c]) => dsMap[sid] = c.data_source || 'unknown');
-    const allReal = Object.values(dsMap).every(s => s === 'work_logs');
-    const allSignal = Object.values(dsMap).every(s => s === 'signal_fallback');
-    const hasMixed = Object.values(dsMap).some(s => s === 'work_logs') &&
-                    Object.values(dsMap).some(s => s === 'signal_fallback');
+    Object.entries(liveData.curves).forEach(([sid, c]) => { dsMap[sid] = c.data_source || 'unknown'; });
+    // 2026-09-20: 唯一真实数据源 = work_logs(每日真实日志); goldcombo evidence 回测净值已删除, signal_fallback 已禁止
+    // 2026-09-20 真实性根治: 唯一真实源 = work_logs(每日真实日志); empty=未启动(留空不画);
+    // evidence 回测净值已永久移除, signal_fallback 快照插值已永久禁止(出现即异常)。
+    const srcVals = Object.values(dsMap);
+    const isRealSrc = s => s === 'work_logs';
+    const liveCount = srcVals.filter(s => s === 'work_logs').length;
+    const emptyCount = srcVals.filter(s => s === 'empty').length;
+    const hasSignal = srcVals.some(s => s === 'signal_fallback');
+    const notStartedSids = Object.entries(dsMap).filter(([, s]) => s === 'empty').map(([sid]) => sid);
     
-    // 2026-08-21 v4: 异常检测 — cumulative_diff ≠ daily_pnl (检测数据突变)
+    // 2026-09-14 修复: 异常检测必须检测"实际绘制的 returns(累计收益率)",
+    //   旧逻辑检测 values(市值金额), 而 values 在本金口径切换(10万↔1万)时必然 ~10倍跳变,
+    //   造成"检测到8个突变点"的误报。returns 才是图上画的曲线, 且忽略 null(起始未实盘段)。
     const anomalyMap = {};
     Object.entries(liveData.curves).forEach(([sid, c]) => {
       const dates = c.dates || [];
-      const values = c.values || [];
+      const rets = c.returns || [];
       const anomalyDates = [];
-      for (let i = 1; i < values.length; i++) {
-        const diff = Math.abs((values[i] - values[i-1]) / values[i-1]);
-        if (diff > 0.3) {  // 30% 以上单日变化视为异常
+      for (let i = 1; i < rets.length; i++) {
+        if (rets[i] == null || rets[i-1] == null) continue;  // 跳过起始未实盘 null 段
+        const diff = Math.abs(rets[i] - rets[i-1]);  // 累计收益率百分点变化
+        if (diff > 40) {  // 单日累计收益变动 >40 个百分点才视为口径断点
           anomalyDates.push(dates[i]);
         }
       }
@@ -2261,22 +2800,18 @@ async function renderNavCurves(strategies) {
     const oldLabel = ctx.parentElement.querySelector('.data-source-label');
     if (oldLabel) oldLabel.remove();
     
+    const cnName = {qixing:'七星', r32:'三驾马车', zhuidian:'追电', sanhe:'三合', lightning:'闪电', goldcombo:'黄金组合A'};
     let dataLabel;
-    if (allReal) {
-      dataLabel = `✓ 实盘模拟 work_logs 真实日 P&L · ${liveData.days} 天`;
-    } else if (allSignal) {
-      dataLabel = `⚠️ signals 快照插值 (非实盘) · ${liveData.days} 天`;
-    } else if (hasMixed) {
-      const realCount = Object.values(dsMap).filter(s => s === 'work_logs').length;
-      const sigCount = Object.values(dsMap).filter(s => s === 'signal_fallback').length;
-      dataLabel = `⚠️ 混合数据源 (${realCount} 实盘 + ${sigCount} signals 快照)`;
+    if (hasSignal) {
+      dataLabel = `🚫 异常: 检测到已禁止的快照插值(signal_fallback), 数据不可信请立即排查 · ${liveData.days} 天`;
     } else {
-      dataLabel = `❓ 数据源未知`;
+      const nsTxt = emptyCount > 0 ? ` · ${notStartedSids.map(x => cnName[x] || x).join('、')}未启动每日模拟(留空)` : '';
+      dataLabel = `✓ ${liveCount} 策略实盘模拟 · work_logs 真实每日盈亏${nsTxt} · ${liveData.days} 天`;
     }
     if (hasAnomalies) {
-      const anomalySids = Object.keys(anomalyMap).join(',');
-      const totalAnomalies = Object.values(anomalyMap).reduce((s, arr) => s + arr.length, 0);
-      dataLabel += ` · ⚠️ 检测到 ${totalAnomalies} 个数据突变点 (${anomalySids}) — 真实 daily_pnl 正常, 仅 cumulative 字段重置`;
+      // 2026-09-14: 文案改为准确中性说明 —— 这是历史账户本金/累计口径调整, 非数据错误, 真实日P&L正常
+      const anomalySids = Object.keys(anomalyMap).map(k => ({qixing:'七星',r32:'三驾马车',zhuidian:'追电',sanhe:'三合',lightning:'闪电',goldcombo:'黄金组合A'}[k]||k)).join('、');
+      dataLabel += ` · ℹ️ ${anomalySids} 历史上调整过账户本金/累计口径（真实每日盈亏正常，非数据错误）`;
     }
     
     const labelEl = document.createElement('div');
@@ -2286,11 +2821,17 @@ async function renderNavCurves(strategies) {
     // 插入到 chart-container 内 canvas 之上
     ctx.parentElement.insertBefore(labelEl, ctx);
     
-    // 2026-08-24 修复: labels 用全部曲线日期并集排序 (goldcombo 1212 点 vs 其他 5 策略 92 点, 日期范围不同;
-    // 旧逻辑 labels 取第一条曲线 dates, goldcombo 排第一后其他 5 策略 92 点映射到 1212 标签全错位 → 只剩一条线)
+    // 2026-09-20 数据真实性根治: 只绘制"有真实数据点"的曲线。
+    // goldcombo(黄金组合A策略)无每日模拟信号, 返回 empty(values 全 null), 不参与 X 轴/图例/日期范围,
+    // 避免回测净值(2021~2026)把 X 轴拉到 5 年、压缩真实盘曲线。无真实数据即留空。
+    const __plottableSids = Object.entries(liveData.curves)
+      .filter(([sid, c]) => Array.isArray(c.values) && c.values.some(v => v != null))
+      .map(([sid]) => sid);
+    const __plottableCurves = __plottableSids.map(sid => liveData.curves[sid]);
+    // labels 用可绘制曲线日期并集排序
     const __allDates = [];
     const __dateSet = new Set();
-    Object.values(liveData.curves).forEach(c => (c.dates || []).forEach(d => { if (!__dateSet.has(d)) { __dateSet.add(d); __allDates.push(d); } }));
+    __plottableCurves.forEach(c => (c.dates || []).forEach(d => { if (!__dateSet.has(d)) { __dateSet.add(d); __allDates.push(d); } }));
     __allDates.sort();
     // 2026-08-25 修复: 跨年范围截掉年份后 X 轴乱序 (08-15→02-23→08-25→03-06...)
     // 跨度>400天 → label 用 YY-MM (如 21-08); 短窗口 → MM-DD
@@ -2298,7 +2839,7 @@ async function renderNavCurves(strategies) {
     const __crossYear = __spanDays > 400;
     labels = __allDates.map(d => __crossYear ? d.substring(2,7) : d.substring(5));
     window.__navCurveDates = __allDates;  // tooltip 用完整日期
-    datasets = (liveData.strategy_ids || Object.keys(liveData.curves)).map(sid => {
+    datasets = __plottableSids.map(sid => {
       const c = liveData.curves[sid];
       const cs = colors[sid] || { border: '#888', bg: 'rgba(136,136,136,0.08)' };
       const s = (strategies || []).find(x => (x.id || x.strategy_id) === sid);
@@ -2323,13 +2864,16 @@ async function renderNavCurves(strategies) {
       };
     });
     
-    // 真实数据范围 (data_start / data_end)
-    const dataRange = `${liveData.curves[Object.keys(liveData.curves)[0]].data_start || liveData.start_date} → ${liveData.curves[Object.keys(liveData.curves)[0]].data_end || liveData.end_date}`;
-    window.__liveCurveMeta = { 
-      start: liveData.start_date, 
-      end: liveData.end_date, 
+    // 真实数据范围: 基于可绘制(有真实数据点)曲线的日期并集首尾,
+    // 不再盲目取 curves 第一个对象(可能是 goldcombo 空/回测曲线, 把范围拉偏)
+    const dataRange = __allDates.length
+      ? `${__allDates[0]} → ${__allDates[__allDates.length - 1]}`
+      : `${liveData.start_date} → ${liveData.end_date}`;
+    window.__liveCurveMeta = {
+      start: liveData.start_date,
+      end: liveData.end_date,
       data_range: dataRange,
-      days: liveData.days,
+      days: __allDates.length || liveData.days,
       data_sources: dsMap,
       mode: 'live'
     };
@@ -2352,14 +2896,11 @@ async function renderNavCurves(strategies) {
   const meta = window.__liveCurveMeta || {};
   const startLbl = document.getElementById('live-start-label');
   if (startLbl) {
-    let dataRange = meta.data_range || `${meta.start || '?'} → ${meta.end || '?'}`;
-    let days = meta.days;
-    const firstCurve = liveData && liveData.curves ? Object.values(liveData.curves)[0] : null;
-    if (firstCurve && firstCurve.dates && firstCurve.dates.length > 0) {
-      dataRange = `${firstCurve.dates[0]} → ${firstCurve.dates[firstCurve.dates.length - 1]}`;
-      days = firstCurve.dates.length;
-    }
-    startLbl.textContent = `${dataRange} · ${days || '?'}天 · 实盘模拟`;
+    // 2026-09-20: dataRange/days 已在绘图函数按"可绘制真实曲线并集"算好存入 meta,
+    // 不再取 curves[0](可能是 goldcombo 空曲线)覆盖
+    const dataRange = meta.data_range || `${meta.start || '?'} → ${meta.end || '?'}`;
+    const days = meta.days;
+    startLbl.textContent = `${dataRange} · ${days || '?'}个交易日 · 实盘模拟`;
   }
   const tabsEl = document.querySelector('.chart-section .section-tabs');
   if (tabsEl && tabsEl.children.length > 0) {
@@ -2494,25 +3035,22 @@ function enhanceCardsForResponsive() {
       itemsToWrap.forEach(item => wrapper.appendChild(item));
     }
     
-    // 2. 加 compact-only 摘要 (在 profit-block 后)
+    // 2. 加 compact-summary 摘要 (在 profit-block 后) — 默认隐藏, 展开显示
     const profitBlock = body.querySelector('.profit-block');
-    if (profitBlock && !card.querySelector('.compact-only')) {
-      const sid = card.dataset.strategy;
+    if (profitBlock && !card.querySelector('.compact-summary')) {
       const holdings = card.querySelectorAll('.holding-row');
       const holdingsCount = holdings.length;
-      const todayAction = card.querySelector('.tas-action')?.textContent || 'HOLD';
-      const target = card.querySelector('.tas-flow')?.textContent || '';
+      const tradeText = card.querySelector('.card-footer-cash')?.textContent || '交易 0 笔';
       const compact = document.createElement('div');
-      compact.className = 'compact-only';
-      compact.style.cssText = 'margin-top:var(var(--space-sm))padding:var(--space-sm)background:rgba(99,102,241,0.06)border-radius:6px;font-size:12px';
+      compact.className = 'compact-summary';
       compact.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="color:var(--text-muted)">持仓</span>
-          <span style="font-weight:600">${holdingsCount > 0 ? holdingsCount + ' 只' : '空仓'}</span>
+        <div class="cs-row">
+          <span class="cs-label">持仓</span>
+          <span class="cs-value">${holdingsCount > 0 ? holdingsCount + ' 只' : '空仓'}</span>
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
-          <span style="color:var(--text-muted)">交易</span>
-          <span style="font-weight:600">${card.querySelector('.pb-meta-item:last-child')?.textContent || '0 笔'}</span>
+        <div class="cs-row">
+          <span class="cs-label">交易</span>
+          <span class="cs-value">${tradeText}</span>
         </div>
       `;
       profitBlock.parentNode.insertBefore(compact, profitBlock.nextSibling);
@@ -2524,14 +3062,14 @@ function enhanceCardsForResponsive() {
       btn.className = 'expand-toggle';
       btn.setAttribute('role', 'button');
       btn.setAttribute('aria-label', '展开或收起');
-      btn.innerHTML = '<span>展开</span>';
+      btn.innerHTML = '';
       card.appendChild(btn);
 
       // 4. 按钮 click 监听
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const expanded = card.classList.toggle('is-expanded');
-        btn.querySelector('span').textContent = expanded ? '收起' : '展开';
+        card.classList.toggle('is-expanded');
+        // 箭头 ▾/▴ 由 CSS ::before 根据 is-expanded 自动切换
       });
 
       // 5. (2026-08-24 任务B/C 改造) 原"整卡 click 捕获拦截器"退役:
@@ -2647,35 +3185,53 @@ function renderLogs(strategies) {
     return;
   }
   // 各策略的最近事件 (与 metrics 联动)
-  const labelMap = { qixing: '七星', r32: 'R32', zhuidian: '追电', sanhe: '三合' };
+  // 2026-09-13: 策略名全部中文化
+  const labelMap = { qixing: '七星', r32: '三驾马车', zhuidian: '追电', sanhe: '三合', lightning: '闪电', goldcombo: '黄金组合A' };
+  // 2026-09-13: 动作标签中文化; 2026-09-14 增加 FLAT空仓
+  const actionCnMap = { 'HOLD': '持有', 'REBALANCE': '调仓', 'DEFENSIVE': '防御', 'BUY': '买入', 'SELL': '卖出', 'PARAM': '参数', 'FLAT': '空仓', 'NONE': '未启动' };
   const logs = [];
   active.forEach(s => {
     const sid = s.id || s.strategy_id;
     const r = s.metrics?.latest_round || '';
     const desc = s.metrics?.latest_desc || s.metrics?.data_period || '';
-    const action = s.today_action || 'PARAM';
+    let actionRaw = (s.today_action || 'PARAM').toUpperCase();
+    // 2026-09-14 动作-持仓一致性: 无有效持仓时持有/调仓/防御统一显示空仓
+    const _hs = s.holdings || [];
+    const _hasPos = _hs.some(h => (h.qty != null && h.qty > 0) || (h.weight != null && parseFloat(h.weight) > 0));
+    if (!_hasPos && ['HOLD','REBALANCE','DEFENSIVE'].includes(actionRaw)) actionRaw = 'FLAT';
+    const action = actionCnMap[actionRaw] || actionRaw;
     // 2026-08-27 P0 fix: 后端 annualized_return 已是百分比数字 (115.84 = 115.84%), 禁止再 *100
-    const annRet = s.metrics?.annualized_return !== undefined ? `年化 ${s.metrics.annualized_return.toFixed(2)}%` : '';
+    const annRet = s.metrics?.annualized_return !== undefined && s.metrics.annualized_return != null
+      ? `年化 ${s.metrics.annualized_return.toFixed(2)}%` : '';
     // 2026-08-03 审计陷阱#3: 时间戳用真实 signal_date, 不用 new Date() 每次刷新生成假时间
     // 2026-08-27 修复: signal_date 顶层优先
-  const sigDate = s.signal_date || s.metrics?.signal_date || (window.__todayActions && window.__todayActions[sid]?.signal_date) || '';
+    const sigDate = s.signal_date || s.metrics?.signal_date || (window.__todayActions && window.__todayActions[sid]?.signal_date) || '';
+    // 2026-09-14 重新设计: 详情结构化 —— 轮次/描述 + 年化, 避免杂乱拼接
+    const detailParts = [];
+    if (r) detailParts.push(r);
+    if (desc) detailParts.push(desc);
+    if (annRet) detailParts.push(annRet);
     logs.push({
-      time: sigDate || '--',
+      time: sigDate || '暂无信号日期',
       sid,
       label: labelMap[sid] || sid,
       action,
-      detail: r ? `${r} ${desc} ${annRet}`.trim() : (s.name || sid) + ' 实盘运行中'
+      actionClass: actionRaw.toLowerCase(),
+      detail: detailParts.length ? detailParts.join(' · ') : (s.name || sid) + ' 实盘运行中'
     });
   });
   // 按时间倒序
   logs.sort((a, b) => b.time.localeCompare(a.time));
   container.innerHTML = logs.map(l => {
-    const badgeClass = (l.action || 'param').toLowerCase();
-    return `<div class="log-item">
-      <span class="log-time">${l.time}</span>
-      <span class="log-strategy ${l.sid}">${l.label}</span>
-      <span class="log-action ${badgeClass}">${l.action}</span>
-      <span class="log-detail">${l.detail}</span>
+    return `<div class="log-item ${l.sid}">
+      <div class="log-top">
+        <div class="log-top-left">
+          <span class="log-strategy ${l.sid}">${l.label}</span>
+        </div>
+        <span class="log-action ${l.actionClass}">${l.action}</span>
+      </div>
+      <div class="log-detail">${l.detail}</div>
+      <span class="log-time">信号日期 ${l.time}</span>
     </div>`;
   }).join('');
 }
@@ -2759,11 +3315,15 @@ function loadReviewByDate(date) {
   const container = document.getElementById('strategy-logs');
   if (logs && logs.length > 0) {
     container.innerHTML = logs.map(log => `
-      <div class="log-item">
-        <span class="log-time">${log.time}</span>
-        <span class="log-strategy ${log.strategy}">${log.strategyName}</span>
-        <span class="log-action ${log.action.toLowerCase()}">${log.action}</span>
-        <span class="log-detail">${log.detail}</span>
+      <div class="log-item ${log.strategy}">
+        <div class="log-top">
+          <div class="log-top-left">
+            <span class="log-strategy ${log.strategy}">${log.strategyName}</span>
+          </div>
+          <span class="log-action ${log.action.toLowerCase()}">${log.action}</span>
+        </div>
+        <div class="log-detail">${log.detail}</div>
+        <span class="log-time">信号日期 ${log.time}</span>
       </div>
     `).join('');
   } else {
@@ -2788,7 +3348,7 @@ function getLogsForDate(date) {
    ============================================================ */
 
 function executeAction(strategyId) {
-  const all = strategiesData.strategies || strategiesData.mockData?.strategies || [];
+  const all = strategiesData.strategies || [];  // 2026-09-20: 移除 mockData 假数据兜底
   const s = all.find(x => x.id === strategyId);
   if (!s) return alert('策略数据未加载');
   if (confirm(`确认执行【${s.name}】的${s.today_action}操作？`)) {
@@ -2878,8 +3438,8 @@ let currentChartPeriod = 'live';
 function initChart() {
   // 默认加载实盘净值曲线（三策略对比）
   loadNavCurves('live');
-  // P8 v1.0: 加载 5 策略 Daily P&L 趋势图
-  loadDailyPnlTrend(14);
+  // P8 v1.0: 加载 5 策略 Daily P&L 趋势图 (2026-09-13: 60天以覆盖 2026-07-24 起)
+  loadDailyPnlTrend(60);
   // P9 v1.0: 加载 WFA 过拟合审计
   loadWfaSummary();
   loadWfaOosCurve();
@@ -2945,13 +3505,26 @@ function renderDailyPnlTrendChart(data, viewMode) {
   // 销毁旧图
   if (dailyPnlTrendChart) dailyPnlTrendChart.destroy();
 
+  // 2026-09-13: X轴从 2026-07-24 开始, 之前的数据删除
+  const DAILY_CUTOFF = '2026-07-24';
+  const allDates = data.dates || [];
+  const startIdx = allDates.findIndex(d => d >= DAILY_CUTOFF);
+  const filteredDates = startIdx >= 0 ? allDates.slice(startIdx) : allDates;
+  const sliceStart = startIdx >= 0 ? startIdx : 0;
+
+  // 2026-09-13: 颜色统一为全局策略颜色
+  const globalColors = {
+    qixing: '#3b82f6', r32: '#10b981', zhuidian: '#94a3b8',
+    sanhe: '#a855f7', lightning: '#eab308', goldcombo: '#ef4444'
+  };
+
   // 切换数据视图（cumulative/daily）
   const isCumulative = viewMode === 'cumulative';
   const datasets = Object.entries(data.strategies).map(([sid, info]) => ({
     label: info.name,
-    data: info.data,
-    borderColor: info.color,
-    backgroundColor: info.color + '20',
+    data: (info.data || []).slice(sliceStart),
+    borderColor: globalColors[sid] || info.color,
+    backgroundColor: (globalColors[sid] || info.color) + '20',
     borderWidth: 2,
     pointRadius: 3,
     pointHoverRadius: 5,
@@ -2962,7 +3535,7 @@ function renderDailyPnlTrendChart(data, viewMode) {
   dailyPnlTrendChart = new Chart(canvas.getContext('2d'), {
     type: 'line',
     data: {
-      labels: data.dates,
+      labels: filteredDates,
       datasets: datasets,
     },
     options: {
@@ -2981,7 +3554,7 @@ function renderDailyPnlTrendChart(data, viewMode) {
         },
         title: {
           display: true,
-          text: isCumulative ? '累计 P&L 曲线' : '每日 P&L',
+          text: isCumulative ? '累计盈亏曲线' : '每日盈亏',
           color: '#64748b',
           font: { size: 13 },
         },
@@ -3102,7 +3675,7 @@ function renderWfaSummaryCards(payload) {
           <span>OOS 最大回撤</span><span style="color:#94a3b8">${oosDD}%</span>
         </div>
         <div style="font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between">
-          <span>OOS Sharpe</span><span style="color:#94a3b8">${oosSharpe}</span>
+          <span>OOS 夏普比率</span><span style="color:#94a3b8">${oosSharpe}</span>
         </div>
       </div>
     `;
@@ -3124,64 +3697,139 @@ async function loadWfaOosCurve() {
 }
 
 function renderWfaOosCurveChart(data) {
-  const canvas = document.getElementById('wfaOosCurveChart');
-  if (!canvas || !data) return;
+  const container = document.getElementById('wfaOosSmallMultiples');
+  if (!container || !data) return;
 
-  if (wfaOosCurveChart) wfaOosCurveChart.destroy();
+  // 销毁旧图表(可能是单chart或数组)
+  if (wfaOosCurveChart) {
+    if (Array.isArray(wfaOosCurveChart)) {
+      wfaOosCurveChart.forEach(c => c.destroy());
+    } else {
+      wfaOosCurveChart.destroy();
+    }
+    wfaOosCurveChart = null;
+  }
 
-  // 4 策略按健康度排序显示（严重过拟合用 dashed）
-  const datasets = Object.entries(data.strategies).map(([sid, info]) => ({
-    label: info.name,
-    data: info.data,
-    borderColor: info.color,
-    backgroundColor: info.color + '20',
-    borderWidth: 2,
-    borderDash: sid === 'lightning' ? [6, 4] : [],  // lightning 用 dashed 警示
-    pointRadius: 2,
-    pointHoverRadius: 4,
-    tension: 0.2,
-    fill: false,
-  }));
+  // 2026-09-15: 小多图(Small Multiples) — 每个策略独立小折线图, 统一Y轴,
+  // 保留时间维度, 避免5线重合; 桌面端一行5个, 手机端一列
+  const globalColors = {
+    qixing: '#3b82f6', r32: '#10b981', zhuidian: '#94a3b8',
+    sanhe: '#a855f7', lightning: '#eab308', goldcombo: '#ef4444'
+  };
+  const sidNameMap = { qixing:'七星策略', r32:'三驾马车', zhuidian:'追电策略', sanhe:'三合策略', lightning:'闪电策略', goldcombo:'黄金组合A' };
 
-  wfaOosCurveChart = new Chart(canvas.getContext('2d'), {
-    type: 'line',
-    data: {
-      labels: data.dates,
-      datasets: datasets,
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { position: 'top', labels: { color: '#94a3b8', font: { size: 12 } } },
-        tooltip: {
-          callbacks: {
-            label: function(ctx) {
-              const val = ctx.parsed.y;
-              return `${ctx.dataset.label}: ¥${val >= 0 ? '+' : ''}${val.toFixed(0)}`;
-            },
-          },
-        },
-        title: {
-          display: true,
-          text: '样本外累计 P&L（4 策略）',
-          color: '#64748b',
-          font: { size: 13 },
-        },
-      },
-      scales: {
-        x: { ticks: { color: '#94a3b8', maxRotation: 45, minRotation: 45 }, grid: { color: '#1e293b' } },
-        y: {
-          ticks: {
-            color: '#94a3b8',
-            callback: function(v) { return '¥' + v.toLocaleString(); },
-          },
-          grid: { color: '#1e293b' },
-        },
-      },
-    },
+  // X轴截断
+  const OOS_CUTOFF = '2025-07-16';
+  const allDates = data.dates || [];
+  const startIdx = allDates.findIndex(d => d >= OOS_CUTOFF);
+  const filteredDates = startIdx >= 0 ? allDates.slice(startIdx) : allDates;
+  const sliceStart = startIdx >= 0 ? startIdx : 0;
+
+  // 计算统一Y轴范围(所有策略共用, 方便横向对比)
+  let allVals = [];
+  Object.values(data.strategies).forEach(info => {
+    allVals = allVals.concat((info.data || []).slice(sliceStart));
   });
+  const yMin = Math.min(...allVals);
+  const yMax = Math.max(...allVals);
+  const yPad = (yMax - yMin) * 0.08 || 1000;
+
+  // 按最终值排序(亏得少的排前面)
+  const strategyList = Object.entries(data.strategies).map(([sid, info]) => {
+    const vals = (info.data || []).slice(sliceStart);
+    const finalVal = vals.length > 0 ? vals[vals.length - 1] : 0;
+    const name = (info.name && info.name !== sid) ? info.name : (sidNameMap[sid] || sid);
+    return { sid, name, data: vals, finalVal, color: globalColors[sid] || '#888' };
+  }).sort((a, b) => b.finalVal - a.finalVal);
+
+  // 清空容器
+  container.innerHTML = '';
+  const charts = [];
+
+  strategyList.forEach((s) => {
+    // 小图卡片
+    const card = document.createElement('div');
+    card.className = 'oos-sm-card';
+
+    // 标题行: 策略名(左, 策略色) + 最终值(右)
+    const title = document.createElement('div');
+    title.className = 'oos-sm-title';
+    title.innerHTML = `<span class="oos-sm-name" style="color:${s.color}">${s.name}</span>` +
+      `<span class="oos-sm-value">¥${s.finalVal >= 0 ? '+' : ''}${s.finalVal.toLocaleString()}</span>`;
+    card.appendChild(title);
+
+    // canvas容器
+    const wrap = document.createElement('div');
+    wrap.className = 'oos-sm-canvas-wrap';
+    const canvas = document.createElement('canvas');
+    wrap.appendChild(canvas);
+    card.appendChild(wrap);
+    container.appendChild(card);
+
+    const chart = new Chart(canvas.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: filteredDates,
+        datasets: [{
+          data: s.data,
+          borderColor: s.color,
+          backgroundColor: s.color + '1f',
+          borderWidth: 1.5,
+          pointRadius: 0,
+          pointHoverRadius: 3,
+          tension: 0.15,
+          fill: true,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1a1a28',
+            titleColor: '#e8e8f0',
+            bodyColor: '#a0a0b8',
+            borderColor: 'rgba(255,255,255,0.10)',
+            borderWidth: 1,
+            padding: 8,
+            cornerRadius: 6,
+            callbacks: {
+              title: items => items[0].label,
+              label: ctx => `累计盈亏: ¥${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toLocaleString()}`,
+            }
+          },
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: 'rgba(255,255,255,0.38)',
+              font: { size: 9 },
+              maxTicksLimit: 3,
+              maxRotation: 0,
+              autoSkip: true,
+            },
+            grid: { display: false },
+          },
+          y: {
+            min: yMin - yPad,
+            max: yMax + yPad,
+            ticks: {
+              color: 'rgba(255,255,255,0.38)',
+              font: { size: 9 },
+              maxTicksLimit: 3,
+              callback: v => '¥' + (v / 1000).toFixed(0) + 'k',
+            },
+            grid: { color: 'rgba(255,255,255,0.06)' },
+          },
+        },
+      },
+    });
+    charts.push(chart);
+  });
+
+  wfaOosCurveChart = charts;
 }
 
 // ==================== P9-D v1.0: 参数稳定性监控 ====================
@@ -3200,7 +3848,9 @@ async function loadParamStability() {
     renderParamStabilityCards(data.data);
     const meta = document.getElementById('param-stability-meta');
     if (meta && data.data.kpi) {
-      meta.textContent = `${data.data.kpi.run_date} | 13 训练窗口 | 4 策略 × 1 关键参数网格`;
+      // 2026-09-14: 策略数动态统计, 不再写死"4策略"(qixing 加入后实为5)
+      const nStrat = data.data.strategies ? Object.keys(data.data.strategies).length : (data.data.kpi.strategy_count || 5);
+      meta.textContent = `${data.data.kpi.run_date} | 13 训练窗口 | ${nStrat} 策略 × 1 关键参数网格`;
     }
   } catch (e) {
     console.error('param_stability API 失败:', e);
@@ -3329,24 +3979,24 @@ function renderAbComparisonKpi(payload) {
   const t = payload.totals || {};
   el.innerHTML = `
     <div class="risk-card" style="text-align:left;border-left:4px solid #10b981">
-      <div class="risk-title" style="font-size:12px">Grid Mode Wins</div>
+      <div class="risk-title" style="font-size:12px">网格优选胜出</div>
       <div style="font-size:28px;font-weight:bold;color:#10b981">${k.grid_wins || 0}</div>
-      <div style="font-size:10px;color:var(--text-muted)">grid_mode 收益更高的策略数</div>
+      <div style="font-size:10px;color:var(--text-muted)">网格优选收益更高的策略数</div>
     </div>
     <div class="risk-card" style="text-align:left;border-left:4px solid #f59e0b">
-      <div class="risk-title" style="font-size:12px">Baseline Wins</div>
+      <div class="risk-title" style="font-size:12px">原参数胜出</div>
       <div style="font-size:28px;font-weight:bold;color:#f59e0b">${k.baseline_wins || 0}</div>
-      <div style="font-size:10px;color:var(--text-muted)">hardcode 收益更高的策略数</div>
+      <div style="font-size:10px;color:var(--text-muted)">硬编码原参数收益更高的策略数</div>
     </div>
     <div class="risk-card" style="text-align:left;border-left:4px solid #94a3b8">
-      <div class="risk-title" style="font-size:12px">Ties</div>
+      <div class="risk-title" style="font-size:12px">持平</div>
       <div style="font-size:28px;font-weight:bold;color:#94a3b8">${k.ties || 0}</div>
       <div style="font-size:10px;color:var(--text-muted)">两者持平的策略数（参数相同）</div>
     </div>
     <div class="risk-card" style="text-align:left;border-left:4px solid ${(t.diff_sum || 0) >= 0 ? '#10b981' : '#dc2626'}">
-      <div class="risk-title" style="font-size:12px">Total diff_sum</div>
+      <div class="risk-title" style="font-size:12px">累计差值合计</div>
       <div style="font-size:28px;font-weight:bold;color:${(t.diff_sum || 0) >= 0 ? '#10b981' : '#dc2626'}">${(t.diff_sum >= 0 ? '+' : '') + (t.diff_sum || 0).toLocaleString()}</div>
-      <div style="font-size:10px;color:var(--text-muted)">5 策略 grid_mode - baseline 累计差（元）</div>
+      <div style="font-size:10px;color:var(--text-muted)">5 策略（网格优选 − 原参数）累计差（元）</div>
     </div>
   `;
 }
@@ -3366,7 +4016,7 @@ function renderAbComparisonCards(payload) {
   const sidColors = {
     'qixing': '#3b82f6',
     'r32': '#10b981',
-    'zhuidian': '#f59e0b',
+    'zhuidian': '#94a3b8',
     'sanhe': '#a855f7',
     'lightning': '#facc15',
     'goldcombo': '#ef4444',
@@ -3392,7 +4042,7 @@ function renderAbComparisonCards(payload) {
     const diff_cumulative = (gm.cumulative || 0) - (bl.cumulative || 0);
     const winner = info.winner || (diff_cumulative > 0 ? 'grid_mode' : diff_cumulative < 0 ? 'baseline' : 'tie');
     const winColor = winner === 'grid_mode' ? '#10b981' : (winner === 'baseline' ? '#f59e0b' : '#94a3b8');
-    const winLabel = winner === 'grid_mode' ? '🟢 grid_mode 赢' : (winner === 'baseline' ? '🟠 baseline 赢' : '⚪ 平');
+    const winLabel = winner === 'grid_mode' ? '🟢 网格优选赢' : (winner === 'baseline' ? '🟠 原参数赢' : '⚪ 持平');
     const diffSign = diff_cumulative >= 0 ? '+' : '';
 
     return `
@@ -3401,15 +4051,15 @@ function renderAbComparisonCards(payload) {
           ${sidNames[sid] || sid}
           <span style="font-size:11px;color:${winColor};float:right">${winLabel}</span>
         </div>
-        <div style="margin-top:8px;font-size:11px;color:var(--text-muted)">Grid Mode</div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text-muted)">网格优选</div>
         <div style="font-size:14px;font-weight:bold;color:#10b981">
           ${(gm.cumulative || 0).toLocaleString()}
         </div>
-        <div style="margin-top:4px;font-size:11px;color:var(--text-muted)">Baseline</div>
+        <div style="margin-top:4px;font-size:11px;color:var(--text-muted)">原参数基准</div>
         <div style="font-size:14px;font-weight:bold;color:#f59e0b">
           ${(bl.cumulative || 0).toLocaleString()}
         </div>
-        <div style="margin-top:6px;font-size:11px;color:var(--text-muted)">差值 (grid - baseline)</div>
+        <div style="margin-top:6px;font-size:11px;color:var(--text-muted)">差值（网格优选 − 原参数）</div>
         <div style="font-size:16px;font-weight:bold;color:${diff_cumulative >= 0 ? '#10b981' : '#dc2626'}">
           ${diffSign}${diff_cumulative.toLocaleString()}
         </div>
@@ -3442,7 +4092,7 @@ function renderAbDiffTrendChart(history) {
     data: {
       labels,
       datasets: [{
-        label: 'diff_sum（grid - baseline）',
+        label: '累计差值（网格优选 − 原参数）',
         data,
         backgroundColor: colors,
         borderColor: colors.map(c => c.replace('0.7', '1')),

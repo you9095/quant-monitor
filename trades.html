@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>买卖记录 · AI量化监控面板</title>
+<script src="assets/chart.umd.min.js"></script>
+<style>
+/* ============================================================
+   CSS变量设计系统 (同步自 index.html)
+   ============================================================ */
+:root {
+  --systemBackground: #000000;
+  --secondarySystemBackground: #1C1C1E;
+  --tertiarySystemBackground: #2C2C2E;
+  --label: #FFFFFF;
+  --secondaryLabel: rgba(255,255,255,0.55);
+  --tertiaryLabel: rgba(255,255,255,0.25);
+  --separator: rgba(255,255,255,0.10);
+  --opaqueSeparator: rgba(255,255,255,0.20);
+  --systemBlue: #0A84FF;
+  --systemGreen: #30D158;
+  --systemRed: #FF453A;
+  --systemOrange: #FF9F0A;
+  --systemPurple: #BF5AF2;
+  --systemYellow: #FFD60A;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: "SF Mono", "Monaco", "Inconsolata", "Fira Mono", "Droid Sans Mono", monospace;
+  --space-xs: 4px; --space-sm: 8px; --space-md: 16px; --space-lg: 24px; --space-xl: 32px;
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: var(--font-sans); background: var(--systemBackground); color: var(--label); font-size: 14px; line-height: 1.5; }
+
+/* ========== 顶部栏 ========== */
+.topbar {
+  background: rgba(28,28,30,0.85);
+  backdrop-filter: blur(14px) saturate(180%);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 20px; position: sticky; top: 0; z-index: 100;
+  gap: 16px;
+}
+.topbar-brand { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
+.topbar-brand .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--systemGreen); box-shadow: 0 0 6px var(--systemGreen); animation: pulse-dot 2s ease-in-out infinite; }
+@keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+.topbar-nav { display: flex; gap: 8px; }
+.nav-link { padding: 6px 14px; border-radius: 6px; color: var(--secondaryLabel); text-decoration: none; font-size: 13px; transition: all 0.2s; }
+.nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: var(--label); }
+.topbar-time { font-family: var(--font-mono); font-size: 12px; color: var(--secondaryLabel); }
+
+/* ========== 容器 ========== */
+.container { max-width: 1600px; margin: 0 auto; padding: 24px 20px; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.section-title { font-size: 18px; font-weight: 600; }
+.section-tabs { display: flex; gap: 4px; }
+.tab { padding: 6px 14px; border-radius: 6px; font-size: 13px; color: var(--secondaryLabel); cursor: pointer; transition: all 0.2s; }
+.tab:hover { background: rgba(255,255,255,0.1); color: var(--label); }
+.tab.active { background: var(--systemBlue); color: white; }
+
+/* ========== 卡片 ========== */
+.card { background: var(--secondarySystemBackground); border: 1px solid var(--separator); border-radius: 12px; padding: 20px; }
+.card-title { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: var(--label); }
+
+/* ========== 表格 ========== */
+.table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid var(--separator); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--separator); }
+th { background: var(--tertiarySystemBackground); text-align: left; font-weight: 600; font-size: 11px; color: var(--secondaryLabel); text-transform: uppercase; letter-spacing: 0.5px; }
+td { color: var(--label); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.03); }
+.pnl-pos { color: var(--systemGreen); }
+.pnl-neg { color: var(--systemRed); }
+.text-mono { font-family: var(--font-mono); }
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+
+/* ========== 徽章 ========== */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.badge-buy { background: rgba(255,69,58,0.2); color: var(--systemRed); }
+.badge-sell { background: rgba(48,209,88,0.2); color: var(--systemGreen); }
+.badge-filled { background: var(--systemBlue); color: white; }
+.badge-pending { background: var(--systemOrange); color: white; }
+.badge-rejected { background: var(--systemRed); color: white; }
+.badge-filled { background: var(--systemGreen); color: white; }
+.badge-rejected { background: var(--systemRed); color: white; }
+
+/* ========== 空状态 ========== */
+.empty-state { text-align: center; padding: 60px 20px; color: var(--tertiaryLabel); }
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+
+/* ========== 响应式 ========== */
+@media (max-width: 768px) {
+  .container { padding: 16px 12px; }
+  .topbar { padding: 10px 12px; }
+  .topbar-brand #brand-text { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- 顶部栏 -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <span class="dot"></span>
+    <span id="brand-text">AI量化 · 监控面板</span>
+  </div>
+  <nav class="topbar-nav">
+    <a href="index.html" class="nav-link">📊 概览</a>
+    <a href="reconciliation.html" class="nav-link">📋 对账单</a>
+    <a href="trades.html" class="nav-link active">📝 买卖记录</a>
+    <a href="pnl_history.html" class="nav-link">📈 盈亏历史</a>
+  </nav>
+  <div class="topbar-time">
+    <span id="current-date"></span>
+    <span id="current-time">15:00:00</span>
+  </div>
+</header>
+
+<main class="container">
+  <!-- 筛选器 -->
+  <div class="card" style="margin-bottom: 24px;">
+    <div class="card-title">筛选条件</div>
+    <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: end;">
+      <div>
+        <label style="display:block;font-size:11px;color:var(--secondaryLabel);margin-bottom:4px;">策略</label>
+        <select id="filter-strategy" style="background:var(--tertiarySystemBackground);border:1px solid var(--separator);color:var(--label);padding:8px 12px;border-radius:6px;font-family:inherit;">
+          <option value="">全部策略</option>
+          <option value="zhuidian">追电策略</option>
+          <option value="qixing">七星策略</option>
+          <option value="r32">三驾马车</option>
+          <option value="sanhe">三合策略</option>
+          <option value="lightning">闪电策略</option>
+          <option value="goldcombo">黄金组合A</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;color:var(--secondaryLabel);margin-bottom:4px;">方向</label>
+        <select id="filter-action" style="background:var(--tertiarySystemBackground);border:1px solid var(--separator);color:var(--label);padding:8px 12px;border-radius:6px;font-family:inherit;">
+          <option value="">全部</option>
+          <option value="buy">买入</option>
+          <option value="sell">卖出</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;color:var(--secondaryLabel);margin-bottom:4px;">开始日期</label>
+        <input type="date" id="filter-start" style="background:var(--tertiarySystemBackground);border:1px solid var(--separator);color:var(--label);padding:8px 12px;border-radius:6px;font-family:inherit;">
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;color:var(--secondaryLabel);margin-bottom:4px;">结束日期</label>
+        <input type="date" id="filter-end" style="background:var(--tertiarySystemBackground);border:1px solid var(--separator);color:var(--label);padding:8px 12px;border-radius:6px;font-family:inherit;">
+      </div>
+      <button class="refresh-btn" onclick="loadTrades()" style="height:40px;">🔄 刷新</button>
+      <button class="refresh-btn" onclick="exportCSV()" style="height:40px;background:var(--systemGreen);border-color:var(--systemGreen);">📥 导出CSV</button>
+    </div>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="card-grid" style="margin-bottom: 24px;" id="trade-stats">
+    <!-- 动态填充 -->
+  </div>
+
+  <!-- 买卖记录表格 -->
+  <div class="card">
+    <div class="section-header">
+      <span class="section-title">买卖记录</span>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span id="trade-count" style="font-size:12px;color:var(--text-muted);">共 0 笔</span>
+      </div>
+    </div>
+    <div class="table-wrapper" id="trades-table">
+      <table>
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>策略</th>
+            <th class="text-center">方向</th>
+            <th>标的</th>
+            <th>委托股数</th>
+            <th>委托价格</th>
+            <th>成交股数</th>
+            <th>成交均价</th>
+            <th>成交金额</th>
+            <th>佣金</th>
+            <th>印花税</th>
+            <th>过户费</th>
+            <th>滑点</th>
+            <th class="text-center">状态</th>
+            <th>信号源</th>
+            <th>盈亏</th>
+            <th>盈亏%</th>
+            <th>成本价</th>
+          </tr>
+        </thead>
+        <tbody id="trades-body">
+          <!-- 动态填充 -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+/* ============================================================
+   买卖记录页面逻辑
+   ============================================================ */
+
+const API_BASE = '';
+const STRATEGY_COLORS = {
+  zhuidian: '#94a3b8', qixing: '#3b82f6', r32: '#10b981',
+  sanhe: '#a855f7', lightning: '#eab308', goldcombo: '#ef4444'
+};
+
+let allTrades = [];
+let filteredTrades = [];
+
+function formatMoney(v) {
+  if (v === null || v === undefined) return '--';
+  return (v >= 0 ? '+' : '') + v.toLocaleString('zh-CN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+function formatPrice(v) {
+  if (v === null || v === undefined) return '--';
+  return v.toFixed(4);
+}
+function formatShares(v) {
+  if (v === null || v === undefined) return '--';
+  return v.toLocaleString('zh-CN');
+}
+function formatPct(v) {
+  if (v === null || v === undefined) return '--';
+  return (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+}
+function pnlClass(v) { return v > 0 ? 'pnl-pos' : (v < 0 ? 'pnl-neg' : ''); }
+
+async function loadTrades() {
+  const strategy = document.getElementById('filter-strategy').value;
+  const action = document.getElementById('filter-action').value;
+  const start = document.getElementById('filter-start').value;
+  const end = document.getElementById('filter-end').value;
+  
+  const params = new URLSearchParams();
+  if (strategy) params.set('strategy', strategy);
+  if (action) params.set('action', action);
+  if (start) params.set('start', start);
+  if (end) params.set('end', end);
+  
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/dashboard/trades?${params}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    allTrades = data.trades || [];
+    applyFilters();
+  } catch (e) {
+    console.error('加载买卖记录失败:', e);
+    document.getElementById('trades-body').innerHTML = 
+      '<tr><td colspan="18" class="text-center" style="padding:40px;color:var(--tertiaryLabel)">加载失败: ' + e.message + '</td></tr>';
+  }
+}
+
+function applyFilters() {
+  const strategy = document.getElementById('filter-strategy').value;
+  const action = document.getElementById('filter-action').value;
+  const start = document.getElementById('filter-start').value;
+  const end = document.getElementById('filter-end').value;
+  
+  filteredTrades = allTrades.filter(t => {
+    if (strategy && t.strategy_id !== strategy) return false;
+    if (action && t.action !== action) return false;
+    if (start && t.filled_time < start) return false;
+    if (end && t.filled_time > end + 'T23:59:59') return false;
+    return true;
+  });
+  
+  renderTradeStats();
+  renderTradesTable();
+}
+
+function renderTradeStats() {
+  const container = document.getElementById('trade-stats');
+  if (filteredTrades.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">📝</div><div>暂无交易记录</div></div>';
+    return;
+  }
+  
+  let totalBuy = 0, totalSell = 0, totalPnl = 0, totalCommission = 0, totalStampTax = 0, totalTransferFee = 0, totalSlippage = 0;
+  let buyCount = 0, sellCount = 0, winCount = 0;
+  
+  filteredTrades.forEach(t => {
+    if (t.action === 'buy') {
+      totalBuy += t.filled_amount || 0;
+      buyCount++;
+    } else if (t.action === 'sell') {
+      totalSell += t.filled_amount || 0;
+      sellCount++;
+      if ((t.realized_pnl || 0) > 0) winCount++;
+    }
+    totalPnl += t.realized_pnl || 0;
+    totalCommission += t.commission || 0;
+    totalStampTax += t.stamp_tax || 0;
+    totalTransferFee += t.transfer_fee || 0;
+    totalSlippage += t.slippage || 0;
+  });
+  
+  const winRate = sellCount > 0 ? (winCount / sellCount * 100).toFixed(1) : 0;
+  const totalPnlClass = totalPnl > 0 ? 'pnl-pos' : (totalPnl < 0 ? 'pnl-neg' : '');
+  
+  document.getElementById('trade-stats').innerHTML = `
+    <div class="card-item"><div class="label">总笔数</div><div class="val">${filteredTrades.length}</div></div>
+    <div class="card-item"><div class="label">买入笔数</div><div class="val">${buyCount}</div></div>
+    <div class="card-item"><div class="label">卖出笔数</div><div class="val">${sellCount}</div></div>
+    <div class="card-item"><div class="label">胜率</div><div class="val">${winRate}%</div></div>
+    <div class="card-item"><div class="label">总盈亏</div><div class="val ${totalPnlClass}">${formatMoney(totalPnl)}</div></div>
+    <div class="card-item"><div class="label">买入金额</div><div class="val">${formatMoney(totalBuy)}</div></div>
+    <div class="card-item"><div class="label">卖出金额</div><div class="val">${formatMoney(totalSell)}</div></div>
+    <div class="card-item"><div class="label">总费用</div><div class="val">佣金${formatMoney(0)} 印花税${formatMoney(0)} 过户费${formatMoney(0)} 滑点${formatMoney(0)}</div></div>
+  `;
+}
+
+function renderTradesTable() {
+  const tbody = document.getElementById('trades-body');
+  document.getElementById('trade-count').textContent = `共 ${filteredTrades.length} 笔`;
+  
+  if (filteredTrades.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="18" class="text-center" style="padding:40px;color:var(--tertiaryLabel)">暂无交易记录</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = filteredTrades.map(t => {
+    const pnlClass = pnlClass(t.realized_pnl);
+    const actionClass = t.action === 'buy' ? 'badge-buy' : 'badge-sell';
+    const filledTime = t.filled_time ? t.filled_time.slice(0, 19).replace('T', ' ') : t.order_time ? t.order_time.slice(0, 19).replace('T', ' ') : '--';
+    return `
+      <tr>
+        <td>${filledTime}</td>
+        <td class="text-left"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${STRATEGY_COLORS[t.strategy_id]||'#fff'};margin-right:8px;"></span>${t.strategy_id}</td>
+        <td class="text-center"><span class="badge ${t.action === 'buy' ? 'badge-buy' : 'badge-sell'}">${t.action === 'buy' ? '买入' : '卖出'}</span></td>
+        <td class="text-left">${t.code}</td>
+        <td>${formatShares(t.order_shares)}</td>
+        <td>${formatPrice(t.order_price)}</td>
+        <td>${formatShares(t.filled_shares)}</td>
+        <td>${formatPrice(t.filled_avg_price)}</td>
+        <td>${formatMoney(t.filled_amount)}</td>
+        <td>${formatMoney(t.commission)}</td>
+        <td>${formatMoney(t.stamp_tax)}</td>
+        <td>${formatMoney(t.transfer_fee)}</td>
+        <td>${formatMoney(t.slippage)}</td>
+        <td class="text-center"><span class="badge badge-${t.status}">${t.status}</span></td>
+        <td class="text-left">${t.signal_source || '--'}</td>
+        <td class="${pnlClass(t.realized_pnl)}">${formatMoney(t.realized_pnl)}</td>
+        <td class="${pnlClass(t.realized_pnl_pct)}">${formatPct(t.realized_pnl_pct)}</td>
+        <td>${formatPrice(t.cost_basis)}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function exportCSV() {
+  if (filteredTrades.length === 0) return;
+  
+  const headers = ['时间','策略','方向','标的','委托股数','委托价格','成交股数','成交均价','成交金额','佣金','印花税','过户费','滑点','状态','信号源','盈亏','盈亏%','成本价'];
+  const rows = filteredTrades.map(t => [
+    t.filled_time ? t.filled_time.slice(0,19).replace('T',' ') : t.order_time ? t.order_time.slice(0,19).replace('T',' ') : '',
+    t.strategy_id,
+    t.action === 'buy' ? '买入' : '卖出',
+    t.code,
+    t.order_shares,
+    t.order_price.toFixed(4),
+    t.filled_shares,
+    t.filled_avg_price.toFixed(4),
+    t.filled_amount.toFixed(2),
+    t.commission.toFixed(4),
+    t.stamp_tax.toFixed(4),
+    t.transfer_fee.toFixed(4),
+    t.slippage.toFixed(4),
+    t.status,
+    t.signal_source || '',
+    t.realized_pnl.toFixed(2),
+    t.realized_pnl_pct.toFixed(2) + '%',
+    t.cost_basis.toFixed(4)
+  ]);
+  
+  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `trades_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function formatMoney(v) {
+  if (v === null || v === undefined) return '--';
+  return (v >= 0 ? '+' : '') + v.toLocaleString('zh-CN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+function formatPrice(v) {
+  if (v === null || v === undefined) return '--';
+  return v.toFixed(4);
+}
+function formatShares(v) {
+  if (v === null || v === undefined) return '--';
+  return v.toLocaleString('zh-CN');
+}
+function formatPct(v) {
+  if (v === null || v === undefined) return '--';
+  return (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+}
+function pnlClass(v) { return v > 0 ? 'pnl-pos' : (v < 0 ? 'pnl-neg' : ''); }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const today = new Date().toISOString().split('T')[0];
+  const monthAgo = new Date(Date.now() - 30*86400000).toISOString().split('T')[0];
+  document.getElementById('filter-start').value = new Date(Date.now() - 30*86400000).toISOString().split('T')[0];
+  document.getElementById('filter-end').value = today;
+  
+  loadTrades();
+  
+  setInterval(() => {
+    const now = new Date();
+    document.getElementById('current-date').textContent = now.toLocaleDateString('zh-CN');
+    document.getElementById('current-time').textContent = now.toLocaleTimeString('zh-CN', {hour12:false});
+  }, 1000);
+});
+</script>
+</body>
+</html>
