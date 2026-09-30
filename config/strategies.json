@@ -53,19 +53,18 @@
   "goldcombo": {
     "name": "黄金组合A",
     "color": "#ef4444",
-    "initial_capital": 10000,
+    "initial_capital": 50000,
     "description": "极致恐慌反转模型",
     "version": "V24 DMAStrategy",
-    "data_period": "起始6天",
+    "data_period": "实盘起点 2026-09-21",
     "caliber": "买入规则: DMA 金叉 + 成交量 1.5 倍 + RSI 30 至 70 + 市场 MA200 之上 (三重过滤)",
     "latest_baseline": "/Users/junze/goldcombo_real_backtest/v24/T4_5y/baseline_ashare_real_5y_v24.json",
-    "last_updated": "2026-08-17",
-    "class_name": "GoldComboV21b_AssetRot",
-    "pool": "5 ETF (510300/588000/512000/159915/518880) + 本地转债 CSV",
+    "last_updated": "2026-09-20",
+    "class_name": "DMAStrategy",
+    "pool": "V24 固定池 13 标的: 5 ETF (510300/510500/512880/512690/512480) + 3 股票 (000001/600519/000333) + 5 可转债 (113050/110079/113011/113013/113016, 均已退市, 数据止于最后交易日)",
+    "daily_runner": "scripts/goldcombo_daily_run.py (venv+backtrader, 实盘起点前不交易, 每日真实重放)",
     "trail_sl_locked": 0.2,
-    "data_source": "live_daily_run",
-    "is_live_simulated": true,
-    "note": "V24 是 5Y 真实回测 baseline (v1-v25 全部版本最优 +4.4311% / 21笔 / -8.24% DD), 接入实盘模拟 (起始4天). 用户原话硬约束: 6 卡全部每日真实行情驱动.",
-    "caliber_full": "版本名称: 黄金组合A V24_DMAStrategy · 标的筛选: V24 默认池 (5 ETF + 3 STK + 5 CB) / 5 万本金锁死 · 买入规则: DMA 金叉 + 成交量 1.5 倍 + RSI 30 至 70 + 市场 MA200 之上 (三重过滤) · 卖出规则: 死叉卖出 · 止盈止损: 10% 硬止损 + 15% 峰值 + 死叉卖出 · 牛熊针对: 多品种版 (不区分牛熊, 5 ETF + 3 STK + 5 CB 多源) · 回测数据: 5Y 数据期 (5Y 正 4.4311% / 21 笔 / 最大回撤负 8.24%) · 其他特点: setcash(50000.0) / 20% 仓位 5 只占 95% / 多品种版"
+    "note": "V24 是 5Y 真实回测 baseline (v1-v25 全部版本最优 +4.4311% / 21笔 / -8.24% DD)。2026-09-21 起接入真实每日模拟(scripts/goldcombo_daily_run.py), 5 万本金锁死, 实盘起点前留空、不回测冒充; 棘轮回测与每日模拟物理分离(规则7)。用户硬约束: 6 卡全部每日真实行情驱动.",
+    "caliber_full": "版本名称: 黄金组合A V24_DMAStrategy · 标的筛选: V24 固定池 (5 ETF + 3 STK + 5 CB) / 5 万本金锁死 · 买入规则: DMA 金叉 + 成交量 1.5 倍 + RSI 30 至 70 + 市场 MA200 之上 (三重过滤) · 卖出规则: 死叉卖出 · 止盈止损: 10% 硬止损 + 15% 峰值移动止盈 + 死叉卖出 + 市场 MA200 之下清仓 · 回测数据: 5Y 数据期 (5Y 正 4.4311% / 21 笔 / 最大回撤负 8.24%) · 其他特点: setcash(50000.0) / 20% 仓位最多 5 只 / 多品种版 / 真实每日模拟起点 2026-09-21"
   }
 }

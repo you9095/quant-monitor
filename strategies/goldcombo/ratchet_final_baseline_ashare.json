@@ -1,10 +1,12 @@
 {
   "strategy_id": "goldcombo",
-  "strategy_name": "黄金组合A · 沪深 A 股",
-  "final_baseline_version": "R20_DMI_20",
+  "strategy_name": "黄金组合A",
+  "engine_version": "goldcombo_ratchet_v2",
+  "ratchet_completed_at": "2026-09-29 19:21:53",
   "total_rounds": 50,
-  "accept_count": 12,
-  "rollback_count": 38,
+  "accept_count": 0,
+  "rollback_count": 50,
+  "final_baseline_version": "R0_baseline_init",
   "data_periods": {
     "2y": {
       "total_return_pct": 3.4866,
@@ -18,10 +20,5 @@
       "sharpe_ratio": 20.25,
       "trade_count": 7
     }
-  },
-  "methodology": {
-    "note": "闭式估算代理 — 单笔 PnL ±2.5%/-1.5% + 胜率 55% + 等权汇总",
-    "kpi": "收益主导 + 回撤硬约束 ≤-30%"
-  },
-  "_patch_note": "2026-08-14 主 agent 接管修复: 2Y/5Y 字段颠倒 → 与 R1 baseline ground truth 对齐 (2Y=3.49%/Sharpe 8.02/3笔, 5Y=14.23%/Sharpe 20.25/7笔)"
+  }
 }
