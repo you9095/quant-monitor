@@ -2,7 +2,7 @@
   "meta": {
     "memory_schema_version": "1.0",
     "create_timestamp": 1781314760,
-    "last_update_timestamp": 1789258352,
+    "last_update_timestamp": 1789907901224,
     "project_id": "ai_quant_three_strategy_monitoring_panel",
     "remark": "AI量化三策略监控面板项目专属单文件记忆库-结构化工作日志资产，支持存量日志导入"
   },
@@ -208,6 +208,121 @@
       "create_ts": 1789258352,
       "update_ts": 1789258352,
       "status": "active"
+    },
+    {
+      "mem_id": "mem_1789294947974_ui_modification_20260913",
+      "mem_type": "UI/数据修改经验",
+      "title": "2026-09-13 监控面板 UI/数据修正 — 12项修改 + AB bug修复 + 手机访问排查",
+      "content": "# 监控面板 UI/数据修正经验（2026-09-13）\n\n## 修改概览\n24小时内完成两轮共12项修改：\n1. 收益曲线·实盘模拟板块移至页面最顶部\n2. 收益曲线板块重构为两行三列布局，每行最高400px\n3. 默认精简视图改为上下版式（动作徽章在上、策略名在下），解决中文竖排丑陋问题\n4. 展开成交明细保持左右版式\n5. 全面板金融术语中文化：HOLD→持有、REBALANCE→调仓、DEFENSIVE→防御、BUY→买入、SELL→卖出\n6. 策略变更日志策略名中文化：R32→三驾马车、lightning→闪电、goldcombo→黄金组合A\n7. 样本外OOS累计：X轴从2025-07-16开始，颜色强制覆盖为全局统一策略色\n8. 收益对比：X轴从2026-06-06开始（原2026-05-25）\n9. Daily P&L趋势：X轴从2026-07-24开始，获取天数从14增至60\n10. 追电策略颜色从橙黄改为灰色（#94a3b8→#64748b），解决与闪电明黄混淆\n11. AB对照KPI数据bug修复：winner字段路径错误（data.get('diff',{}).get('winner')→data.get('winner')），修复后grid_wins=4, ties=0\n12. AB对照原始规划溯源：在~/.hermes/work_logs/2026-07-04_p9-e-complete.md找到，规划仍在执行，首次正式季度评估2026-10-04\n\n## 附加：手机远程访问排查\n- 问题：手机上localhost:8000打不开\n- 根因：localhost指向手机本身，不是Mac\n- 解决：手机访问 http://100.104.238.106:8000（Tailscale IP）\n- 服务已绑定*:8000（所有接口），macOS防火墙已关闭\n\n## 关键经验教训\n1. 范围限定词是硬约束：400px仅针对收益曲线板块的每行，不能全局化\n2. CSS类名与显示文字分离：中文化只改显示文字，CSS类名保持英文\n3. 数据bug追溯字段路径：AB对照全0根因是JSON字段路径错误\n4. 颜色全局统一：修改策略颜色后必须同步所有板块，OOS需强制覆盖\n5. X轴截断需同步增加数据获取天数，否则截断后数据点不足\n6. 端口CLOSED状态需kill -9才能释放\n7. localhost在远程设备上永远指向设备本身\n\n## 修改文件\n- index.html：前端所有UI修改\n- api/real_data_server_v2.py：AB对照winner字段路径修复（第1233/1261行）\n\n## 6策略颜色体系（修改后）\n- 七星：蓝紫 #3b82f6→#8b5cf6\n- 三驾马车：青绿 #10b981→#06b6d4\n- 追电：灰色 #94a3b8→#64748b（新）\n- 三合：紫金 #a855f7→#facc15\n- 闪电：明黄 #eab308→#f97316\n- 黄金组合A：红色 #ef4444→#f87171\n",
+      "tags": [
+        "UI修改",
+        "数据修复",
+        "中文化",
+        "颜色统一",
+        "X轴截断",
+        "AB对照",
+        "Tailscale",
+        "经验沉淀"
+      ],
+      "create_ts": 1789294947,
+      "update_ts": 1789294947,
+      "status": "valid"
+    },
+    {
+      "mem_id": "mem_1789377726000_ui_fix_20260914",
+      "mem_type": "UI/数据修改经验",
+      "title": "2026-09-14 持仓矛盾/突变点误报/参数稳定性移动端/日志重设计/彩色条偏移 五修复",
+      "content": "# 监控面板持仓校正·突变点误报·移动端适配（2026-09-14）\n\n## 五类修复与根因\n1. **持仓自相矛盾（空仓策略默认显1只、展开无持仓、标签矛盾）**：①\"无持仓\"占位行用了真实行class `holding-row`，被 `querySelectorAll('.holding-row')` 误数成1只→占位行改 `holding-empty`；②空仓时动作默认HOLD→统一 validHoldings=filter(qty>0||weight>0)，空仓且HOLD/REBALANCE/DEFENSIVE一律校正为FLAT空仓（灰色），buildCardHtml/renderActionItems/renderTradeDetails三处统一。\n2. **收益对比\"8个突变点\"误报**：图上画 returns(累计收益率)，异常检测却用 values(市值)，而 values=actual_cap+cum_amount 在账户本金口径切换(10万↔1万，见~/.hermes/work_logs)时必然约10倍跳变。修复：检测改returns、用is_interpolated把首个真实点之前的补0置null消起始假阶跃、阈值改单日>40个百分点、文案改中性\"历史调整过本金/累计口径\"。平移桥接抹平会改终值(lightning35.77→14.17)与overview矛盾，已否决，真实数据不许抹平。另：goldcombo data_source=goldcombo_real_backtest_evidence 属真实源，旧判定误显\"数据源未知\"，evidence应算真实。\n3. **参数稳定性手机端不适配**：容器内联 `grid-template-columns:repeat(5,1fr)` 优先级高于媒体查询→@media768用 `1fr !important`(单列)、769-1024两列、桌面仍5列。标题写死\"4策略\"实为5卡(qixing已加入)，改动态统计。\n4. **策略变更日志重设计**：旧单行平铺(min-width挤屏)改为卡片式时间线：左3px策略色条+.log-top(策略名左/动作徽章右)+.log-detail+.log-time(弱化)，flex-column自然堆叠，动作语义配色，补追电灰/goldcombo红。\n5. **策略卡顶部彩色条偏移(从初期就存在)**：手机端@media给整张.strategy-card加padding:16px把内部card-header顶偏→卡片padding:0、内边距只给.card-body；card-header加width:100%/flex-shrink:0。追电card-header旧橙#f97316同步改灰#94a3b8。\n\n## 关键方法/教训\n- 检测字段必须与绘制字段一致(画returns不能用values检测)。\n- 占位元素禁止复用真实元素class，否则querySelectorAll计数必错。\n- 内联样式优先级>@media，移动端覆盖内联grid必须!important——\"反复适配不生效\"先查内联。\n- 贴边装饰条(彩色条)要求外层卡片无padding，padding只加内容区。\n- 手机端验证：CDP设备模拟不可用(Session not found)，用width:316px(用户真机视口)的fixed iframe加载?test=316，读contentWindow.innerWidth/scrollWidth判溢出+getBoundingClientRect找溢出元素+读computed grid列数；桌面用1400px iframe回归。\n- 端口CLOSED需lsof -ti:8000|xargs kill -9连杀两次再bash start.sh 8000。\n- 收尾移除临时mobile-debug-bar调试条与v0914版本标记。",
+      "tags": [
+        "UI修改",
+        "数据修复",
+        "持仓口径",
+        "突变点误报",
+        "移动端适配",
+        "内联样式覆盖",
+        "彩色条对齐",
+        "316px验证",
+        "经验沉淀"
+      ],
+      "create_ts": 1789377726,
+      "update_ts": 1789377726,
+      "status": "valid"
+    },
+    {
+      "mem_id": "mem_1789386780_ui_followup_20260914",
+      "mem_type": "UI/数据修改经验",
+      "title": "2026-09-14 收尾自查:追电灰色漏网副本/Daily-WFA-AB中文化/grid1fr不等宽竖排",
+      "content": "# 监控面板收尾自查三类追加修复（2026-09-14 继续轮）\n\n## 1. 改策略颜色后必须全局grep所有硬编码副本\n追电改灰后仍有2处漏网：第87行 --shadow-glow-zhuidian 光晕 rgba(245,158,11)、AB板块 sidColors.zhuidian #f59e0b。改 :root 变量不联动这些副本。\n同步点清单：:root变量、--shadow-glow-<sid>、.card-header.<sid>、.log-strategy.<sid>、收益曲线colors、WFA/nav各colors、AB sidColors。\n改完 `grep <sid> | grep -iE '#hex|rgba'` 逐处核对，再 grep 旧色值确认剩余都是非该策略合理用途（闪电渐变/全局warn/AB baseline语义色）。\n\n## 2. Daily P&L/WFA/AB 金融英文中文化（字段名保英文）\nDaily P&L→每日盈亏、累计/每日P&L tab、Chart title；WFA去掉Walk-Forward Analysis全称（WFA/OOS通用缩写保留）、OOS Sharpe→OOS夏普比率、标题4策略更正为5；\nAB：grid_mode→网格优选、hardcode/baseline→原参数(基准)、backtest→回测、Grid Mode Wins→网格优选胜出、Baseline Wins→原参数胜出、Ties→持平、Total diff_sum→累计差值合计。\n铁律：grid_mode/baseline/diff_sum 字段名、变量、winner判断值保持英文，只改显示文案；静态标题策略数不会自动更新要手动核对。\n\n## 3. grid 1fr 不等宽致窄列中文逐字竖排（新根因）\n现象：316px AB KPI 两列被长数字(+4,914.9)撑成79px/173px不等宽，窄列中文标题逐字竖排。\n根因：repeat(2,1fr)=repeat(2,minmax(auto,1fr))，列最小宽=内容min-content，长内容撑宽本列、压窄兄弟列；中文每字可断行故竖排。\n修复四件套：①列定义 repeat(N,minmax(0,1fr))；②grid子项 .risk-card{min-width:0}；③短标签 .tab/.risk-title{white-space:nowrap;flex-shrink:0} 配父级flex-wrap:wrap；④窄屏卡片padding 24→12px。修复后四卡等宽127px标题单行。\n\n## 验证\nJS语法通过；316px全9板块零溢出；1400px桌面回归WFA4/AB-KPI4/AB卡5/参数5列保持无副作用；421个API全ok。Skill升v1.2新增坑12坑13。",
+      "tags": [
+        "监控面板",
+        "中文化",
+        "策略颜色",
+        "grid布局",
+        "中文竖排",
+        "minmax0",
+        "移动端316px",
+        "追电灰色",
+        "AB对照",
+        "WFA"
+      ],
+      "create_ts": 1789386780,
+      "update_ts": 1789386780,
+      "status": "valid"
+    },
+    {
+      "mem_id": "mem_1789476870630_ui_optimization_20260915",
+      "mem_type": "ui_modification",
+      "title": "2026-09-15 监控面板UI深度优化 — 顶部两行/收益曲线左右对调/展开按钮重设计/标签统一/层级规范/策略卡极致精简",
+      "content": "本轮共10项UI修改，分两轮完成。\n\n第一轮（3项基础优化）：\n1. 删除策略卡顶部\"买入规则\"标签（tlt-caliber，s.metrics.caliber显示\"买入规则:...\"，与第4个详情标签config_caliber_full内容重复），顶部标签从4个减为3个（版本/运行天数/详情）。\n2. 默认隐藏策略卡底部持仓和仓位信息：holdings-list（完整持仓表格）和\"仓位/现金\"metric加full-only类。桌面端>=1280px仍显示，移动端/平板默认隐藏，点展开后显示。\n3. 布局空间优化：--strategy-card-gap 20px→24px；.strategy-section padding 24→32px；.chart-section padding 24→32px；.container桌面端padding 24→32px。\n\n第二轮（7项深度优化）：\n4. 顶部栏重构为两行：第一行标题（左）+实时时间（右）；第二行4个属性（初始/总盈亏/收益率/总资金，左对齐）+刷新按钮（右对齐）。原topbar-meta容器拆除。\n5. 刷新按钮重新设计：从深色填充块改为透明背景+细边框简约风格，display:inline-flex垂直居中，与整体暗色美学统一。\n6. 收益曲线板块左右对调：策略名称移到左边，动作标签（防御/持有/空仓/调仓）移到右边。桌面端.action-item从flex-direction:column改为row，justify-content:space-between；移动端.action-detail text-align从right改为left。HTML生成顺序也对调（action-detail在前，action-badge在后）。\n7. 展开按钮重新设计：去掉\"展开/收起\"文字和紫色背景色块，只保留▾/▴箭头，position:absolute;left:50%;transform:translateX(-50%);bottom:4px，水平居中底部对齐。JS去掉btn.innerHTML文字和切换文字逻辑，箭头由CSS::before根据is-expanded自动切换。\n8. 全项目标签样式统一：.today-action-strip .tas-action从padding:2px 8px/border-radius:10px/font-weight:700/font-family:mono改为与.action-badge一致：padding:4px 10px/border-radius:20px/font-weight:600/text-transform:uppercase/letter-spacing:0.5px。颜色映射已统一（buy绿/sell红/rebalance青/hold灰/flat深灰/defensive橙）。\n9. 展开后文字颜色统一：修复compact-summary两个bug——①内联style缺分号（margin-top:var(var(--space-sm))padding:...）导致样式失效；②\"交易\"行错误取pb-meta-item:last-child（当前市值）而非交易笔数。改用CSS类.compact-summary统一控制，交易数据从.card-footer-cash取。cs-label用text-muted 11px，cs-value用text-secondary 12px font-weight:500，不再出现比其他字更亮的情况。\n10. 展开后信息层级重构：建立统一字号/颜色规范——区块标签label:10px/text-muted/uppercase；主要数值value:15px/text-primary/font-weight:500；次要数值sub:11px/text-muted；表格内容:12px/text-secondary；卡片底部:11px/text-muted。调整metric-label 9→10px、metric-value 20→15px且颜色text-secondary→text-primary、metric-sub 10→11px、holdings-header 11→10px、holding-row 13→12px、card-footer 12→11px且颜色text-secondary→text-muted。\n\n关键踩坑：\n- compact-only与full-only类同时使用时CSS冲突：移动端@media里compact-only display:block在full-only display:none之后定义，导致compact-only胜出、元素仍显示。解决方案：用独立类compact-summary，不依赖full-only/compact-only的组合。\n- 动态生成DOM的内联样式缺分号会静默失效，应优先用CSS类而非内联style。\n- 动态摘要取数据时要确认数据源：pb-meta-item有两个（收益率、当前市值），last-child是当前市值不是交易笔数；交易笔数应从.card-footer-cash取。\n- 标签样式应定义一套基础规范（.action-badge），其他场景（.tas-action）复用而非另起炉灶，避免圆角/字号/字重不一致。",
+      "tags": [
+        "ui优化",
+        "监控面板",
+        "移动端适配",
+        "标签统一",
+        "视觉层级",
+        "策略卡",
+        "顶部栏"
+      ],
+      "create_ts": 1789476870,
+      "update_ts": 1789476870,
+      "status": "valid"
+    },
+    {
+      "mem_id": "mem_1789902706896_data_truth_snapshot_eradication_20260920",
+      "mem_type": "data_authenticity_p0_fix",
+      "title": "2026-09-20 快照冒充根治·回测/实盘分离·真实数据链路重建(P0)",
+      "content": "【定性】长期数据混乱唯一根源=快照机制把旧数据/回测值假装成当日真实数据(用户明确:不是回测/策略引擎混用;两者核心计算逻辑一致,差异来自口径/参数版本)。最高KPI=基于真实行情的模拟交易。\n【两类污染】①signal_fallback/线性插值/沿用最近一天冒充当日;②goldcombo(黄金组合A,仅棘轮回测、live_days=0)回测本金100K/收益11.5%/92笔被折算进实盘组合(一度初始6万/收益47.76%)。\n【修复】1.删live_data.py的_linear_interpolate/_date_to_ts/signal_fallback;曲线函数改名_build_live_curve_from_worklogs纯读work_logs零插值,字段snapshots_used→real_trading_days;删goldcombo evidence回测净值死代码(2756字符);随机stub raise SystemExit封死。2.overview+portfolio_summary:live_active=live_days>0,未启动策略所有实盘字段=0且不计入total_asset/active_count/分母,实盘收益绝不用backtest_total_return兜底,status=not_started;前端未启动卡灰色徽章+盈亏区显'—/未启动每日模拟·仅有棘轮回测(回测不进入实盘)',收益对比唯一真实源=work_logs,empty留空,signal_fallback/evidence报🚫。3.以510300.csv为交易日历,补齐8/11~9/07(20天)+7/16~8/10散落(并集18天),用当前上线参数+固定1万本金+真实历史K线daily_runner_v2 --date D --skip-fetch重跑,rebuild_signals;删29个0字节+周末误跑;daily_pnl累计用引擎cumulative缺失日null断线;6月10万旧口径重跑为1万。4.AB winner改按grid/baseline cumulative自判+latest只进不退;防断更catchup加固(非空/含afternoon/七星查_fusion)+launchd工作日17:45/20:15+周五23:00 K线更新。\n【权威结果 2026-09-18】5策略各74个连续真实交易日(6/8~9/18)零缺口:七星12001.73/+20.02%/3仓,三驾马车11874.27/+18.74%/1仓,追电24364.93/+143.65%/空仓,三合15685.24/+56.85%/4仓,闪电13577.20/+35.77%/空仓;黄金组合A not_started全0留空。组合active_count=5/初始5万/总资金77503.37/盈亏+27503.37/+55.01%。daily_pnl累计末值==live_curves末值-1万,三处自洽。\n【补齐口径】补齐38天=当前版本参数在真实历史行情上的连续模拟,非当时历史版本原始记录;无真实work_log一律留空不造数。\n【规则】PROJECT_RULES.md新增规则7(快照永久禁止/回测实盘分离/未启动留空/交易日连续/真实性自检),与规则2、5同级P0。\n【方法论】①简单不变量必须自动化断言(交易日数==日历天数;初始资金==active_count×1万;累计值work_logs/live_curves/组合三处相等;data_source唯一work_logs);②任何fallback/interpolate/默认值/折算出现在实盘数字位=P0可疑,宁可留空报错;③backtest_*字段永不进实盘数字位。\n【遗留】goldcombo是否接入每日信号或移出实盘面板待用户拍板;简单年化tr×252/live_days在短周期虚高(追电~489%)待确认;引擎物理分离(strategy_engines/)未最终定。下一防断更检验时点2026-09-21周一。",
+      "tags": [
+        "数据真实性",
+        "快照永久禁止",
+        "回测实盘分离",
+        "goldcombo未启动",
+        "交易日缺口补齐",
+        "P0",
+        "PROJECT_RULES规则7",
+        "work_logs唯一源"
+      ],
+      "create_ts": 1789902706896,
+      "update_ts": 1789902706896,
+      "status": "valid"
+    },
+    {
+      "mem_id": "mem_1789907901224_goldcombo_live_onboarding_20260920",
+      "mem_type": "goldcombo_real_daily_onboarding",
+      "title": "2026-09-20 黄金组合A(goldcombo)真实每日模拟接入准备·调度级回测冒充根因拔除(9/21上线)",
+      "content": "【目标】黄金组合A策略自2026-09-21(周一)起接入真实每日信号,今天做好全部准备;最高KPI=真实行情模拟,无真实数据就空着。\n【根因】daily_catchup_runner.sh旧第5步每个交易日把棘轮回测log用--output-path写进work_logs/goldcombo(9/17,9/18,9/20三个2.58MB大文件来源)=调度级回测冒充实盘;已删该步,3文件归档到strategies/goldcombo/ratchet_archive/misplaced_worklogs/。\n【真相】黄金组合A此前无逐日引擎:ratchet_ashare是棘轮参数迭代器、run_goldcombo_backtest是随机stub已封死、regenerate只出静态占位;真引擎=goldcombo_strategy_ashare_v24.py的DMAStrategy(DMA金叉死叉+量1.5x+RSI30-70+MA200过滤,5万本金,最多5只各20%,5年21笔信号稀疏)。\n【新建】scripts/fetch_v24_pool_kline.py(新浪真实日线,系统python,退市不补点;13标的→data/v24_{etf,stk,bonds}_kline;5只转债2023-2025已全退市,2026实盘可交易=5ETF+3STK共8个);scripts/goldcombo_daily_run.py(venv+backtrader,复用DMAStrategy不改一字,live_start门控warm-up不交易,set_coc收盘价,5万,写标准JSONL)。\n【改造】rebuild_signals删黄金组合A回测分支/--keep-goldcombo,6策略同构逐日work_logs→signals,本金per-sid(5个ETF各1万/黄金组合A5万),无日志不留signal;overview组合汇总active_count*1万硬编码改按真实本金求和active_init;config黄金组合A本金1万→5万、pool改真实13标的;catchup新增第4步(系统python更V24数据→venv逐日幂等模拟,9/21前跳过,K线未到不造假)。\n【两bug】①_normalize_return_pct用'绝对值<1即小数×100'猜测,把真实-0.364%误放大成-36.4%;根治=signal显式return_unit='percent'后端直接信任,不猜测。②venv无requests:数据下载用/usr/local/bin/python3,引擎用venv,职责分离。\n【验证】dry-run真实2笔(6/25买510300、7/6止损-182)warm-up零泄漏;端到端演练后已清理假数据恢复留空;catchup周日实跑幂等门控正确;V24五年基线复现21笔完全一致(+4.4311→+4.5030%,差0.07pp源于前复权正常微调,信号时点100%一致);316px无水平溢出,双端4截图screenshots/gcprep_01-04。\n【待拍板】本金5万(策略锁死;1万买不起茅台/美的会失真),组合初始资金5万→10万(6策略),技术已按5万实现。\n【周一验收】catchup自动更数据→work_logs/goldcombo/goldcombo_2026-09-21.json→signals→前端转运行中;首日大概率空仓0成交净值5万live_days=1属真实。",
+      "status": "valid",
+      "created_timestamp": 1789907901224,
+      "tags": [
+        "goldcombo",
+        "黄金组合A",
+        "真实每日模拟",
+        "调度根因",
+        "回测实盘分离",
+        "return_unit",
+        "venv",
+        "2026-09-21上线"
+      ]
     }
   ]
 }
