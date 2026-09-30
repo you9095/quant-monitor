@@ -1,29 +1,48 @@
-# 安全排除目录
-api/
+# ============================================================
+# AI 量化策略监控项目 .gitignore
+# 最后更新: 2026-09-30 (仓库治理: 修正矛盾规则 + 新增忽略项)
+# ============================================================
+
+# --- 运行时产物（不入库）---
 signals/
-
-# 复盘数据可选排除（取消注释以隐藏历史记录）
-# review/
-
-# 日志和临时文件
 *.log
 .DS_Store
+data/alerts_state.json
+logs/.alert_state.json
+qixing_signal_log.json
 
-# 依赖目录
+# --- 后端源码（入库），仅忽略缓存 ---
+api/__pycache__/
+
+# --- 依赖与缓存 ---
 node_modules/
 venv/
 __pycache__/
 
-# 个人配置
+# --- 个人配置 ---
 .env
 .env.local
 
-# 2026-08-01 加: 防止 cron + 工作日志污染工作树
-logs/.alert_state.json
-project_memory/*.json
+# --- 项目记忆（memory.json 入库，仅忽略备份）---
+project_memory/*.bak*
 
-# 2026-08-02 加: 真数据保护(按用户拍板)
+# --- 可重新下载的大体量行情数据 ---
+data/ashare_kline/
+
+# --- 手动备份文件（git 本身就是版本控制，不需要 .bak）---
+*.bak*
+*.backup*
+index.html.bak_*
+config/*.bak_*
+scripts/*.bak_*
+
+# --- 棘轮迭代中间产物（report md 入库，backup json 不入库）---
+strategies/goldcombo/ratchet_backup_*.json
+
+# --- 复盘数据可选排除（取消注释以隐藏历史记录）---
+# review/
+
+# --- 2026-08-02 加: 真数据保护(按用户拍板) ---
 assets/data.js.bak.*
 review/*.json
 results/*.json
-
