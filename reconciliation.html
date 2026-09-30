@@ -5,111 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>对账单 · AI量化监控面板</title>
 <script src="assets/chart.umd.min.js"></script>
+<link rel="stylesheet" href="assets/common.css">
 <style>
-/* ============================================================
-   CSS变量设计系统 (同步自 index.html)
-   ============================================================ */
-:root {
-  --systemBackground: #000000;
-  --secondarySystemBackground: #1C1C1E;
-  --tertiarySystemBackground: #2C2C2E;
-  --label: #FFFFFF;
-  --secondaryLabel: rgba(255,255,255,0.55);
-  --tertiaryLabel: rgba(255,255,255,0.25);
-  --separator: rgba(255,255,255,0.10);
-  --opaqueSeparator: rgba(255,255,255,0.20);
-  --systemBlue: #0A84FF;
-  --systemGreen: #30D158;
-  --systemRed: #FF453A;
-  --systemOrange: #FF9F0A;
-  --systemPurple: #BF5AF2;
-  --systemYellow: #FFD60A;
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-mono: "SF Mono", "Monaco", "Inconsolata", "Fira Mono", "Droid Sans Mono", monospace;
-  --space-xs: 4px; --space-sm: 8px; --space-md: 16px; --space-lg: 24px; --space-xl: 32px;
-  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 16px;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; font-family: var(--font-sans); background: var(--systemBackground); color: var(--label); font-size: 14px; line-height: 1.5; }
-
-/* ========== 顶部栏 ========== */
-.topbar {
-  background: rgba(28,28,30,0.85);
-  backdrop-filter: blur(14px) saturate(180%);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 20px; position: sticky; top: 0; z-index: 100;
-  gap: 16px;
-}
-.topbar-brand { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
-.topbar-brand .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--systemGreen); box-shadow: 0 0 6px var(--systemGreen); animation: pulse-dot 2s ease-in-out infinite; }
-@keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-.topbar-nav { display: flex; gap: 8px; }
-.nav-link { padding: 6px 14px; border-radius: 6px; color: var(--secondaryLabel); text-decoration: none; font-size: 13px; transition: all 0.2s; }
-.nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: var(--label); }
-.topbar-time { font-family: var(--font-mono); font-size: 12px; color: var(--secondaryLabel); }
-
-/* ========== 容器 ========== */
-.container { max-width: 1400px; margin: 0 auto; padding: 24px 20px; }
-.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.section-title { font-size: 18px; font-weight: 600; }
-.section-tabs { display: flex; gap: 4px; }
-.tab { padding: 6px 14px; border-radius: 6px; font-size: 13px; color: var(--secondaryLabel); cursor: pointer; transition: all 0.2s; }
-.tab:hover { background: rgba(255,255,255,0.1); color: var(--label); }
-.tab.active { background: var(--systemBlue); color: white; }
-
-/* ========== 卡片 ========== */
-.card { background: var(--secondarySystemBackground); border: 1px solid var(--separator); border-radius: 12px; padding: 20px; }
-.card-title { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: var(--label); }
-.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-.card-item { background: var(--tertiarySystemBackground); border-radius: 8px; padding: 16px; }
-.card-item .label { font-size: 11px; color: var(--tertiaryLabel); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-.card-item .val { font-size: 20px; font-weight: 600; font-family: var(--font-mono); color: var(--label); }
-.card-item .val.pnl-pos { color: var(--systemGreen); }
-.card-item .val.pnl-neg { color: var(--systemRed); }
-
-/* ========== 表格 ========== */
-.table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid var(--separator); }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th, td { padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--separator); }
-th { background: var(--tertiarySystemBackground); text-align: left; font-weight: 600; font-size: 11px; color: var(--secondaryLabel); text-transform: uppercase; letter-spacing: 0.5px; }
-td { color: var(--label); }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: rgba(255,255,255,0.03); }
-.pnl-pos { color: var(--systemGreen); }
-.pnl-neg { color: var(--systemRed); }
-.text-mono { font-family: var(--font-mono); }
-.text-center { text-align: center; }
-.text-left { text-align: left; }
-
-/* ========== 图表容器 ========== */
-.chart-container { background: var(--secondarySystemBackground); border: 1px solid var(--separator); border-radius: 12px; padding: 16px; }
-.chart-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-.chart-tab { padding: 8px 16px; border-radius: 6px; font-size: 12px; color: var(--secondaryLabel); cursor: pointer; background: var(--tertiarySystemBackground); }
-.chart-tab.active { background: var(--systemBlue); color: white; }
-
-/* ========== 状态徽章 ========== */
-.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
-.badge-buy { background: rgba(255,69,58,0.2); color: var(--systemRed); }
-.badge-sell { background: rgba(48,209,88,0.2); color: var(--systemGreen); }
+/* reconciliation.html 特有样式 */
 .badge-filled { background: var(--systemBlue); color: white; }
 .badge-pending { background: var(--systemOrange); color: white; }
 .badge-rejected { background: var(--systemRed); color: white; }
-
-/* ========== 空状态 ========== */
-.empty-state { text-align: center; padding: 60px 20px; color: var(--tertiaryLabel); }
-.empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
-
-/* ========== 响应式 ========== */
-@media (max-width: 768px) {
-  .container { padding: 16px 12px; }
-  .card-grid { grid-template-columns: 1fr; }
-  .topbar { padding: 10px 12px; }
-  .topbar-brand #brand-text { display: none; }
-}
 </style>
 </head>
 <body>
@@ -204,29 +105,14 @@ tr:hover td { background: rgba(255,255,255,0.03); }
   </div>
 </main>
 
+<script src="assets/common.js"></script>
 <script>
 /* ============================================================
    对账单页面逻辑
    ============================================================ */
 
-const API_BASE = '';
-const STRATEGY_COLORS = {
-  zhuidian: '#94a3b8', qixing: '#3b82f6', r32: '#10b981',
-  sanhe: '#a855f7', lightning: '#eab308', goldcombo: '#ef4444'
-};
-
 let currentReconData = null;
 let currentTab = 'overview';
-
-function formatMoney(v) {
-  if (v === null || v === undefined) return '--';
-  return (v >= 0 ? '+' : '') + v.toLocaleString('zh-CN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-}
-function formatPct(v) {
-  if (v === null || v === undefined) return '--';
-  return (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
-}
-function pnlClass(v) { return v > 0 ? 'pnl-pos' : (v < 0 ? 'pnl-neg' : ''); }
 
 async function loadReconciliation() {
   const strategy = document.getElementById('filter-strategy').value;

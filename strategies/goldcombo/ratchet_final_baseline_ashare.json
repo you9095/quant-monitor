@@ -2,7 +2,7 @@
   "strategy_id": "goldcombo",
   "strategy_name": "黄金组合A",
   "engine_version": "goldcombo_ratchet_v2",
-  "ratchet_completed_at": "2026-09-29 19:21:53",
+  "ratchet_completed_at": "2026-09-30 19:26:56",
   "total_rounds": 50,
   "accept_count": 0,
   "rollback_count": 50,

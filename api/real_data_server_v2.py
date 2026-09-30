@@ -209,6 +209,21 @@ def get_strategies():
 
 @app.route('/api/v1/dashboard/overview')
 def get_dashboard_overview():
+    data_mode = request.args.get('data_mode', 'simulator')
+    # 实盘模式：Windows 端未部署，返回空数据 + 明确标注
+    if data_mode == 'live':
+        return jsonify({
+            'code': 0,
+            'message': 'success',
+            'data': {
+                'data_mode': 'live',
+                'data_mode_label': '实盘（xtquant）— Windows 端未部署，暂无数据',
+                'strategies': [],
+                'combined': {'active_count': 0, 'initial_capital': 0, 'total_return': 0, 'total_asset': 0},
+                'alerts_summary': {'critical': 0, 'warning': 0, 'info': 0},
+                'update_time': datetime.now().isoformat()
+            }
+        })
     strategies_config = load_strategies()
     # C 修复 (2026-08-02): 恢复腾讯行情调用,加 try/except 防崩溃 + 价格缓存
     # TickDB 已写接入骨架(tickdb_client.py),等用户配置 TICKDB_API_KEY 后可切 TickDB 优先
@@ -296,11 +311,16 @@ def get_dashboard_overview():
         else:
             tr = 0  # 未启动每日模拟 → 实盘收益留空; 回测值仅存于 backtest_total_return 字段
         # 年化: 用 live_total_return × (252 / live_days) 估算
+        # 2026-09-30: live_days < 120 (约半年) 时不计算年化 — 样本不足外推无统计意义
+        # (如74天涨143%→年化489%严重误导; 需至少半年跨越完整市场周期才有参考价值)
         live_days = signal.get('live_days', 252) if signal else 252
         live_days = live_days if live_days and live_days > 0 else 252
-        ann_return = round(tr * (252 / live_days), 2)
-        if signal and live_active and signal.get('annualized_return'):
-            ann_return = signal.get('annualized_return')
+        if live_active and live_days >= 120:
+            ann_return = round(tr * (252 / live_days), 2)
+            if signal.get('annualized_return'):
+                ann_return = signal.get('annualized_return')
+        else:
+            ann_return = None
         # 三层标签：version + data_period + caliber
         # TC-DT-05 修复：优先从 config/strategies.json 读取，signal 作为兜底
         # 确保 version/data_period/caliber 100% 对应 config，而非 signal file
@@ -360,16 +380,19 @@ def get_dashboard_overview():
         'code': 0,
         'message': 'success',
         'data': {
+            'data_mode': 'simulator',
+            'data_nature': 'simulator',
+            'data_nature_label': '模拟盘数据（simulator）',
+            'data_nature_note': '以下所有收益率、盈亏、资产均为模拟盘（虚拟成交）数据，非真实实盘交易结果。回测数据（backtest）仅用于策略验证，不代表未来收益。',
             'strategies': strategies_data,
             'combined': {
-                # 2026-09-21: 组合按各在跑策略真实本金合计（5 个 ETF 各 1 万 + 黄金组合A 5 万），
-                # 不含仅有回测、未启动每日模拟的策略
+                # 组合按各在跑策略真实本金合计（6 策略各 1 万）
                 'active_count': active_count,
                 'initial_capital': round(active_init, 2),
                 'total_return': round((total_asset - active_init) / active_init * 100, 2) if active_init else 0,
                 'total_asset': round(total_asset, 2)
             },
-            # 2026-09-12 数据告警摘要
+            # 数据告警摘要
             'alerts_summary': alerts_summary,
             'update_time': datetime.now().isoformat()
         }

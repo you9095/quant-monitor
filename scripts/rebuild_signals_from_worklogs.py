@@ -31,7 +31,7 @@ STRATEGIES = {
     'zhuidian': ('追电策略', 10000.0),
     'sanhe': ('三合策略', 10000.0),
     'lightning': ('闪电策略', 10000.0),
-    'goldcombo': ('黄金组合A策略', 50000.0),
+    'goldcombo': ('黄金组合A策略', 10000.0),
 }
 
 ACTION_MAP = {
@@ -68,12 +68,18 @@ def parse_worklog_first_json(wl_path: Path):
 
 
 def collect_dates(wl_dir: Path, sid: str):
-    """返回 {date_str: {'fusion': path|None, 'normal': path|None}}"""
+    """返回 {date_str: {'fusion': path|None, 'live': path|None, 'legacy': path|None}}"""
     dates = {}
     for f in wl_dir.glob(f'{sid}_*.json'):
         if 'baseline' in f.name:
             continue
-        is_fusion = '_fusion' in f.stem
+        # 跳过回测/模拟文件，只取实盘 live 和旧格式
+        is_sim = '_sim.' in f.name or '_sim_' in f.name
+        is_bt = '_bt.' in f.name or '_bt_' in f.name
+        if is_sim or is_bt:
+            continue
+        is_fusion = '_fusion' in f.stem and '_fusion_baseline' not in f.stem
+        is_live = '_live.' in f.name or f.stem.endswith('_live')
         date_str = None
         for part in f.stem.split('_'):
             if len(part) == 10 and part[4] == '-' and part[7] == '-':
@@ -85,11 +91,13 @@ def collect_dates(wl_dir: Path, sid: str):
                     continue
         if not date_str:
             continue
-        dates.setdefault(date_str, {'fusion': None, 'normal': None})
+        dates.setdefault(date_str, {'fusion': None, 'live': None, 'legacy': None})
         if is_fusion:
             dates[date_str]['fusion'] = f
+        elif is_live:
+            dates[date_str]['live'] = f
         else:
-            dates[date_str]['normal'] = f
+            dates[date_str]['legacy'] = f
     return dates
 
 
@@ -104,11 +112,59 @@ def build_etf_signal(sid, sname, date_str, wl_file, live_days, initial_cap):
         'strategy_name': sname,
         'initial_capital': initial_cap,
         'data_source': 'work_logs（真实每日信号）',
-        # 2026-09-21: 显式声明收益率单位为百分数(如 -0.364 表示 -0.364%),
-        # 后端不得再用"绝对值<1 即小数"的启发式猜测(会把真实的 -0.364% 放大成 -36.4%)
         'return_unit': 'percent',
     }
 
+    # 检测格式：新格式有 live_equity 字段（2026-09-23 起 daily_runner 新输出）
+    is_new_format = 'live_equity' in wl
+
+    if is_new_format:
+        # === 新格式映射 ===
+        live_equity = float(wl.get('live_equity', initial_cap) or initial_cap)
+        live_pnl = float(wl.get('live_pnl', 0) or 0)
+        live_total_return = float(wl.get('live_total_return', 0) or 0)
+        live_positions = wl.get('live_positions') or []
+
+        signal['today_pnl'] = live_pnl
+        signal['today_return'] = round(live_pnl / initial_cap * 100, 4) if initial_cap else 0
+        # 新格式：live_total_return 是文件直接给出的累计收益率(%)，
+        # live_total_pnl 由 initial_cap 反推，不直接用 live_equity - initial_cap
+        # （因为不同策略引擎内部本金可能不同，如 zhuidian=10万）
+        signal['live_total_pnl'] = round(initial_cap * live_total_return / 100, 2)
+        signal['live_total_return'] = live_total_return
+        signal['live_days'] = live_days
+
+        # 新格式持仓适配为旧格式 positions 结构
+        positions = []
+        for p in live_positions:
+            if isinstance(p, dict):
+                positions.append({
+                    'code': p.get('code', p.get('secucode', '')),
+                    'name': p.get('name', p.get('sec_name', '')),
+                    'qty': p.get('qty', p.get('volume', 0)),
+                    'cost': p.get('cost', p.get('cost_price', 0)),
+                    'market_value': p.get('market_value', p.get('mv', 0)),
+                })
+            elif isinstance(p, str):
+                positions.append({'code': p, 'name': '', 'qty': 0, 'cost': 0, 'market_value': 0})
+        signal['positions'] = positions if sid == 'zhuidian' else [
+            pos for pos in positions
+            if float(pos.get('qty', 0) or 0) > 0 and float(pos.get('cost', 0) or 0) > 0
+        ]
+
+        # 动作推断：有持仓=持有，无持仓=空仓
+        has_pos = any(float(pos.get('qty', 0) or 0) > 0 for pos in positions)
+        signal['action'] = {
+            'type': 'HOLD' if has_pos else 'FLAT',
+            'label': '持有' if has_pos else '空仓',
+            'target_etf': '',
+            'target_weight': 0,
+        }
+        if wl.get('live_start_date'):
+            signal['live_start_date'] = wl['live_start_date']
+        return signal
+
+    # === 旧格式映射（原有逻辑）===
     sig = wl.get('signal') if isinstance(wl.get('signal'), dict) else {}
     action_en = sig.get('action', '')
     signal['action'] = {
@@ -134,9 +190,6 @@ def build_etf_signal(sid, sname, date_str, wl_file, live_days, initial_cap):
 
     positions = wl.get('positions_after') or wl.get('positions') or wl.get('holdings') or []
     if isinstance(positions, list):
-        # 过滤规则：若策略为 zhuidian，保留所有 positions（含 qty=0），
-        # 这是追电策略的正常状态（轮动策略常为空仓/观察），不应被过滤掉。
-        # 对其他策略（qixing/r32/sanhe/lightning），仅保留 qty>0 且 cost>0 的真实持仓。
         if sid == 'zhuidian':
             signal['positions'] = list(positions)
         else:
@@ -144,8 +197,6 @@ def build_etf_signal(sid, sname, date_str, wl_file, live_days, initial_cap):
                 pos for pos in positions
                 if float(pos.get('qty', 0) or 0) > 0 and float(pos.get('cost', 0) or 0) > 0
             ]
-    # 2026-09-21 修复：当无 ETF 通过动量筛选时，清空 target_etfs
-    # 避免前端显示虚高收益（target_value=0 导致的虚假抬高）
     sig = signal.get('action', {})
     if sid == 'zhuidian' and isinstance(sig, dict):
         target_etfs = sig.get('target_etfs', [])
@@ -179,14 +230,69 @@ def main():
             continue
 
         count = 0
+        base_return = None  # 旧格式末值（累计收益率%）
+        new_engine_start_return = None  # 新格式第一天的 live_total_return
+        entered_new_format = False
+        last_panel_return = None  # 最近一次的面板累计收益率
+        last_new_engine_return = None  # 前一天新引擎的 live_total_return（检测重置用）
+
         for date_str in sorted(dates):
             files = dates[date_str]
-            wl_file = files['fusion'] or files['normal']
+            wl_file = files['fusion'] or files['live'] or files['legacy']
             if not wl_file:
                 continue
+
+            # 先预览文件内容，判断是否有效
+            wl_preview = parse_worklog_first_json(wl_file) or {}
+            is_new = 'live_equity' in wl_preview
+
+            # 旧格式空文件检测
+            if not is_new:
+                dp = wl_preview.get('daily_pnl', {})
+                if not isinstance(dp, dict) or 'cumulative' not in dp:
+                    continue
+
             signal = build_etf_signal(sid, sname, date_str, wl_file, live_days, initial_cap)
             if not signal:
                 continue
+
+            if not entered_new_format:
+                if is_new:
+                    # 第一个新格式文件：建立衔接基线
+                    entered_new_format = True
+                    new_engine_start_return = signal.get('live_total_return', 0) or 0
+                    last_new_engine_return = new_engine_start_return
+                    if base_return is not None:
+                        panel_return = base_return
+                    else:
+                        panel_return = signal.get('live_total_return', 0) or 0
+                    signal['live_total_return'] = round(panel_return, 4)
+                    signal['live_total_pnl'] = round(initial_cap * panel_return / 100, 2)
+                    last_panel_return = panel_return
+                else:
+                    # 纯旧格式阶段
+                    base_return = signal.get('live_total_return', 0) or 0
+                    last_panel_return = base_return
+            else:
+                # 已进入新格式
+                if is_new:
+                    new_engine_current = signal.get('live_total_return', 0) or 0
+                    # 检测引擎重置：如果新引擎累计收益率跳变超过50%（绝对值），认为引擎重置了
+                    if last_new_engine_return is not None and abs(new_engine_current - last_new_engine_return) > 50:
+                        # 引擎重置：重新建立基线，前一天的 panel_return 保持不变
+                        # 新引擎从今天重新开始，今天的 panel_return = 昨天的 panel_return
+                        new_engine_start_return = new_engine_current
+                        panel_return = last_panel_return
+                    else:
+                        panel_return = base_return + (new_engine_current - new_engine_start_return)
+                    last_new_engine_return = new_engine_current
+                else:
+                    # 旧格式文件：沿用前一天
+                    panel_return = last_panel_return
+                signal['live_total_return'] = round(panel_return, 4)
+                signal['live_total_pnl'] = round(initial_cap * panel_return / 100, 2)
+                last_panel_return = panel_return
+
             dst = SIGNALS_DIR / f'{sid}_{date_str}.json'
             dst.write_text(json.dumps(signal, ensure_ascii=False, indent=2), encoding='utf-8')
             count += 1
