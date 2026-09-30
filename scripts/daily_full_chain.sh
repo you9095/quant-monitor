@@ -15,6 +15,19 @@
 
 set -euo pipefail
 
+# ==================== 代理禁用（2026-09-17 修复）====================
+# 根因: macOS系统代理(127.0.0.1:7890)在代理工具未运行时导致Python requests ProxyError
+# 行情API(东方财富/新浪等)均为国内可直接访问, 无需走代理
+# 方案: 在本脚本运行期间统一禁用所有代理, 不影响电脑上其他工作的代理使用
+export NO_PROXY="*"
+export no_proxy="*"
+export HTTP_PROXY=""
+export HTTPS_PROXY=""
+export http_proxy=""
+export https_proxy=""
+export ALL_PROXY=""
+export all_proxy=""
+
 # ==================== 配置 ====================
 # 强制使用Homebrew Python 3.14（有pandas 3.0.3）
 PYTHON="/usr/local/bin/python3"
@@ -134,59 +147,46 @@ run_strategies() {
     
     local failed_strategies=()
     
-    for strategy in "${STRATEGIES[@]}"; do
-        log "  → $strategy"
+    # 2026-09-19 重大修复: 改用 daily_runner_v2.py 运行5个策略
+    # 之前错误地调用棘轮回测脚本(参数优化), 现在改用真正的每日信号生成脚本
+    local DAILY_RUNNER="/Users/junze/.hermes/scripts/p7/daily_runner_v2.py"
+    
+    if [ ! -f "$DAILY_RUNNER" ]; then
+        error "  ❌ daily_runner_v2.py 不存在: $DAILY_RUNNER"
+        error "  禁止切换到模拟模式！"
+        failed_strategies+=("all")
+    else
+        log "  → 运行5策略 daily_runner_v2 (qixing/r32/zhuidian/sanhe/lightning)"
+        # 禁用代理环境变量
+        export NO_PROXY="*" no_proxy="*" HTTP_PROXY="" HTTPS_PROXY="" http_proxy="" https_proxy=""
         
-        # 根据策略选择对应的脚本
-        local strategy_script=""
-        case "$strategy" in
-            "qixing")
-                strategy_script="$STRATEGY_DIR/qixing_strategy.py"
-                ;;
-            "r32")
-                strategy_script="$QXING_STRATEGY_DIR/r32_R33_R37_ratchet.py"
-                ;;
-            "zhuidian")
-                strategy_script="$QXING_STRATEGY_DIR/zhuidian_R46_R50_ratchet.py"
-                ;;
-            "sanhe")
-                strategy_script="$QXING_STRATEGY_DIR/sanhe_R41_R45_ratchet.py"
-                ;;
-            "lightning")
-                strategy_script="$QXING_STRATEGY_DIR/lightning/lightning_engine_v1.py"
-                ;;
-            "goldcombo")
-                strategy_script="$MONITOR_DIR/strategies/goldcombo/goldcombo_ratchet_ashare.py"
-                ;;
-        esac
-        
-        # 检查策略脚本是否存在
-        if [ ! -f "$strategy_script" ]; then
-            error "  $strategy 策略脚本不存在: $strategy_script"
-            error "  禁止切换到模拟模式！"
-            error "  正确处理: 报错停止，排查策略脚本路径"
-            failed_strategies+=("$strategy")
-            continue
-        fi
-        
-        # 运行策略脚本
-        # 注意：这里需要根据实际策略脚本的接口来调用
-        # 目前策略脚本可能需要特定的参数
-        local output_dir="$WORK_LOGS_DIR/$strategy"
-        mkdir -p "$output_dir"
-        
-        # 运行策略（使用正确的Python环境）
-        if "$PYTHON" "$strategy_script" --date "$TODAY" --output "$output_dir" 2>>"$LOG_FILE"; then
-            log "  ✅ $strategy 运行成功"
+        if "$PYTHON" "$DAILY_RUNNER" --date "$TODAY" --strategy all --skip-fetch 2>>"$LOG_FILE"; then
+            log "  ✅ 5策略 daily_runner_v2 运行成功"
         else
-            # 策略运行失败 - 核心修复：报错停止，不生成假数据
-            error "  ❌ $strategy 运行失败"
-            error "  禁止切换到模拟模式！禁止用random.uniform()生成假数据！"
-            error "  正确处理: 保持上日数据，报错通知，排查失败原因"
-            failed_strategies+=("$strategy")
-            # 不退出，继续运行其他策略，但记录失败
+            error "  ❌ daily_runner_v2 运行失败"
+            error "  禁止切换到模拟模式！"
+            failed_strategies+=("r32" "zhuidian" "sanhe" "lightning" "qixing")
         fi
-    done
+    fi
+    
+    # goldcombo(黄金组合A策略) 单独运行 (不在 daily_runner_v2 中)
+    log "  → goldcombo(黄金组合A策略)"
+    local goldcombo_script="$MONITOR_DIR/strategies/goldcombo/goldcombo_ratchet_ashare.py"
+    local output_dir="$WORK_LOGS_DIR/goldcombo"
+    mkdir -p "$output_dir"
+    
+    if [ ! -f "$goldcombo_script" ]; then
+        error "  ❌ goldcombo 策略脚本不存在: $goldcombo_script"
+        failed_strategies+=("goldcombo")
+    else
+        # goldcombo 有argparse但不支持 --date, 只传 --output-path
+        if "$PYTHON" "$goldcombo_script" --output-path "$output_dir/goldcombo_${TODAY}.json" 2>>"$LOG_FILE"; then
+            log "  ✅ goldcombo 运行成功"
+        else
+            error "  ❌ goldcombo 运行失败"
+            failed_strategies+=("goldcombo")
+        fi
+    fi
     
     # 报告失败的策略
     if [ ${#failed_strategies[@]} -gt 0 ]; then
@@ -214,6 +214,35 @@ bridge_worklogs() {
     else
         error "  桥接失败"
         exit 1
+    fi
+
+    # 2026-09-17 新增: 信号新鲜度验证 - 确保桥接后所有策略信号日期=当天
+    log "  --- 信号新鲜度验证 ---"
+    local stale_strategies=()
+    for strategy in "${STRATEGIES[@]}"; do
+        local signal_file="$SIGNALS_DIR/${strategy}_${TODAY}.json"
+        if [ ! -f "$signal_file" ]; then
+            error "  ❌ $strategy: 当天信号文件不存在: $signal_file"
+            stale_strategies+=("$strategy")
+            continue
+        fi
+        local sig_date=$("$PYTHON" -c "
+import json
+with open('$signal_file') as f:
+    d = json.load(f)
+print(d.get('date', d.get('signal_date', 'UNKNOWN')))
+" 2>/dev/null)
+        if [ "$sig_date" = "$TODAY" ]; then
+            log "  ✅ $strategy: signal_date=$sig_date"
+        else
+            error "  ❌ $strategy: signal_date=$sig_date ≠ $TODAY (数据陈旧!)"
+            stale_strategies+=("$strategy")
+        fi
+    done
+    if [ ${#stale_strategies[@]} -gt 0 ]; then
+        error "  ⚠️  以下策略信号陈旧: ${stale_strategies[*]}"
+        error "  请检查桥接脚本和策略运行日志"
+        # 不退出，因为数据可能仍然可用，但需要告警
     fi
 }
 
