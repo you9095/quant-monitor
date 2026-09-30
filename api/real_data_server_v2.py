@@ -177,6 +177,10 @@ def fetch_realtime_prices():
 def cors(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    # 2026-09-14: 禁止浏览器缓存，确保每次修改后手机端/PC端都能立即看到最新内容
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
     return response
 
 @app.route('/api/v1/strategies')
@@ -219,21 +223,26 @@ def get_dashboard_overview():
 
     strategies_data = []
     total_asset = 0
+    active_count = 0  # 2026-09-20: 仅统计真实在跑每日模拟(live_days>0)的策略
+    active_init = 0.0  # 2026-09-21: 在跑策略真实本金合计（5 个 ETF 各 1 万 + 黄金组合A 5 万）
 
     for sid, cfg in strategies_config.items():
         signal = get_latest_signal(sid)
         init_cap = cfg.get('initial_capital', 10000)
         holdings = []
 
+        # 2026-09-20 真实性根治: 仅 live_days>0 才算"在跑真实每日模拟"。
+        # 回测收益(backtest_total_return)绝不折算成实盘盈亏/资产——黄金组合A策略只有棘轮回测、live_days=0。
+        live_days_cnt = (signal.get('live_days', 0) or 0) if signal else 0
+        live_active = live_days_cnt > 0
         if signal:
             positions = signal.get('positions', [])
-            # P0 修复 (2026-07-22): 改用真实累计盈亏 + 真实 qty + 真实成本价,不再用模拟价格和缩放
+            # P0 修复 (2026-07-22): 改用真实累计盈亏 + 真实 qty + 真实成本价
             live_total_pnl = signal.get('live_total_pnl', 0) or 0
-            # 2026-08-14 主 agent 接管修复: 黄金组合A 实盘未启动, 用 backtest_total_return 计算等效 pnl
-            if live_total_pnl == 0 and signal.get('backtest_total_return'):
-                bt_ret = signal.get('backtest_total_return', 0)
-                live_total_pnl = round(init_cap * bt_ret / 100, 2)
-            asset = init_cap + live_total_pnl  # 真实总资产 = 本金 + 真实累计盈亏
+            if live_active:
+                asset = init_cap + live_total_pnl  # 真实总资产 = 本金 + 真实累计盈亏
+            else:
+                asset = 0  # 未启动每日模拟 → 不持有实盘资产, 留空
 
             for pos in positions:
                 code = pos.get('code', '')
@@ -269,26 +278,28 @@ def get_dashboard_overview():
                 h['weight'] = round(h['quantity'] * h['current_price'] / asset * 100, 2) if asset > 0 else 0
             cash = max(0, asset - total_holding_value)  # P0 修复: 用真实 asset 算 cash
 
-            total_asset += asset
+            if live_active:
+                total_asset += asset
+                active_count += 1
+                active_init += init_cap
         else:
-            asset = init_cap
-            cash = init_cap
-            total_asset += asset
+            asset = 0
+            cash = 0
         init_cap = cfg.get('initial_capital', 10000)
         # P0 修复 (2026-07-22): 优先从 live_total_return 读, fallback 到 total_return, 避免全是 0
         # 2026-08-14 主 agent 接管修复: 加 backtest_total_return 兜底 (黄金组合A 实盘未启动)
-        if signal:
-            # 2026-09-10 修复: _normalize_return_pct 自动检测小数/百分比格式 (8-31 模拟模式 bug 防御)
-            raw_tr = (signal.get('live_total_return', 0) or signal.get('total_return', 0)
-                  or signal.get('backtest_total_return', 0) or 0)
-            tr = live_module._normalize_return_pct(raw_tr)
+        if signal and live_active:
+            # 2026-09-20: 实盘收益只取 live/total_return; 不再用 backtest_total_return 兜底冒充
+            raw_tr = (signal.get('live_total_return', 0) or signal.get('total_return', 0) or 0)
+            # 2026-09-21: signal 显式 return_unit='percent' 时直接信任, 不用"绝对值<1 即小数"启发式
+            tr = float(raw_tr) if signal.get('return_unit') == 'percent' else live_module._normalize_return_pct(raw_tr)
         else:
-            tr = 0
+            tr = 0  # 未启动每日模拟 → 实盘收益留空; 回测值仅存于 backtest_total_return 字段
         # 年化: 用 live_total_return × (252 / live_days) 估算
         live_days = signal.get('live_days', 252) if signal else 252
         live_days = live_days if live_days and live_days > 0 else 252
         ann_return = round(tr * (252 / live_days), 2)
-        if signal and signal.get('annualized_return'):
+        if signal and live_active and signal.get('annualized_return'):
             ann_return = signal.get('annualized_return')
         # 三层标签：version + data_period + caliber
         # TC-DT-05 修复：优先从 config/strategies.json 读取，signal 作为兜底
@@ -298,7 +309,15 @@ def get_dashboard_overview():
         caliber = cfg.get('caliber', '未指定')  # 始终从 config 读
         # 占位标记：signal 文件含 _placeholder 时显式提示
         is_placeholder = bool(signal and signal.get('_placeholder'))
-        status_label = 'placeholder' if is_placeholder else ('running' if signal else 'waiting')
+        # 2026-09-20: live_days=0(仅有回测、未启动每日模拟) → not_started, 不冒充"运行中"
+        if is_placeholder:
+            status_label = 'placeholder'
+        elif live_active:
+            status_label = 'running'
+        elif signal:
+            status_label = 'not_started'
+        else:
+            status_label = 'waiting'
         strategies_data.append({
             'strategy_id': sid,
             'strategy_name': cfg.get('name', sid),
@@ -315,16 +334,16 @@ def get_dashboard_overview():
             'live_total_return': signal.get('live_total_return') if signal else None,
             'live_days': signal.get('live_days') if signal else None,
             'live_start_date': signal.get('live_start_date') if signal else None,
-            'initial_capital': signal.get('initial_capital') if signal else cfg.get('initial_capital', 10000),
+            'initial_capital': (signal.get('initial_capital') if live_active else 0) if signal else 0,
             # 回测保留字段
             'backtest_total_return': signal.get('backtest_total_return') if signal else None,
-            'position_ratio': 1.0,
+            'position_ratio': 1.0 if live_active else 0.0,
             'cash': round(cash, 2),  # P0 修复: 用真实 asset - 当前持仓市值, 不再用初始资金
             'holdings': holdings,
             # P0 修复 (2026-07-22): 优先从 backtest_* 读, 没有再 fallback
-            'sharpe_ratio': signal.get('backtest_sharpe', 0) or 0 if signal else 0,
-            'max_drawdown': signal.get('backtest_max_drawdown', 0) or 0 if signal else 0,
-            'trades_count': signal.get('backtest_trades', 0) or 0 if signal else 0,
+            'sharpe_ratio': (signal.get('backtest_sharpe', 0) or 0) if (signal and live_active) else 0,
+            'max_drawdown': (signal.get('backtest_max_drawdown', 0) or 0) if (signal and live_active) else 0,
+            'trades_count': (signal.get('backtest_trades', 0) or 0) if (signal and live_active) else 0,
             # 三层标签
                     'version_tag': version_tag,
                     'data_period': data_period,
@@ -343,7 +362,11 @@ def get_dashboard_overview():
         'data': {
             'strategies': strategies_data,
             'combined': {
-                'total_return': round((total_asset - len(strategies_config) * 10000) / (len(strategies_config) * 10000) * 100, 2),
+                # 2026-09-21: 组合按各在跑策略真实本金合计（5 个 ETF 各 1 万 + 黄金组合A 5 万），
+                # 不含仅有回测、未启动每日模拟的策略
+                'active_count': active_count,
+                'initial_capital': round(active_init, 2),
+                'total_return': round((total_asset - active_init) / active_init * 100, 2) if active_init else 0,
                 'total_asset': round(total_asset, 2)
             },
             # 2026-09-12 数据告警摘要
@@ -739,53 +762,69 @@ def dashboard_daily_pnl_trend():
 
         # 1) 收集每个策略的 daily log 文件路径
         # P9 E (2026-07-04): 用 extract_date_from_filename 处理 _fusion 后缀 + 跳过 baseline
-        strategy_files = {}  # sid -> [(date, daily_pnl), ...]
+        # 2026-09-20 数据真实性根治:
+        #   - session 用 endswith 兼容 fusion_afternoon/fusion_morning (qixing 走 fusion 切片)
+        #   - 同一日期 _fusion 优先于普通日志(普通日志可能是单日直跑、total=0)
+        #   - 只接受含真实 daily_pnl session 的日志; goldcombo(黄金组合A)是棘轮回测报告(无 session),
+        #     绝不用 lines[0] 兜底把回测报告当每日日志 → 否则被填一串 0 假装在运行
+        strategy_files = {}  # sid -> {date: pnl}
         all_dates = set()
         for sid in names.keys():
             sid_dir = WORK_LOG_DIR / sid
-            if not sid_dir.exists():
-                strategy_files[sid] = []
-                continue
-            entries = []
-            for log_file in sorted(sid_dir.glob(f'{sid}_2026-*.json')):
-                # 跳过 baseline（A/B 对照的对照组）
-                if is_baseline_log(log_file.name, sid):
-                    continue
-                date_str = extract_date_from_filename(log_file.name, sid)
-                all_dates.add(date_str)
-                # 取 afternoon session 的 daily_pnl.total
-                try:
-                    with open(log_file) as f:
-                        lines = [json.loads(l) for l in f if l.strip()]
-                    afternoon = next((l for l in lines if l.get('session') == 'afternoon'), None)
-                    morning = next((l for l in lines if l.get('session') == 'morning'), None)
-                    target = afternoon or morning or lines[0] if lines else None
-                    if target:
-                        pnl = target.get('daily_pnl', {}).get('total', 0)
-                        entries.append((date_str, pnl))
-                except Exception:
-                    continue
-            strategy_files[sid] = entries
+            date_pnl = {}   # date -> (is_fusion, pnl)
+            if sid_dir.exists():
+                for log_file in sorted(sid_dir.glob(f'{sid}_2026-*.json')):
+                    if is_baseline_log(log_file.name, sid):
+                        continue
+                    date_str = extract_date_from_filename(log_file.name, sid)
+                    try:
+                        with open(log_file) as f:
+                            lines = [json.loads(l) for l in f if l.strip()]
+                    except Exception:
+                        continue  # 非 JSONL(如 goldcombo 棘轮回测 pretty JSON) 直接跳过
+                    afternoon = next((l for l in lines if str(l.get('session','')).endswith('afternoon')), None)
+                    morning = next((l for l in lines if str(l.get('session','')).endswith('morning')), None)
+                    target = afternoon or morning
+                    if not target or not isinstance(target.get('daily_pnl'), dict):
+                        continue  # 无真实每日 session(回测报告/占位) → 不计入
+                    is_fusion = '_fusion' in log_file.name
+                    # 2026-09-20: 同时取引擎 total(当日盈亏) 与 cumulative(累计盈亏),
+                    # cumulative 直接来自回测引擎、与 live_curves/卡片完全同口径,
+                    # 不再由后端逐日累加 total(每日独立切片, 累加会与引擎累计值产生偏差)
+                    day_total = target['daily_pnl'].get('total', 0) or 0
+                    day_cum = target['daily_pnl'].get('cumulative')
+                    prev = date_pnl.get(date_str)
+                    if prev is None or (is_fusion and not prev[0]):
+                        date_pnl[date_str] = (is_fusion, day_total, day_cum)
+            # 仅有真实每日数据的策略才纳入, 并贡献交易日历
+            if date_pnl:
+                strategy_files[sid] = {d: (v[1], v[2]) for d, v in date_pnl.items()}
+                all_dates.update(date_pnl.keys())
 
-        # 2) 对齐日期：取最近 N 天有数据的日期
+        # 2) 对齐日期：取最近 N 天有数据的日期（全部为真实交易日, 周末/缺失日不在此集合）
         sorted_dates = sorted(all_dates)
         if len(sorted_dates) > days:
             sorted_dates = sorted_dates[-days:]
 
-        # 3) 对每个策略，按日期补 0（P&L 缺失的日期补 0）
+        # 3) 对每个【有真实每日数据】的策略输出序列; 无每日数据(如 goldcombo)不输出、不补 0
         strategies_data = {}
         for sid in names.keys():
-            data_map = dict(strategy_files.get(sid, []))
-            data_series = [data_map.get(d, 0.0) for d in sorted_dates]
-
+            if sid not in strategy_files:
+                continue  # 黄金组合A策略未接入每日模拟 → 留空, 不画 0 线
+            data_map = strategy_files[sid]
+            # 缺失交易日一律 null(图表断线留空), 不补 0、不前向填充(禁止假数据)
             if cumulative:
-                # 累加：从 0 开始，逐日累加
-                cum_series = []
-                running = 0.0
-                for v in data_series:
-                    running += v
-                    cum_series.append(round(running, 2))
-                data_series = cum_series
+                # 累计模式: 直接采用引擎 cumulative 字段(与收益曲线/策略卡同口径)
+                data_series = [
+                    round(data_map[d][1], 2) if (d in data_map and data_map[d][1] is not None) else None
+                    for d in sorted_dates
+                ]
+            else:
+                # 单日模式: 引擎当日盈亏 total
+                data_series = [
+                    round(data_map[d][0], 2) if d in data_map else None
+                    for d in sorted_dates
+                ]
 
             strategies_data[sid] = {
                 'name': names[sid],
@@ -793,10 +832,8 @@ def dashboard_daily_pnl_trend():
                 'data': data_series,
             }
 
-        # 4) KPI 状态
-        all_have_data = all(
-            len(strategy_files.get(sid, [])) > 0 for sid in names.keys()
-        )
+        # 4) KPI 状态（只统计有真实每日数据的策略）
+        all_have_data = len(strategies_data) > 0
 
         return jsonify({
             'code': 0,
@@ -1228,9 +1265,21 @@ def dashboard_ab_comparison():
             summary = json_mod.load(f)
 
         # KPI 统计
+        # 2026-09-20 fix: daily_runner 把 winner 写在 diff.winner（非顶层），
+        # 相等时原代码还误判 baseline；改为直接依据 grid/baseline 累计值判定，最可靠。
+        def _ab_winner(data):
+            gm = (data.get('grid_mode') or {}).get('cumulative')
+            bl = (data.get('baseline') or {}).get('cumulative')
+            if gm is not None and bl is not None:
+                if gm > bl:
+                    return 'grid_mode'
+                if bl > gm:
+                    return 'baseline'
+                return 'tie'
+            return data.get('winner') or (data.get('diff') or {}).get('winner')
         kpi = {'grid_wins': 0, 'baseline_wins': 0, 'ties': 0, 'note': 'P9-D A/B 对照'}
         for sid, data in summary.get('strategies', {}).items():
-            w = data.get('diff', {}).get('winner')
+            w = _ab_winner(data)
             if w == 'grid_mode':
                 kpi['grid_wins'] += 1
             elif w == 'baseline':
@@ -1258,7 +1307,12 @@ def dashboard_ab_comparison():
                         h = json_mod.load(fp)
                     hkpi = {'grid_wins': 0, 'baseline_wins': 0, 'ties': 0}
                     for sid, data in h.get('strategies', {}).items():
-                        w = data.get('diff', {}).get('winner')
+                        gm = (data.get('grid_mode') or {}).get('cumulative')
+                        bl = (data.get('baseline') or {}).get('cumulative')
+                        if gm is not None and bl is not None:
+                            w = 'grid_mode' if gm > bl else ('baseline' if bl > gm else 'tie')
+                        else:
+                            w = data.get('winner') or (data.get('diff') or {}).get('winner')
                         if w == 'grid_mode':
                             hkpi['grid_wins'] += 1
                         elif w == 'baseline':

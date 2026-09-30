@@ -132,7 +132,9 @@ def fetch_data_stub(period_years: int = 2):
             "  安装: pip install pandas numpy"
         )
     
-    np.random.seed(42)
+    # [2026-09-20 永久禁用] 随机K线属于假数据, 任何情况下不得生成
+    raise SystemExit("[goldcombo] fetch_data_stub 随机行情已永久禁用（非真实数据）; 真实回测走 goldcombo_ratchet_ashare.py")
+    np.random.seed(42)  # noqa: unreachable
     end = datetime(2026, 8, 12)
     start = end - timedelta(days=period_years * 365)
     dates = pd.date_range(start, end, freq='D')
@@ -219,10 +221,17 @@ def write_signal_placeholder(
 
 def run_stub_backtest(period_years: int = 2, output_dir: str | None = None) -> int:
     """
-    M01 集成阶段: 跑 1 次 stub backtest (验证 backtrader 框架 + 4 指标 + 入场/出场/止损逻辑)
-    真实回测由 cron 8/13 01:30 启动后用真实数据源跑
+    [2026-09-20 永久禁用] 本函数原使用 np.random 生成【随机K线】跑 stub 回测,
+    产出的是 synthetic 假行情结果, 违背"基于真实行情模拟交易"最高原则。
+    黄金组合A策略(goldcombo)的真实回测唯一入口为
+    strategies/goldcombo/goldcombo_ratchet_ashare.py（A股池真实K线棘轮回测）。
+    此处直接拒绝运行, 防止任何 cron/人工误调用产出假数据污染监控面板。
     """
-    bt = _import_backtrader()
+    raise SystemExit(
+        "[goldcombo] run_goldcombo_backtest.py 随机 stub 回测已永久禁用（非真实行情）。\n"
+        "  黄金组合A策略真实回测请用: strategies/goldcombo/goldcombo_ratchet_ashare.py"
+    )
+    bt = _import_backtrader()  # noqa: unreachable
     GoldComboStrategy = _build_strategy_class()
     
     initial_capital = 10000.0

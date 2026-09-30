@@ -85,12 +85,46 @@
 
 ---
 
+## 规则 7：快照永久禁止 · 回测与实盘严格分离 · 未启动留空 · 交易日连续（2026-09-20 立）
+
+**"基于真实行情的模拟交易"是本项目最高优先级、不可妥协的核心 KPI。快照机制已被证实是长期数据混乱的唯一根源，即日起永久禁止；回测与每日实盘模拟必须严格分离。**
+
+### 7.1 快照（把旧数据假装成当日数据）永久禁止
+- ❌ 禁止任何形式的快照、前向填充（forward-fill）、线性插值、`signal_fallback`、用历史信号冒充当日信号
+- ❌ 禁止"数据缺失时沿用最近一天"来制造"每天都有数据"的假象；**没有真实数据就留空（null / 不画点 / 不计入组合），不留任何快照信息**
+- 真实每日数据的唯一来源是 `~/.hermes/work_logs/<sid>/<sid>_YYYY-MM-DD.json`（七星用 `_fusion`），曲线 builder 只能读 work_logs，零插值
+- 已删除：`live_data.py` 的 `_linear_interpolate`/`_date_to_ts`/`signal_fallback` 分支、goldcombo evidence 回测净值冒充曲线的死代码（`_build_goldcombo_curve_from_evidence`/`_load_goldcombo_evidence`）
+
+### 7.2 回测与实盘严格分离，回测值永远不得冒充实盘
+- 棘轮回测脚本（`run_backtest()` / `*_ratchet_*.py`）只服务于策略参数迭代；**每日信号生成只能由每日调度脚本 `daily_runner_v2.py` 切片跑当日真实 K 线产出**，二者不得互相拿结果填充对方字段
+- ❌ 禁止在 `live_total_pnl==0` 时用 `backtest_total_return` 折算"等效实盘盈亏/市值"；实盘收益率只取 `live_total_return`/`total_return`，绝不用回测兜底
+- ❌ 禁止把回测本金（如 goldcombo 的 100K）、回测交易笔数、回测夏普/回撤/收益显示在实盘卡片、组合汇总、实盘曲线的任何"实盘数字位"
+- 回测板块（OOS / WFA / 参数稳定性）标题必须标明"回测/样本外"，属正当回测展示，不得混入实盘口径
+
+### 7.3 未启动每日模拟的策略彻底归零留空
+- `live_days==0`（只有棘轮回测、未接入每日模拟，如 goldcombo 黄金组合A）的策略：`status=not_started`，资产/现金/收益/年化/仓位/本金/交易笔数/夏普/回撤全部为 0，**不计入组合总资金、初始资金、active_count、分母**
+- 卡片显示灰色"未启动"徽章、盈亏区显示"— / 未启动每日模拟·仅有棘轮回测（回测不进入实盘）"，不得显示绿色"运行中"或回测本金/交易数
+- 是否为其接入真实每日信号或彻底移出实盘面板，须由用户明确决策，Agent 不得自行用回测值占位
+
+### 7.4 交易日连续性与缺口审计
+- 真实交易日历以 `~/qixing_data/etf_kline/510300.csv` 为准；每个在跑策略的 work_logs 必须覆盖日历内全部交易日，**零缺口、零 0 字节、周末不误跑**
+- 补齐缺口必须用"当前上线参数 + 固定 1 万本金 + 真实历史 K 线"经 `daily_runner_v2.py --date D --skip-fetch` 重跑，补齐后跑 `rebuild_signals_from_worklogs.py` 全量重建信号，并验证：每日盈亏累计末值 == live_curves 末值 − 1 万本金
+- 防断更三件套必须有效：`rebuild_signals_from_worklogs.py`、`daily_catchup_runner.sh`（逐日校验非空且含 afternoon、七星查 _fusion）、launchd 定时（工作日 catchup + 周五 23:00 K 线更新）；节后首个交易日必须核验是否自动产出
+
+### 7.5 真实性自检（每次改动后必跑，证据留痕）
+1. 组合 `active_count` 只数 `live_days>0` 的策略；初始资金 = active_count × 10000
+2. 每条曲线 `data_source` 唯一为 `work_logs`；出现 `signal_fallback`/`evidence`/插值即报 🚫 异常
+3. 每个策略 work_logs 交易日数 == 交易日历天数；累计末值三处自洽（work_logs / live_curves / 组合分项）
+4. 桌面端 + 316px 真机视口（CDP `Emulation.setDeviceMetricsOverride`，参数须关键字传）双截图验收，截图放 `screenshots/` 经 Tailscale URL 供手机核对
+
+---
+
 ## 违规处理
 
 1. 任何 AI Agent / 脚本违反以上规则，必须立即停止操作并回滚
-2. 违反规则 2（模拟模式）和规则 5（覆盖累计数据）是最高级别的 P0 事故，必须立即修复并记录到 `POSTMORTEM_*.md`
+2. 违反规则 2（模拟模式）、规则 5（覆盖累计数据）、规则 7（快照/回测冒充实盘/未启动占位）是最高级别的 P0 事故，必须立即修复、根因复盘并记录到 `POSTMORTEM_*.md` 与工作日志
 3. 本文件本身的修改也需要用户明确许可
 
 ---
 
-*本规则由用户于 2026-09-11 确立，AI Agent 在本项目中的所有操作必须严格遵守。*
+*本规则由用户于 2026-09-11 确立（规则 1–6），2026-09-20 增补规则 7（快照永久禁止·回测/实盘分离）。AI Agent 在本项目中的所有操作必须严格遵守。*
