@@ -46,3 +46,4 @@ strategies/goldcombo/ratchet_backup_*.json
 assets/data.js.bak.*
 review/*.json
 results/*.json
+live-data/

@@ -240,25 +240,94 @@ def get_strategies():
         'data': {'strategies': strategies}
     })
 
+def build_live_overview():
+    """组装实盘视图数据：读取 macOS 从 GitHub 拉取的 live-data/latest/*.json
+    这些是 Windows 端真实运行产生的数据；目录为空时返回空状态。"""
+    live_dir = Path(__file__).parent.parent / 'live-data' / 'latest'
+    strategies = []
+    total_asset = 0.0
+    total_init = 0.0
+    total_pnl = 0.0
+    if live_dir.exists():
+        for f in sorted(live_dir.glob('*.json')):
+            try:
+                d = json.loads(f.read_text(encoding='utf-8'))
+            except Exception:
+                continue
+            init = d.get('initial_capital', 10000) or 10000
+            pnl = d.get('live_total_pnl', 0) or 0
+            asset = init + pnl
+            total_asset += asset
+            total_init += init
+            total_pnl += pnl
+            positions = []
+            for pos in d.get('positions', []):
+                qty = pos.get('qty', 0) or 0
+                if qty <= 0:
+                    continue
+                cost = pos.get('cost', 0) or 0
+                price = pos.get('current_price', cost) or cost
+                positions.append({
+                    'code': pos.get('code', ''), 'name': pos.get('name', ''),
+                    'quantity': qty, 'cost_price': cost, 'current_price': price,
+                    'pnl': (price - cost) * qty, 'weight': pos.get('weight', 0)
+                })
+            action = d.get('action', {}) or {}
+            strategies.append({
+                'strategy_id': d.get('strategy_id', f.stem),
+                'strategy_name': d.get('strategy_name', f.stem),
+                'status': 'active',
+                'today_action': action.get('type', 'HOLD'),
+                'today_pnl': d.get('today_pnl', 0),
+                'today_return': d.get('today_return', 0),
+                'total_asset': asset,
+                'total_return': d.get('live_total_return', 0),
+                'total_pnl': pnl,
+                'initial_capital': init,
+                'live_total_pnl': pnl,
+                'live_total_return': d.get('live_total_return', 0),
+                'live_days': d.get('live_days', 0),
+                'positions': positions,
+                'backtest_total_return': None, 'sharpe_ratio': None,
+                'max_drawdown': None, 'trades_count': 0,
+            })
+
+    has_data = len(strategies) > 0
+    if has_data:
+        label = f'实盘运行数据（Windows，{total_asset:.0f} 元）— 不连接任何真实券商'
+        note = '来自 Windows 端每日运行引擎，经 GitHub 同步回 macOS；与模拟盘历史数据物理隔离。'
+    else:
+        label = '实盘 — 尚未开始运行，暂无数据'
+        note = '实盘数据从 Windows 端每日引擎运行之日起开始记录。macOS 执行 scripts/sync_live_data.py pull 后即可看到 Windows 实盘数据。'
+    return {
+        'data_mode': 'live',
+        'data_nature': 'live',
+        'data_nature_label': '实盘运行数据（Windows 本机引擎）',
+        'data_nature_note': note,
+        'data_mode_label': label,
+        'strategies': strategies,
+        'combined': {
+            'active_count': len(strategies),
+            'initial_capital': total_init,
+            'total_return': (total_pnl / total_init * 100) if total_init > 0 else 0,
+            'total_asset': total_asset,
+            'total_pnl': total_pnl,
+        },
+        'alerts_summary': {'critical': 0, 'warning': 0, 'info': 0},
+        'update_time': datetime.now().isoformat()
+    }
+
+
 @app.route('/api/v1/dashboard/overview')
 def get_dashboard_overview():
     data_mode = request.args.get('data_mode', 'simulator')
-    # 实盘模式：本机模拟引擎尚未开始运行，返回空数据 + 明确标注
+    # 实盘模式：读取 macOS 从 GitHub 拉下来的 live-data/latest/（Windows 真实运行数据）
     if data_mode == 'live':
+        live_data = build_live_overview()
         return jsonify({
             'code': 0,
             'message': 'success',
-            'data': {
-                'data_mode': 'live',
-                'data_nature': 'live',
-                'data_nature_label': '实盘运行数据（本机模拟引擎）',
-                'data_nature_note': '实盘从本机模拟引擎正式运行之日起开始记录，不包含任何历史模拟盘数据，也不连接任何真实券商。当前尚未开始运行，故无数据。',
-                'data_mode_label': '实盘 — 尚未开始运行，暂无数据',
-                'strategies': [],
-                'combined': {'active_count': 0, 'initial_capital': 0, 'total_return': 0, 'total_asset': 0},
-                'alerts_summary': {'critical': 0, 'warning': 0, 'info': 0},
-                'update_time': datetime.now().isoformat()
-            }
+            'data': live_data
         })
     strategies_config = load_strategies()
     # C 修复 (2026-08-02): 恢复腾讯行情调用,加 try/except 防崩溃 + 价格缓存
