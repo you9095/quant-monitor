@@ -243,14 +243,17 @@ def get_strategies():
 @app.route('/api/v1/dashboard/overview')
 def get_dashboard_overview():
     data_mode = request.args.get('data_mode', 'simulator')
-    # 实盘模式：Windows 端未部署，返回空数据 + 明确标注
+    # 实盘模式：本机模拟引擎尚未开始运行，返回空数据 + 明确标注
     if data_mode == 'live':
         return jsonify({
             'code': 0,
             'message': 'success',
             'data': {
                 'data_mode': 'live',
-                'data_mode_label': '实盘（xtquant）— Windows 端未部署，暂无数据',
+                'data_nature': 'live',
+                'data_nature_label': '实盘运行数据（本机模拟引擎）',
+                'data_nature_note': '实盘从本机模拟引擎正式运行之日起开始记录，不包含任何历史模拟盘数据，也不连接任何真实券商。当前尚未开始运行，故无数据。',
+                'data_mode_label': '实盘 — 尚未开始运行，暂无数据',
                 'strategies': [],
                 'combined': {'active_count': 0, 'initial_capital': 0, 'total_return': 0, 'total_asset': 0},
                 'alerts_summary': {'critical': 0, 'warning': 0, 'info': 0},
@@ -613,6 +616,12 @@ def get_nav_curves():
 @app.route('/api/v1/dashboard/live_curves')
 def dashboard_live_curves():
     """五策略实盘模拟累计曲线（2026-05-25 → 今）"""
+    # 实盘模式：尚未开始运行，返回空曲线
+    if request.args.get('data_mode') == 'live':
+        return jsonify({'code': 0, 'message': 'success', 'data': {
+            'curves': {}, 'days': 0, 'start_date': None, 'end_date': None,
+            'strategy_ids': [], 'data_mode': 'live',
+            'validation_note': '实盘尚未开始运行，暂无数据'}})
     try:
         data = live_module.get_live_curves()
         return jsonify({'code': 0, 'message': 'success', 'data': data})
@@ -628,6 +637,13 @@ def dashboard_live_curves():
 
 def dashboard_portfolio_summary():
     """组合总览：总资金 / 初始资金 / 总盈亏 / 各策略分项"""
+    # 实盘模式：尚未开始运行，返回零值
+    if request.args.get('data_mode') == 'live':
+        return jsonify({'code': 0, 'message': 'success', 'data': {
+            'initial_capital': 0, 'total_value': 0, 'total_pnl': 0,
+            'total_return_pct': 0, 'per_strategy': {}, 'live_start_date': None,
+            'data_mode': 'live',
+            'update_time': datetime.now().isoformat()}})
     try:
         data = live_module.get_portfolio_summary()
         return jsonify({'code': 0, 'message': 'success', 'data': data})
@@ -643,6 +659,11 @@ def dashboard_portfolio_summary():
 
 def dashboard_today_actions_all():
     """今日交易流程（五策略汇总）"""
+    # 实盘模式：尚未开始运行，返回空动作
+    if request.args.get('data_mode') == 'live':
+        return jsonify({'code': 0, 'message': 'success', 'data': {
+            'date': datetime.now().strftime('%Y-%m-%d'),
+            'strategies': {}, 'data_mode': 'live'}})
     try:
         data = live_module.get_today_actions()
         # 2026-09-12 修复: 不再强制 signal_date = today, 使用信号文件真实日期

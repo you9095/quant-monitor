@@ -270,12 +270,13 @@ const DataLayer = {
     }
   },
 
-  // 获取数据（模拟/API切换）
+  // 获取数据（模拟/实盘切换）
   async fetchStrategies() {
-    // 始终优先调用真实API（real_data_server）
-    console.log('[2026-08-09 DEBUG] fetchStrategies called, apiBase=', this.config.apiBase);
+    // 读取当前数据模式（模拟盘/实盘），默认模拟盘
+    const dataMode = localStorage.getItem('data_mode') || 'simulator';
+    console.log('[DEBUG] fetchStrategies called, apiBase=', this.config.apiBase, 'data_mode=', dataMode);
     try {
-      const res = await fetch(`${this.config.apiBase}/dashboard/overview`);
+      const res = await fetch(`${this.config.apiBase}/dashboard/overview?data_mode=${dataMode}`);
       console.log('[DEBUG] fetch res status=', res.status, 'ok=', res.ok);
       const result = await res.json();
       console.log('[DEBUG] fetch result code=', result?.code, 'strategies=', result?.data?.strategies?.length);

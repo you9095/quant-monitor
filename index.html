@@ -1736,9 +1736,9 @@ body {
 </head>
 <body>
 
-<!-- 数据模式横幅（实盘未部署时显示） -->
+<!-- 数据模式横幅（实盘未开始运行时显示） -->
 <div id="data-mode-banner" class="data-mode-banner" style="display:none">
-  <span id="data-mode-banner-text">💹 实盘数据视图 — Windows 端未部署，暂无实盘数据</span>
+  <span id="data-mode-banner-text">💹 实盘数据视图 — 实盘尚未开始运行，暂无数据（实盘从本机模拟引擎正式运行之日起记录，不含历史模拟盘数据）</span>
 </div>
 
 <!-- 顶部栏 -->
@@ -2202,8 +2202,8 @@ async function renderAll(data) {
   // v1.1 (2026-06-26): 预取实盘模拟总览 + 今日动作，让卡片可以读到
   try {
     const [psRes, taRes] = await Promise.all([
-      fetch(`${DataLayer.config.apiBase}/dashboard/portfolio_summary`).then(r => r.json()).catch(() => null),
-      fetch(`${DataLayer.config.apiBase}/dashboard/today_actions_all`).then(r => r.json()).catch(() => null),
+      fetch(window.apiUrl(`${DataLayer.config.apiBase}/dashboard/portfolio_summary`)).then(r => r.json()).catch(() => null),
+      fetch(window.apiUrl(`${DataLayer.config.apiBase}/dashboard/today_actions_all`)).then(r => r.json()).catch(() => null),
     ]);
     if (psRes && psRes.code === 0) {
       window.__portfolioPerStrategy = psRes.data.per_strategy || {};
@@ -2337,7 +2337,19 @@ function renderStrategyCards(strategies) {
   if (!container) return;
   const filtered = strategies || [];
   if (filtered.length === 0) {
-    container.innerHTML = '<div class="col-12" style="text-align:center;color:var(--text-muted);padding:48px">暂无正在运行的策略数据</div>';
+    const mode = localStorage.getItem('data_mode') || 'simulator';
+    if (mode === 'live') {
+      container.innerHTML = '<div class="col-12" style="text-align:center;padding:60px 24px;border:1px dashed var(--border-color);border-radius:12px;margin:12px;background:rgba(239,68,68,0.04)">'
+        + '<div style="font-size:40px;margin-bottom:16px">💹</div>'
+        + '<div style="font-size:18px;font-weight:600;color:var(--text-primary);margin-bottom:8px">实盘尚未开始运行，暂无数据</div>'
+        + '<div style="font-size:13px;color:var(--text-muted);line-height:1.8;max-width:560px;margin:0 auto">'
+        + '实盘数据从本机模拟引擎正式运行之日起开始记录，不会包含任何历史模拟盘数据。<br>'
+        + '当前为全新安装（2026-10-02），尚未产生任何实盘成交、对账单或盈亏。<br>'
+        + '配置并启动每日运行任务后，此处才会逐步积累真实运行数据。'
+        + '</div></div>';
+    } else {
+      container.innerHTML = '<div class="col-12" style="text-align:center;color:var(--text-muted);padding:48px">暂无正在运行的策略数据</div>';
+    }
     return;
   }
 
@@ -2594,7 +2606,7 @@ const __cardCurveCharts = {};   // sid -> Chart 实例 (切回今日动作时 de
 
 async function fetchLiveCurvesOnce() {
   if (__cardCurveCache.payload) return __cardCurveCache.payload;
-  const res = await fetch(`${DataLayer.config.apiBase}/dashboard/live_curves`);
+  const res = await fetch(window.apiUrl(`${DataLayer.config.apiBase}/dashboard/live_curves`));
   const result = await res.json();
   if (result.code === 0 && result.data && result.data.curves) {
     __cardCurveCache.payload = result.data.curves;
@@ -2764,7 +2776,7 @@ async function renderNavCurves(strategies) {
   // 2026-08-21 v3: 只用真实 /live_curves API (移除 mockData fallback, mock 是假数据)
   let liveData = null;
   try {
-    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/live_curves`);
+    const res = await fetch(window.apiUrl(`${DataLayer.config.apiBase}/dashboard/live_curves`));
     const result = await res.json();
     if (result.code === 0) liveData = result.data;
   } catch (err) {
@@ -3161,7 +3173,7 @@ window.addEventListener('resize', () => {
 async function updatePortfolio(portfolio) {
   // 调用 portfolio_summary API 获取权威数据
   try {
-    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/portfolio_summary`);
+    const res = await fetch(window.apiUrl(`${DataLayer.config.apiBase}/dashboard/portfolio_summary`));
     const result = await res.json();
     if (result.code === 0 && result.data) {
       const d = result.data;
@@ -3352,6 +3364,13 @@ initReviewDateSelect();
 // ========== 数据模式切换（模拟/实盘） ==========
 window.CURRENT_DATA_MODE = localStorage.getItem('data_mode') || 'simulator';
 
+// 统一拼接 data_mode 参数，确保所有 API 请求都带上当前模式
+window.apiUrl = function(path) {
+  const mode = localStorage.getItem('data_mode') || 'simulator';
+  const sep = path.includes('?') ? '&' : '?';
+  return `${path}${sep}data_mode=${mode}`;
+};
+
 function updateDataModeUI() {
   const btn = document.getElementById('data-mode-toggle');
   const icon = document.getElementById('data-mode-icon');
@@ -3374,8 +3393,6 @@ function toggleDataMode() {
   if (window.CURRENT_DATA_MODE === 'simulator') {
     window.CURRENT_DATA_MODE = 'live';
     localStorage.setItem('data_mode', 'live');
-    // 实盘数据尚未部署（Windows 端未上线），提示用户
-    alert('实盘数据视图\n\nWindows 实盘部署包已就绪（~/.hermes/deploy/windows/），但尚未部署上线。\n\n部署后实盘的 _live.json 将通过 Tailscale 同步回 macOS，此处即可查看真实实盘数据。\n\n当前切换为实盘视图，数据将显示为空。');
   } else {
     window.CURRENT_DATA_MODE = 'simulator';
     localStorage.setItem('data_mode', 'simulator');
