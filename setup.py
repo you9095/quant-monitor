@@ -305,6 +305,20 @@ def main():
     print("=" * 55)
     print()
 
+    # 部署心跳上报：让 macOS 端能远程判断 Windows 是否部署成功
+    try:
+        import subprocess as _sp
+        print("正在上报部署状态到 GitHub ...")
+        py = str(VENV_DIR / "Scripts" / "python.exe") if (VENV_DIR / "Scripts" / "python.exe").exists() else sys.executable
+        r = _sp.run([py, str(BASE_DIR / "scripts" / "report_deploy.py")],
+                    cwd=str(BASE_DIR), capture_output=True, text=True, timeout=180)
+        print(r.stdout[-600:] if r.stdout else "")
+        if r.returncode != 0:
+            print(r.stderr[-400:] if r.stderr else "")
+            warn("部署心跳上报失败（不影响本地运行，可稍后手动跑 scripts/report_deploy.py）")
+    except Exception as e:
+        warn(f"部署心跳上报异常: {e}")
+
     return 0
 
 
