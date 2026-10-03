@@ -52,6 +52,7 @@ class Broker:
         self.trades: List[dict] = []          # 成交流水
         self.realized_pnl: float = 0.0
         self.strategy_id = strategy_id
+        self.pending_target: Dict[str, float] = {}   # 明日目标持仓 {code: weight}
 
     # ---------- 买入 ----------
     def buy(self, code: str, price: float, amount_yuan: float, name: str = "",
@@ -171,6 +172,45 @@ class Broker:
         for pos in self.positions.values():
             pos.avail_qty = pos.qty
 
+    def rebalance(self, target: Dict[str, float], prices: Dict[str, float],
+                  date: str = "") -> List[dict]:
+        """按目标持仓 {code: weight} 调仓，用 prices 成交。返回当天所有成交。
+
+        先卖不在目标里的持仓，再按权重买入目标标的。
+        weight 占总资产比例（0~1）。
+        """
+        all_trades = []
+        total_asset = self.cash + sum(
+            p.qty * prices.get(c, p.cost_price) for c, p in self.positions.items())
+
+        # 1. 卖出：当前持仓但不在目标里的，全卖
+        for code in list(self.positions.keys()):
+            if code not in target and code in self.positions:
+                price = prices.get(code)
+                if price and price > 0:
+                    t = self.sell(code, price, date=date)
+                    if t:
+                        all_trades.append(t)
+
+        # 2. 买入：目标持仓，按权重分配总资产
+        for code, weight in target.items():
+            price = prices.get(code)
+            if not price or price <= 0:
+                continue
+            # 重新算总资产（卖出后现金变了）
+            total_asset = self.cash + sum(
+                p.qty * prices.get(c, p.cost_price) for c, p in self.positions.items())
+            target_amount = total_asset * weight
+            # 如果已经持有这只，只补差额
+            held_qty = self.positions.get(code).qty if code in self.positions else 0
+            held_value = held_qty * price
+            buy_amount = target_amount - held_value
+            if buy_amount > 0:
+                t = self.buy(code, price, buy_amount, date=date)
+                if t:
+                    all_trades.append(t)
+        return all_trades
+
     # ---------- 持久化 ----------
     def save(self, path: Path):
         data = {
@@ -180,6 +220,7 @@ class Broker:
             "realized_pnl": self.realized_pnl,
             "positions": {c: asdict(p) for c, p in self.positions.items()},
             "trades": self.trades[-500:],   # 只留最近500条
+            "pending_target": self.pending_target,
         }
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -193,6 +234,7 @@ class Broker:
         for code, pd in d.get("positions", {}).items():
             b.positions[code] = Position(**pd)
         b.trades = d.get("trades", [])
+        b.pending_target = d.get("pending_target", {})
         return b
 
     @classmethod

@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-每日实盘引擎：读昨日账户 → 拉行情 → 策略决策 → 真实撮合 → 结算 → 写 live-data
-================================================================================
+每日实盘引擎：两段式（决策与执行分离）
+==========================================
 不连接任何券商。所有买卖为本地模拟撮合（含佣金/印花税/滑点/T+1）。
 
-策略决策层（可插拔）：
-  - lightning：4只跨境ETF，3日动量最强且>0者满仓单持，否则空仓（真实规则）
-  - 其余策略：先占位（现金观望），后续逐个接入完整信号规则
+时序：
+  T日 15:30  decide: 拉收盘价 → settle净值 → 算动量信号 → 存 pending_target
+  T+1日 9:35 execute: 拉开盘价 → 按昨日 pending_target 真实撮合买卖
+
+这样成交用的是次日开盘价，贴近真实日频轮动策略。
 
 用法：
-  python run_daily_engine.py            # 生产模式（akshare 拉真实行情）
-  python run_daily_engine.py --backtest # 回测模式（合成行情，测性能稳定性）
+  python run_daily_engine.py decide    # 收盘后跑（15:30）
+  python run_daily_engine.py execute   # 开盘后跑（次日9:35）
+  python run_daily_engine.py          # 两段都跑（macOS 测试用）
 """
 import sys
 import json
@@ -50,18 +53,16 @@ STRATEGIES = {
 
 
 # ============================================================
-# 策略决策：给定行情历史 {code: [close...]}，返回目标持仓 {code: weight}
+# 动量轮动决策
 # ============================================================
 def momentum_rotate(hist_map: dict, window: int, hold: int = 1,
                      trend_filter: bool = False) -> dict:
-    """动量轮动：池内算 window 日动量，选最强 hold 只等权；动量<=0空仓"""
     scores = []
     for code, closes in hist_map.items():
         if len(closes) < window + 1:
             continue
         mom = closes[-1] / closes[-1 - window] - 1
         if trend_filter:
-            # 趋势过滤：价格须在20日均线上方才持有
             ma20 = sum(closes[-20:]) / 20 if len(closes) >= 20 else closes[-1]
             if closes[-1] < ma20:
                 continue
@@ -86,64 +87,23 @@ def decide_for(sid: str, cfg: dict) -> callable:
 DECIDERS = {sid: decide_for(sid, cfg) for sid, cfg in STRATEGIES.items()}
 
 
-def rebalance(broker: Broker, target: dict, prices: dict, today: str):
-    """把当前持仓调到 target={code: weight}，真实卖出/买入"""
-    # 1. 先卖出所有不在 target 或不再需要的持仓
-    current_codes = set(broker.positions.keys())
-    for code in list(current_codes):
-        if code not in target:
-            broker.sell(code, prices.get(code, 0), date=today)
-    # 2. 计算总资产，按 weight 分配
-    snap = broker.settle(prices)
-    total_asset = snap["total_asset"]
-    for code, weight in target.items():
-        if weight <= 0:
-            continue
-        target_value = total_asset * weight
-        price = prices.get(code, 0)
-        if price <= 0:
-            continue
-        # 现有持仓市值
-        cur_qty = broker.positions[code].qty if code in broker.positions else 0
-        cur_value = cur_qty * price
-        diff = target_value - cur_value
-        if diff > 200:   # 超过200元才调，避免频繁小额交易
-            broker.buy(code, price, diff, date=today)
-        elif diff < -200:
-            sell_qty = min(int(-diff / price / 100) * 100,
-                           broker.positions[code].avail_qty)
-            if sell_qty > 0:
-                broker.sell(code, price, sell_qty, date=today)
-
-
-def run_one_day(sid: str, cfg: dict, prices_hist: dict, prices_today: dict,
-                today: str) -> dict:
-    """跑单个策略一天：load state → 决策 → 撮合 → 结算 → save state"""
-    state_path = STATE_DIR / f"{sid}.json"
-    broker = Broker.load_or_new(state_path, cfg["capital"], sid)
-    decider = DECIDERS.get(sid, lambda h: {})
-    target = decider({c: prices_hist.get(c, []) for c in cfg["pool"]})
-    rebalance(broker, target, prices_today, today)
-    snap = broker.settle(prices_today)
-    broker.end_of_day()
-    broker.save(state_path)
-    # 写 live-data
+def _write_live_record(sid, cfg, broker, snap, today, phase, trades=None):
+    """写 live-data/latest 和 daily/<today>/"""
     DAILY_DIR.mkdir(parents=True, exist_ok=True)
     LATEST_DIR.mkdir(parents=True, exist_ok=True)
     record = {
         "date": today, "strategy_id": sid, "strategy_name": cfg["name"],
-        "initial_capital": cfg["capital"], "data_source": "Windows实盘引擎(真实撮合)",
+        "initial_capital": cfg["capital"],
+        "data_source": "Windows实盘引擎(次日开盘成交)",
+        "phase": phase,
         "run_time": datetime.now().isoformat(timespec="seconds"),
-        "today_pnl": round(snap["total_pnl"] - broker.realized_pnl, 2),  # 近似
-        "today_return": 0.0,
         "live_total_pnl": snap["total_pnl"],
         "live_total_return": snap["total_return"],
-        "live_days": (broker.trades and len(broker.trades)) or 0,
+        "live_days": len(broker.trades),
         "cash": snap["cash"], "market_value": snap["market_value"],
         "positions": snap["positions"],
-        "trades_today": [t for t in broker.trades if t.get("date") == today],
-        "action": {"type": "REBALANCE" if target else "HOLD",
-                   "label": "调仓" if target else "空仓观望"},
+        "pending_target": broker.pending_target,
+        "trades_today": trades or [],
     }
     day_dir = DAILY_DIR / today
     day_dir.mkdir(parents=True, exist_ok=True)
@@ -154,47 +114,91 @@ def run_one_day(sid: str, cfg: dict, prices_hist: dict, prices_today: dict,
     return record
 
 
-def fetch_prices_akshare(pool: list) -> dict:
-    """生产模式：用 akshare 拉ETF当日收盘价（失败返回空）"""
+# ============================================================
+# 阶段1：收盘后决策（15:30）
+# ============================================================
+def run_decide(sid, cfg, hist_map, prices_close, today):
+    """end_of_day → settle → 算信号存 pending_target，不买卖"""
+    state_path = STATE_DIR / f"{sid}.json"
+    broker = Broker.load_or_new(state_path, cfg["capital"], sid)
+    broker.end_of_day()                       # T+1：昨日买入转可卖
+    snap = broker.settle(prices_close)        # 按收盘价记录今日净值
+    decider = DECIDERS.get(sid, lambda h: {})
+    broker.pending_target = decider(
+        {c: hist_map.get(c, []) for c in cfg["pool"]})
+    broker.save(state_path)
+    rec = _write_live_record(sid, cfg, broker, snap, today, "decide")
+    return rec
+
+
+# ============================================================
+# 阶段2：次日开盘执行（9:35）
+# ============================================================
+def run_execute(sid, cfg, prices_open, today):
+    """按昨日 pending_target 用今天开盘价真实撮合"""
+    state_path = STATE_DIR / f"{sid}.json"
+    broker = Broker.load_or_new(state_path, cfg["capital"], sid)
+    if not broker.pending_target:
+        snap = broker.settle(prices_open)
+        rec = _write_live_record(sid, cfg, broker, snap, today, "execute_hold")
+        return rec
+    trades = broker.rebalance(broker.pending_target, prices_open, date=today)
+    snap = broker.settle(prices_open)
+    broker.save(state_path)
+    rec = _write_live_record(sid, cfg, broker, snap, today, "execute", trades)
+    return rec
+
+
+# ============================================================
+# 行情
+# ============================================================
+def fetch_realtime_prices(pool: list) -> dict:
+    """开盘后：拉实时价（接近开盘价）"""
     try:
         import akshare as ak
         df = ak.fund_etf_spot_em()
-        prices = {}
-        for code in pool:
-            row = df[df["代码"] == code]
-            if len(row):
-                prices[code] = float(row.iloc[0]["最新价"])
-        return prices
+        return {code: float(df[df["代码"] == code].iloc[0]["最新价"])
+                for code in pool if len(df[df["代码"] == code])}
     except Exception as e:
-        print(f"  [行情] akshare 失败: {e}")
+        print(f"  [行情] 实时价失败: {e}")
         return {}
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--backtest", action="store_true")
+    ap.add_argument("phase", nargs="?", default="both",
+                    choices=["decide", "execute", "both"])
     args = ap.parse_args()
     today = date.today().isoformat()
-    if args.backtest:
-        print("回测模式由 test_engine.py 驱动")
-        return
     from api.market_data import load_etf_close
-    for sid, cfg in STRATEGIES.items():
-        # 拉池里每只ETF历史收盘
-        hist_map = {}
-        prices_today = {}
-        for code in cfg["pool"]:
-            closes = load_etf_close(code, days=60)
-            if closes:
-                hist_map[code] = closes
-                prices_today[code] = closes[-1]
-        if not prices_today:
-            print(f"  [{sid}] 行情获取失败，今日跳过")
-            continue
-        rec = run_one_day(sid, cfg, hist_map, prices_today, today)
-        pos = len(rec['positions'])
-        print(f"  [{sid}] 总资产={rec['cash']+rec['market_value']:.0f} "
-              f"盈亏={rec['live_total_pnl']:.2f} 持仓数={pos}")
+
+    if args.phase in ("decide", "both"):
+        print(f"=== [{today}] 阶段1：收盘决策 ===")
+        for sid, cfg in STRATEGIES.items():
+            hist_map, prices = {}, {}
+            for code in cfg["pool"]:
+                closes = load_etf_close(code, days=60)
+                if closes:
+                    hist_map[code] = closes
+                    prices[code] = closes[-1]
+            if not prices:
+                print(f"  [{sid}] 行情失败，跳过")
+                continue
+            rec = run_decide(sid, cfg, hist_map, prices, today)
+            tgt = list(rec["pending_target"].keys())
+            print(f"  [{sid}] 净值={rec['cash']+rec['market_value']:.0f} "
+                  f"明日目标={tgt or '空仓'}")
+
+    if args.phase in ("execute", "both"):
+        print(f"=== [{today}] 阶段2：开盘执行 ===")
+        for sid, cfg in STRATEGIES.items():
+            prices = fetch_realtime_prices(cfg["pool"])
+            if not prices:
+                print(f"  [{sid}] 实时价失败，跳过")
+                continue
+            rec = run_execute(sid, cfg, prices, today)
+            print(f"  [{sid}] 成交{len(rec['trades_today'])}笔 "
+                  f"持仓{len(rec['positions'])}只 现金={rec['cash']:.0f}")
 
 
 if __name__ == "__main__":
