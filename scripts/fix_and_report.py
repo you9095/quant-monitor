@@ -8,6 +8,7 @@
   2. live-data 数据仓库没 clone 或 remote 错 → 自动 clone/修复
   3. 修复后上报心跳到数据仓库，macOS 端即可远程看到结果
 
+GitHub 连接优先 SSH，失败自动回退 HTTPS（HTTPS 首次会弹一次 GitHub 授权窗）。
 全程打印 [OK]/[FAIL]，结束时把结果写入 fix_result.txt。
 """
 import os
@@ -19,8 +20,14 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 LIVE_DIR = BASE_DIR / "live-data"
-CODE_REPO = "git@github.com:you9095/quant-monitor.git"
-DATA_REPO = "git@github.com:you9095/quant-monitor-live-data.git"
+CODE_REPO_SSH = "git@github.com:you9095/quant-monitor.git"
+CODE_REPO_HTTPS = "https://github.com/you9095/quant-monitor.git"
+DATA_REPO_SSH = "git@github.com:you9095/quant-monitor-live-data.git"
+DATA_REPO_HTTPS = "https://github.com/you9095/quant-monitor-live-data.git"
+
+# SSH 首次连接自动信任主机指纹、需要口令时快速失败不卡死
+_SSH_ENV = dict(os.environ)
+_SSH_ENV["GIT_SSH_COMMAND"] = "ssh -o StrictHostKeyChecking=accept-new -o BatchMode=yes"
 
 result = {"steps": [], "ok": True}
 
@@ -34,10 +41,10 @@ def log(ok, msg):
         result["ok"] = False
 
 
-def run(args, cwd, timeout=180):
+def run(args, cwd, timeout=180, env=None):
     try:
         r = subprocess.run(args, cwd=str(cwd), capture_output=True,
-                           text=True, timeout=timeout)
+                           text=True, timeout=timeout, env=env)
         return r.returncode == 0, (r.stdout + r.stderr).strip()
     except Exception as e:
         return False, str(e)
@@ -53,23 +60,25 @@ def fix_code_repo():
     if not is_git_repo(BASE_DIR):
         log(True, "代码目录还不是 git 仓库，正在初始化关联...")
         run(["git", "init"], BASE_DIR)
-        run(["git", "remote", "remove", "origin"], BASE_DIR)
-        run(["git", "remote", "add", "origin", CODE_REPO], BASE_DIR)
-    else:
-        # 确保 remote 正确
-        ok, url = run(["git", "remote", "get-url", "origin"], BASE_DIR)
-        if not ok or "quant-monitor.git" not in url:
-            run(["git", "remote", "remove", "origin"], BASE_DIR)
-            run(["git", "remote", "add", "origin", CODE_REPO], BASE_DIR)
-        log(True, "代码目录已是 git 仓库")
 
-    ok, out = run(["git", "fetch", "origin", "master"], BASE_DIR, timeout=300)
-    if not ok:
-        log(False, f"拉取代码失败（检查 SSH）: {out[-200:]}")
+    # 依次尝试 SSH、HTTPS，哪个通用哪个
+    success, used, last_out = False, None, ""
+    for label, url, env in (("SSH", CODE_REPO_SSH, _SSH_ENV),
+                            ("HTTPS", CODE_REPO_HTTPS, None)):
+        run(["git", "remote", "remove", "origin"], BASE_DIR)
+        run(["git", "remote", "add", "origin", url], BASE_DIR)
+        ok, out = run(["git", "fetch", "origin", "master"], BASE_DIR, timeout=300, env=env)
+        if ok:
+            success, used = True, label
+            break
+        last_out = out
+
+    if not success:
+        log(False, f"拉取代码失败（SSH/HTTPS 均不通）: {last_out[-200:]}")
         return
     run(["git", "checkout", "-B", "master"], BASE_DIR)
     ok, out = run(["git", "reset", "--hard", "origin/master"], BASE_DIR)
-    log(ok, "代码已同步到 GitHub 最新版" if ok else f"代码同步失败: {out[-200:]}")
+    log(ok, f"代码已同步到 GitHub 最新版（{used}）" if ok else f"代码同步失败: {out[-200:]}")
 
 
 def fix_data_repo():
@@ -84,13 +93,28 @@ def fix_data_repo():
                 log(True, f"旧 live-data 已备份为 {backup.name}")
             except Exception:
                 pass
-        ok, out = run(["git", "clone", DATA_REPO, "live-data"], BASE_DIR, timeout=300)
-        log(ok, "数据仓库已 clone 到 live-data/" if ok else f"数据仓库 clone 失败: {out[-200:]}")
+        cloned, last_out = False, ""
+        for label, url, env in (("SSH", DATA_REPO_SSH, _SSH_ENV),
+                                ("HTTPS", DATA_REPO_HTTPS, None)):
+            ok, out = run(["git", "clone", url, "live-data"], BASE_DIR, timeout=300, env=env)
+            if ok:
+                cloned = True
+                log(True, f"数据仓库已 clone 到 live-data/（{label}）")
+                break
+            last_out = out
+        if not cloned:
+            log(False, f"数据仓库 clone 失败（SSH/HTTPS 均不通）: {last_out[-200:]}")
     else:
-        ok, url = run(["git", "remote", "get-url", "origin"], LIVE_DIR)
-        if not ok or "quant-monitor-live-data" not in url:
-            run(["git", "remote", "set-url", "origin", DATA_REPO], LIVE_DIR)
         okb, _ = run(["git", "pull", "origin", "master"], LIVE_DIR, timeout=180)
+        if not okb:
+            # 当前 remote 拉不动，尝试在 SSH/HTTPS 之间切换
+            for label, url, env in (("SSH", DATA_REPO_SSH, _SSH_ENV),
+                                    ("HTTPS", DATA_REPO_HTTPS, None)):
+                run(["git", "remote", "set-url", "origin", url], LIVE_DIR)
+                okb, _ = run(["git", "pull", "origin", "master"], LIVE_DIR,
+                             timeout=180, env=env)
+                if okb:
+                    break
         log(okb, "数据仓库已存在并拉取最新" if okb else "数据仓库存在但 pull 失败（继续尝试上报）")
 
 

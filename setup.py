@@ -8,6 +8,7 @@ AI量化监控系统 - 模拟盘环境安装脚本
 import os
 import sys
 import json
+import shutil
 import subprocess
 import venv
 from pathlib import Path
@@ -24,6 +25,36 @@ if sys.platform == "win32":
 BASE_DIR = Path(__file__).parent
 VENV_DIR = BASE_DIR / "venv"
 CONFIG_DIR = BASE_DIR / "config"
+
+# 两套地址：优先 SSH，失败自动回退 HTTPS（HTTPS 首次会弹 GitHub 授权窗，之后系统缓存）
+CODE_REPO_SSH = "git@github.com:you9095/quant-monitor.git"
+CODE_REPO_HTTPS = "https://github.com/you9095/quant-monitor.git"
+DATA_REPO_SSH = "git@github.com:you9095/quant-monitor-live-data.git"
+DATA_REPO_HTTPS = "https://github.com/you9095/quant-monitor-live-data.git"
+
+# SSH 首次连接自动信任主机指纹；需要口令/密钥确认时快速失败而不是卡死
+_SSH_ENV = dict(os.environ)
+_SSH_ENV["GIT_SSH_COMMAND"] = "ssh -o StrictHostKeyChecking=accept-new -o BatchMode=yes"
+
+
+def git_clone_fallback(ssh_url, https_url, target_name, cwd, timeout=180):
+    """先 SSH 克隆，失败自动回退 HTTPS。返回 'ssh' / 'https' / None。"""
+    cwd = Path(cwd)
+    target = cwd / target_name
+    r = subprocess.run(["git", "clone", ssh_url, target_name], cwd=str(cwd),
+                       capture_output=True, text=True, timeout=timeout, env=_SSH_ENV)
+    if r.returncode == 0:
+        return "ssh"
+    if target.exists():
+        shutil.rmtree(target, ignore_errors=True)
+    print("    SSH 不通，改用 HTTPS（若弹出 GitHub 登录/授权窗口，请在浏览器完成一次授权）...")
+    r2 = subprocess.run(["git", "clone", https_url, target_name], cwd=str(cwd),
+                        capture_output=True, text=True, timeout=timeout)
+    if r2.returncode == 0:
+        return "https"
+    print("    [SSH 报错] ", (r.stderr or "").strip()[-300:])
+    print("    [HTTPS报错]", (r2.stderr or "").strip()[-300:])
+    return None
 
 PACKAGES = [
     "pandas>=2.0.0",
@@ -201,29 +232,34 @@ def setup_git_auto_update():
     if not (BASE_DIR / ".git").exists():
         print("  关联代码仓库 origin ...")
         subprocess.run(["git", "init"], cwd=str(BASE_DIR), capture_output=True)
-        subprocess.run(["git", "remote", "add", "origin",
-                        "git@github.com:you9095/quant-monitor.git"],
-                       cwd=str(BASE_DIR), capture_output=True)
-        r = subprocess.run(["git", "fetch", "origin", "master"],
-                           cwd=str(BASE_DIR), capture_output=True, text=True, timeout=120)
-        if r.returncode == 0:
-            subprocess.run(["git", "reset", "--hard", "origin/master"],
+        linked = False
+        for idx, url in enumerate((CODE_REPO_SSH, CODE_REPO_HTTPS)):
+            subprocess.run(["git", "remote", "remove", "origin"],
                            cwd=str(BASE_DIR), capture_output=True)
-            ok("已关联代码仓库，以后可自动从 GitHub 更新")
-        else:
-            warn("代码仓库 fetch 失败（可能 SSH 未配置）。后续可手动 git pull")
+            subprocess.run(["git", "remote", "add", "origin", url],
+                           cwd=str(BASE_DIR), capture_output=True)
+            env = _SSH_ENV if idx == 0 else None
+            r = subprocess.run(["git", "fetch", "origin", "master"],
+                               cwd=str(BASE_DIR), capture_output=True,
+                               text=True, timeout=180, env=env)
+            if r.returncode == 0:
+                subprocess.run(["git", "reset", "--hard", "origin/master"],
+                               cwd=str(BASE_DIR), capture_output=True)
+                ok(f"已关联代码仓库（{'SSH' if idx == 0 else 'HTTPS'}），以后可自动更新")
+                linked = True
+                break
+        if not linked:
+            warn("代码仓库关联失败：SSH 与 HTTPS 均未成功")
 
-    # clone 数据仓库
+    # clone 数据仓库（SSH 失败自动回退 HTTPS）
     live_data = BASE_DIR / "live-data"
     if not live_data.exists():
         print("  拉取实盘数据仓库 ...")
-        r = subprocess.run(
-            ["git", "clone", "git@github.com:you9095/quant-monitor-live-data.git", "live-data"],
-            cwd=str(BASE_DIR), capture_output=True, text=True, timeout=120)
-        if r.returncode == 0:
-            ok("实盘数据仓库已拉取到 live-data/")
+        mode = git_clone_fallback(DATA_REPO_SSH, DATA_REPO_HTTPS, "live-data", BASE_DIR)
+        if mode:
+            ok(f"实盘数据仓库已拉取到 live-data/（{mode.upper()}）")
         else:
-            warn("数据仓库 clone 失败（需先在 GitHub 建私有仓库 quant-monitor-live-data）")
+            warn("数据仓库 clone 失败：SSH 与 HTTPS 均未成功，实盘数据将无法回传")
 
     # 注册 Windows 计划任务：两段式
     #   工作日 09:35 execute：开盘后按昨日信号真实成交

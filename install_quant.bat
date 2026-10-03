@@ -7,9 +7,11 @@ REM  AI Quant Monitor - single-file bootstrap installer
 REM  Target dir: D:\quant-monitor  (kept off the C system drive)
 REM  Simulation mode only - never connects to a real broker.
 REM
-REM  This installer reports EVERY step to the private data repo
-REM  (folder _install_status), so the macOS side can see progress
-REM  and the exact failing step even if the window is closed.
+REM  GitHub connection: tries SSH first, automatically falls back
+REM  to HTTPS (a GitHub sign-in window may appear once for HTTPS;
+REM  Windows remembers it afterwards).
+REM  Every step is reported to the private data repo folder
+REM  _install_status so the macOS side can track progress remotely.
 REM ============================================================
 
 REM ----- auto request administrator (for schtasks) -----
@@ -21,13 +23,13 @@ if %errorlevel% neq 0 (
 )
 
 set "INSTALL_DIR=D:\quant-monitor"
-set "CODE_REPO=git@github.com:you9095/quant-monitor.git"
-set "DATA_REPO=git@github.com:you9095/quant-monitor-live-data.git"
+set "CODE_SSH=git@github.com:you9095/quant-monitor.git"
+set "CODE_HTTPS=https://github.com/you9095/quant-monitor.git"
+set "DATA_SSH=git@github.com:you9095/quant-monitor-live-data.git"
+set "DATA_HTTPS=https://github.com/you9095/quant-monitor-live-data.git"
 set "STATUS_DIR=D:\_qm_live"
 set "LOG=D:\quant-monitor-install.log"
-
-REM ----- never hang on first-time SSH host confirmation / prompts -----
-set "GIT_TERMINAL_PROMPT=0"
+REM Auto-trust GitHub host key on first SSH contact; never hang on prompts
 set "GIT_SSH_COMMAND=ssh -o StrictHostKeyChecking=accept-new -o BatchMode=yes"
 
 echo ========================================
@@ -39,22 +41,41 @@ echo.
 echo Install log: %LOG%
 echo.
 
-REM ----- reporting helper (writes + pushes current step) -----
-goto :after_report
+goto :after_funcs
+
+REM ===== :report TOKEN DETAIL -- push current step to data repo =====
 :report
-REM %~1 = short status token, %~2 = detail
-set "TOKEN=%~1"
-set "DETAIL=%~2"
 if not exist "%STATUS_DIR%\.git" goto :eof
 if not exist "%STATUS_DIR%\_install_status" mkdir "%STATUS_DIR%\_install_status"
-echo %DATE% %TIME% ^| %TOKEN% ^| %DETAIL% >> "%STATUS_DIR%\_install_status\%COMPUTERNAME%.txt"
+echo %DATE% %TIME% ^| %~1 ^| %~2 >> "%STATUS_DIR%\_install_status\%COMPUTERNAME%.txt"
 cd /d "%STATUS_DIR%"
 git add -A >nul 2>&1
-git commit -m "install %COMPUTERNAME% %TOKEN%" >nul 2>&1
+git commit -m "install %COMPUTERNAME% %~1" >nul 2>&1
 git push origin master >nul 2>&1
 cd /d "%~dp0"
 goto :eof
-:after_report
+
+REM ===== :try_clone DIR SSH_URL HTTPS_URL ; sets CLONE_MODE =====
+:try_clone
+set "TC_DIR=%~1"
+echo       Trying SSH...
+git clone "%~2" "%TC_DIR%"
+if not errorlevel 1 (
+    set "CLONE_MODE=SSH"
+    goto :eof
+)
+if exist "%TC_DIR%" rmdir /s /q "%TC_DIR%"
+echo       SSH did not work. Trying HTTPS...
+echo       ** If a GitHub sign-in window appears, please complete it once. **
+git clone "%~3" "%TC_DIR%"
+if not errorlevel 1 (
+    set "CLONE_MODE=HTTPS"
+) else (
+    set "CLONE_MODE=FAIL"
+)
+goto :eof
+
+:after_funcs
 
 echo [%DATE% %TIME%] installer started on %COMPUTERNAME% > "%LOG%"
 
@@ -98,18 +119,19 @@ echo [3/6] Connecting to GitHub data repo (status channel)...
 if exist "%STATUS_DIR%\.git" (
     cd /d "%STATUS_DIR%"
     git pull origin master >nul 2>&1
+    cd /d "%~dp0"
 ) else (
-    git clone %DATA_REPO% "%STATUS_DIR%"
-    if errorlevel 1 (
-        echo [ERROR] Cannot clone data repo. SSH key or network problem.
-        echo Make sure your SSH public key is added to GitHub, then retry.
-        echo [ERROR] data-repo-clone-failed >> "%LOG%"
-        pause
-        exit /b 1
-    )
+    call :try_clone "%STATUS_DIR%" "%DATA_SSH%" "%DATA_HTTPS%"
 )
-cd /d "%~dp0"
-call :report STARTED "installer started, git/python ok"
+if not exist "%STATUS_DIR%\.git" (
+    echo.
+    echo [ERROR] Could not reach GitHub with either SSH or HTTPS.
+    echo Please complete the GitHub sign-in if a window appeared, then run again.
+    echo [ERROR] data-repo-unreachable >> "%LOG%"
+    pause
+    exit /b 1
+)
+call :report STARTED "installer started, git/python ok, channel=%CLONE_MODE%"
 echo       Status channel connected.
 
 REM ----- clone or hard-update the CODE repo -----
@@ -123,15 +145,15 @@ if exist "%INSTALL_DIR%\.git" (
         call :report BACKUP "old non-git folder renamed to -old"
         move "%INSTALL_DIR%" "%INSTALL_DIR%-old" >> "%LOG%" 2>&1
     )
-    git clone %CODE_REPO% "%INSTALL_DIR%" >> "%LOG%" 2>&1
-    if errorlevel 1 (
-        call :report FAILED "code clone failed"
+    call :try_clone "%INSTALL_DIR%" "%CODE_SSH%" "%CODE_HTTPS%"
+    if "!CLONE_MODE!"=="FAIL" (
+        call :report FAILED "code clone failed via ssh+https"
         echo [ERROR] Code clone failed. See %LOG%
         pause
         exit /b 1
     )
 )
-call :report CODE_OK "code at %INSTALL_DIR%"
+call :report CODE_OK "code ready at %INSTALL_DIR% via %CLONE_MODE%"
 echo       Code ready.
 
 REM ----- run in-repo setup (venv, deps, data repo, tasks, heartbeat) -----
@@ -141,7 +163,6 @@ echo.
 call :report SETUP_START "running setup.py"
 %PYCMD% setup.py
 set "RC=%errorlevel%"
-echo.
 echo setup.py exit code = %RC% >> "%LOG%"
 
 REM ----- finish -----
