@@ -58,12 +58,12 @@ def in_time_window(phase):
 
 def step_update_code():
     log("更新代码...")
-    r = subprocess.run(["git", "fetch", "origin", "main"], cwd=str(BASE_DIR),
+    r = subprocess.run(["git", "fetch", "origin", "master"], cwd=str(BASE_DIR),
                        capture_output=True, text=True, timeout=120)
     if r.returncode != 0:
         log(f"  fetch 失败（沿用本地版本）: {r.stderr.strip()[:200]}")
         return
-    r = subprocess.run(["git", "reset", "--hard", "origin/main"], cwd=str(BASE_DIR),
+    r = subprocess.run(["git", "reset", "--hard", "origin/master"], cwd=str(BASE_DIR),
                        capture_output=True, text=True, timeout=60)
     log(f"  代码已同步到最新")
 
