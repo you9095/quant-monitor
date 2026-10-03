@@ -27,18 +27,20 @@ REMOTE_URL = "git@github.com:you9095/quant-monitor-live-data.git"
 
 # ---- 时间窗口（仅 push 生效）----
 PUSH_WEEKDAYS = {0, 1, 2, 3, 4}   # 周一~周五（0=周一）
-PUSH_HOUR_START = 15              # 15:00
-PUSH_HOUR_END = 17                # 17:00（不含）
+# 两个允许窗口：开盘执行后 09:30-10:00、收盘决策后 15:00-17:00
+PUSH_WINDOWS = [(9, 30, 10, 0), (15, 0, 17, 0)]
 
 
 def is_push_window(now=None):
-    """是否在允许 push 的时间窗口内（工作日 15:00-17:00）"""
+    """是否在允许 push 的时间窗口内（工作日 09:30-10:00 或 15:00-17:00）"""
     now = now or datetime.now()
     if now.weekday() not in PUSH_WEEKDAYS:
         return False, "今天是周末，不执行上传"
-    if not (PUSH_HOUR_START <= now.hour < PUSH_HOUR_END):
-        return False, f"当前 {now.strftime('%H:%M')} 不在允许窗口（{PUSH_HOUR_START}:00-{PUSH_HOUR_END}:00）"
-    return True, "在允许窗口内"
+    hm = now.hour * 60 + now.minute
+    for sh, sm, eh, em in PUSH_WINDOWS:
+        if sh * 60 + sm <= hm < eh * 60 + em:
+            return True, "在允许窗口内"
+    return False, f"当前 {now.strftime('%H:%M')} 不在允许窗口（09:30-10:00 或 15:00-17:00）"
 
 
 def git(args, cwd=DATA_REPO_DIR, timeout=60):
@@ -65,6 +67,12 @@ def ensure_repo():
     return True, "ok"
 
 
+def current_branch():
+    """获取数据仓库当前分支名（自动适配 main/master）"""
+    ok, out = git(["rev-parse", "--abbrev-ref", "HEAD"])
+    return out.strip() if ok and out.strip() else "master"
+
+
 def cmd_push():
     """Windows 端：提交当天实盘数据并 push"""
     ok, msg = is_push_window()
@@ -78,8 +86,9 @@ def cmd_push():
         print(f"[错误] {msg}")
         return 1
 
+    branch = current_branch()
     # 拉取远程最新（避免 push 被拒）
-    git(["pull", "--rebase", "origin", "main"], timeout=120)
+    git(["pull", "--rebase", "origin", branch], timeout=120)
 
     today = datetime.now().strftime("%Y-%m-%d")
     # 添加所有变更
@@ -95,7 +104,7 @@ def cmd_push():
         print(f"[警告] commit 失败: {out}")
         return 1
 
-    ok, out = git(["push", "origin", "main"], timeout=120)
+    ok, out = git(["push", "origin", branch], timeout=120)
     if ok:
         print(f"[成功] 实盘数据已上传 GitHub（{today}）")
     else:
@@ -110,7 +119,8 @@ def cmd_pull():
         print(f"[错误] {msg}")
         print("首次使用请执行: git clone " + REMOTE_URL + " \"" + str(DATA_REPO_DIR) + "\"")
         return 1
-    ok, out = git(["pull", "origin", "main"], timeout=120)
+    branch = current_branch()
+    ok, out = git(["pull", "origin", branch], timeout=120)
     if ok:
         print("[成功] 已拉取 Windows 实盘数据到本地 live-data/")
         # 显示最新数据日期
