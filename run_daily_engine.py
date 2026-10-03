@@ -29,47 +29,61 @@ LATEST_DIR = DATA_REPO / "latest"
 STATE_DIR = DATA_REPO / "_account_state"
 
 STRATEGIES = {
-    "qixing": {"name": "七星策略", "capital": 10000, "pool": ["510300", "512100"]},
-    "r32":    {"name": "三驾马车", "capital": 10000, "pool": ["510300", "512880"]},
-    "zhuidian": {"name": "追电策略", "capital": 10000, "pool": ["513100", "513500"]},
-    "sanhe":  {"name": "三合策略", "capital": 10000, "pool": ["510500", "159915"]},
+    "qixing": {"name": "七星策略", "capital": 10000, "pool":
+               ["159967","159980","159981","159985","161226","501018","511880",
+                "512100","513030","513080","513100","513500","513520","513690","588080"],
+               "mom_window": 20, "hold": 1},
+    "r32":    {"name": "三驾马车", "capital": 10000, "pool":
+               ["510500", "512040", "512100"], "mom_window": 20, "hold": 1},
+    "zhuidian": {"name": "追电策略", "capital": 10000, "pool":
+                 ["513100","513500","513030","513520","513690"], "mom_window": 10, "hold": 1},
+    "sanhe":  {"name": "三合策略", "capital": 10000, "pool":
+               ["159915","159967","159980","159981","510300","510500","512100",
+                "512890","513030","513100","513500","513520","518880","588080"],
+               "mom_window": 20, "hold": 1},
     "lightning": {"name": "闪电策略", "capital": 10000,
-                  "pool": ["513100", "513520", "513030", "513130"]},
-    "goldcombo": {"name": "黄金组合A", "capital": 10000, "pool": ["518880"]},
+                  "pool": ["513100", "513520", "513030", "513130"],
+                  "mom_window": 3, "hold": 1},
+    "goldcombo": {"name": "黄金组合A", "capital": 10000, "pool":
+                  ["518880"], "mom_window": 20, "hold": 1, "trend_filter": True},
 }
 
 
 # ============================================================
-# 策略决策：给定每只标的近3日收盘价，返回目标持仓 {code: weight}
-# weight: 0~1（占总资产比例），单策略单持（weight=1 满仓一只）
+# 策略决策：给定行情历史 {code: [close...]}，返回目标持仓 {code: weight}
 # ============================================================
-def decide_lightning(prices_hist: dict) -> dict:
-    """lightning：4只跨境ETF中，3日动量>0且最强的1只满仓；都<0则空仓"""
-    best_code, best_mom = None, 0
-    for code, hist in prices_hist.items():
-        if len(hist) < 4:
+def momentum_rotate(hist_map: dict, window: int, hold: int = 1,
+                     trend_filter: bool = False) -> dict:
+    """动量轮动：池内算 window 日动量，选最强 hold 只等权；动量<=0空仓"""
+    scores = []
+    for code, closes in hist_map.items():
+        if len(closes) < window + 1:
             continue
-        mom = hist[-1] / hist[-4] - 1   # 3日动量
-        if mom > best_mom:
-            best_mom, best_code = mom, code
-    if best_code and best_mom > 0:
-        return {best_code: 1.0}
-    return {}
+        mom = closes[-1] / closes[-1 - window] - 1
+        if trend_filter:
+            # 趋势过滤：价格须在20日均线上方才持有
+            ma20 = sum(closes[-20:]) / 20 if len(closes) >= 20 else closes[-1]
+            if closes[-1] < ma20:
+                continue
+        scores.append((mom, code))
+    scores.sort(reverse=True)
+    picks = [(m, c) for m, c in scores if m > 0][:hold]
+    if not picks:
+        return {}
+    w = 1.0 / len(picks)
+    return {c: w for _, c in picks}
 
 
-def decide_hold_cash(prices_hist: dict) -> dict:
-    """占位：现金观望（待接入完整策略规则）"""
-    return {}
+def decide_for(sid: str, cfg: dict) -> callable:
+    w = cfg.get("mom_window", 20)
+    h = cfg.get("hold", 1)
+    tf = cfg.get("trend_filter", False)
+    def _decide(hist_map):
+        return momentum_rotate(hist_map, w, h, tf)
+    return _decide
 
 
-DECIDERS = {
-    "lightning": decide_lightning,
-    "qixing": decide_hold_cash,
-    "r32": decide_hold_cash,
-    "zhuidian": decide_hold_cash,
-    "sanhe": decide_hold_cash,
-    "goldcombo": decide_hold_cash,
-}
+DECIDERS = {sid: decide_for(sid, cfg) for sid, cfg in STRATEGIES.items()}
 
 
 def rebalance(broker: Broker, target: dict, prices: dict, today: str):
@@ -107,7 +121,7 @@ def run_one_day(sid: str, cfg: dict, prices_hist: dict, prices_today: dict,
     """跑单个策略一天：load state → 决策 → 撮合 → 结算 → save state"""
     state_path = STATE_DIR / f"{sid}.json"
     broker = Broker.load_or_new(state_path, cfg["capital"], sid)
-    decider = DECIDERS.get(sid, decide_hold_cash)
+    decider = DECIDERS.get(sid, lambda h: {})
     target = decider({c: prices_hist.get(c, []) for c in cfg["pool"]})
     rebalance(broker, target, prices_today, today)
     snap = broker.settle(prices_today)
@@ -164,15 +178,23 @@ def main():
     if args.backtest:
         print("回测模式由 test_engine.py 驱动")
         return
+    from api.market_data import load_etf_close
     for sid, cfg in STRATEGIES.items():
-        prices = fetch_prices_akshare(cfg["pool"])
-        if not prices:
+        # 拉池里每只ETF历史收盘
+        hist_map = {}
+        prices_today = {}
+        for code in cfg["pool"]:
+            closes = load_etf_close(code, days=60)
+            if closes:
+                hist_map[code] = closes
+                prices_today[code] = closes[-1]
+        if not prices_today:
             print(f"  [{sid}] 行情获取失败，今日跳过")
             continue
-        prices_hist = {c: [prices[c]] * 4 for c in prices}   # 首日无历史，占位
-        rec = run_one_day(sid, cfg, prices_hist, prices, today)
+        rec = run_one_day(sid, cfg, hist_map, prices_today, today)
+        pos = len(rec['positions'])
         print(f"  [{sid}] 总资产={rec['cash']+rec['market_value']:.0f} "
-              f"盈亏={rec['live_total_pnl']:.2f} 持仓数={len(rec['positions'])}")
+              f"盈亏={rec['live_total_pnl']:.2f} 持仓数={pos}")
 
 
 if __name__ == "__main__":
