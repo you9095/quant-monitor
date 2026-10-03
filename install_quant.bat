@@ -26,6 +26,10 @@ set "DATA_REPO=git@github.com:you9095/quant-monitor-live-data.git"
 set "STATUS_DIR=D:\_qm_live"
 set "LOG=D:\quant-monitor-install.log"
 
+REM ----- never hang on first-time SSH host confirmation / prompts -----
+set "GIT_TERMINAL_PROMPT=0"
+set "GIT_SSH_COMMAND=ssh -o StrictHostKeyChecking=accept-new -o BatchMode=yes"
+
 echo ========================================
 echo   AI Quant Monitor - One-click Installer
 echo   Target : %INSTALL_DIR%
