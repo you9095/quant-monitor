@@ -51,6 +51,7 @@ echo %DATE% %TIME% ^| %~1 ^| %~2 >> "%STATUS_DIR%\_install_status\%COMPUTERNAME%
 cd /d "%STATUS_DIR%"
 git add -A >nul 2>&1
 git commit -m "install %COMPUTERNAME% %~1" >nul 2>&1
+git pull --no-rebase origin master >nul 2>&1
 git push origin master >nul 2>&1
 cd /d "%~dp0"
 goto :eof

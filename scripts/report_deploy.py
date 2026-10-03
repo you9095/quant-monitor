@@ -68,7 +68,7 @@ def collect_status():
 
     # Windows 定时任务
     if sys.platform == "win32":
-        for task in ["QuantExecuteTask", "QuantDecideTask"]:
+        for task in ["QuantExecuteTask", "QuantDecideTask", "QuantBootCheck"]:
             r = subprocess.run(["schtasks", "/query", "/tn", task],
                                capture_output=True, text=True)
             status[f"task_{task}"] = "REGISTERED" if r.returncode == 0 else "MISSING"
@@ -102,6 +102,8 @@ def main():
     if not ok and "nothing to commit" not in out:
         print(f"[心跳] commit 失败: {out}")
         return 1
+    # 先同步远程，避免与安装期临时通道 _qm_live 的推送互相挡住
+    git(["pull", "--no-rebase", "origin", branch], LIVE_DIR, timeout=120)
     ok, out = git(["push", "origin", branch], LIVE_DIR, timeout=120)
     if ok:
         print(f"[心跳] 已上报到 GitHub 数据仓库（{status['hostname']}）")
