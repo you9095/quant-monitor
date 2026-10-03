@@ -108,6 +108,14 @@ def step_restart_panel():
     log("  面板已重启。")
 
 
+def step_report_heartbeat():
+    """上报一次心跳，让 macOS 端能确认定时任务真的在跑"""
+    reporter = BASE_DIR / "scripts" / "report_deploy.py"
+    if reporter.exists():
+        subprocess.run([str(VENV_PY), str(reporter)], cwd=str(BASE_DIR),
+                       capture_output=True, text=True, timeout=180)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("phase", choices=["execute", "decide"])
@@ -124,11 +132,13 @@ def main():
             step_install_deps()
             step_run_engine("decide")
             step_push_data()
+            step_report_heartbeat()
             step_restart_panel()
         else:
             # 开盘阶段：只执行成交 + 上传数据（不更新代码，避免盘中变动）
             step_run_engine("execute")
             step_push_data()
+            step_report_heartbeat()
         log(f"[{phase}] 完成。")
     except Exception as e:
         log(f"任务异常: {e}")

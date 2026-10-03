@@ -37,6 +37,21 @@ def main():
     print(f"\n  启动目录: {BASE_DIR}")
     print("  正在启动监控面板...\n")
 
+    # 启动面板的同时，后台静默上报一次部署心跳（不阻塞、不影响面板）
+    try:
+        reporter = BASE_DIR / "scripts" / "report_deploy.py"
+        if reporter.exists():
+            creationflags = 0
+            if sys.platform == "win32":
+                creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+            subprocess.Popen(
+                [sys.executable, str(reporter)],
+                cwd=str(BASE_DIR),
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                creationflags=creationflags)
+    except Exception:
+        pass
+
     # 以独立子进程方式运行后端，确保 __file__/__name__ 正确
     try:
         proc = subprocess.run(

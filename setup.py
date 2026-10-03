@@ -253,6 +253,18 @@ def setup_git_auto_update():
     else:
         warn(f"收盘任务注册失败: {r2.stderr.strip()}")
 
+    # 开机自检：登录 Windows 2 分钟后自动更新代码+确保数据仓库+上报心跳（不交易）
+    fix_cmd = f'"\\"{venv_py}\\" \\"{BASE_DIR / "scripts" / "fix_and_report.py"}\\""'
+    print("  注册开机自检任务（登录后2分钟）...")
+    r3 = subprocess.run(
+        ["schtasks", "/create", "/tn", "QuantBootCheck", "/tr", fix_cmd,
+         "/sc", "onlogon", "/delay", "0002:00", "/f"],
+        capture_output=True, text=True)
+    if r3.returncode == 0:
+        ok("开机自检已注册：每次开机登录后自动更新并上报状态")
+    else:
+        warn(f"开机自检注册失败: {r3.stderr.strip()}")
+
 
 def main():
     print("=" * 55)
