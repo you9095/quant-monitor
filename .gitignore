@@ -47,3 +47,4 @@ assets/data.js.bak.*
 review/*.json
 results/*.json
 live-data/
+data/etf_cache/

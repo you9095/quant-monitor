@@ -1,0 +1,312 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+AI量化监控系统 - 模拟盘环境安装脚本
+由 deploy_all.bat 调用，不连接任何真实券商
+"""
+
+import os
+import sys
+import json
+import subprocess
+import venv
+from pathlib import Path
+
+# Windows CMD 默认 GBK，需要设置 Python 输出编码
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="gbk")
+        sys.stderr.reconfigure(encoding="gbk")
+    except Exception:
+        pass
+
+
+BASE_DIR = Path(__file__).parent
+VENV_DIR = BASE_DIR / "venv"
+CONFIG_DIR = BASE_DIR / "config"
+
+PACKAGES = [
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "pyyaml>=6.0",
+    "requests>=2.31.0",
+    "flask>=2.0.0",
+    "akshare>=1.12.0",
+    "apscheduler>=3.10.0",
+]
+
+DEFAULT_CONFIG = {
+    "mode": "simulation",
+    "note": "模拟盘，不连接任何真实券商，所有买卖/对账单/盈亏均为模拟盘真实运行数据",
+    "server": {"host": "0.0.0.0", "port": 8000},
+    "strategies": {
+        "qixing": {"enabled": True, "name": "七星策略", "initial_capital": 10000},
+        "r32": {"enabled": True, "name": "三驾马车", "initial_capital": 10000},
+        "zhuidian": {"enabled": True, "name": "追电策略", "initial_capital": 10000},
+        "sanhe": {"enabled": True, "name": "三合策略", "initial_capital": 10000},
+        "lightning": {"enabled": True, "name": "闪电策略", "initial_capital": 10000},
+        "goldcombo": {"enabled": True, "name": "黄金组合A", "initial_capital": 10000},
+    },
+}
+
+
+def step(n, total, msg):
+    print(f"\n[{n}/{total}] {msg}")
+    print("-" * 50)
+
+
+def ok(msg):
+    print(f"  [OK] {msg}")
+
+
+def warn(msg):
+    print(f"  [WARN] {msg}")
+
+
+def fail(msg):
+    print(f"  [ERROR] {msg}")
+
+
+def get_venv_python():
+    """获取 venv 中的 python 路径"""
+    if sys.platform == "win32":
+        return VENV_DIR / "Scripts" / "python.exe"
+    return VENV_DIR / "bin" / "python"
+
+
+def get_venv_pip():
+    """获取 venv 中的 pip 路径"""
+    if sys.platform == "win32":
+        return VENV_DIR / "Scripts" / "pip.exe"
+    return VENV_DIR / "bin" / "pip"
+
+
+def create_venv():
+    """创建虚拟环境"""
+    venv_python = get_venv_python()
+    if venv_python.exists():
+        ok("虚拟环境已存在，跳过创建")
+        return True
+
+    print("  正在创建虚拟环境（约30秒）...")
+    try:
+        venv.create(str(VENV_DIR), with_pip=True)
+        if venv_python.exists():
+            ok("虚拟环境创建成功")
+            return True
+        else:
+            fail("虚拟环境创建后未找到 python")
+            return False
+    except Exception as e:
+        fail(f"虚拟环境创建失败: {e}")
+        return False
+
+
+def install_packages():
+    """安装 Python 依赖"""
+    venv_python = get_venv_python()
+    venv_pip = get_venv_pip()
+
+    # 国内镜像源（清华），大幅加快下载速度
+    mirror = ["-i", "https://pypi.tuna.tsinghua.edu.cn/simple"]
+
+    print("  正在升级 pip...")
+    subprocess.run(
+        [str(venv_python), "-m", "pip", "install", "--upgrade", "pip"] + mirror,
+        shell=False
+    )
+
+    print(f"  开始安装 {len(PACKAGES)} 个依赖包（显示下载进度，请耐心等待）...")
+    print("  如果某个包下载慢，会自动继续，请勿关闭窗口")
+    print()
+
+    # 逐个安装，实时显示进度，失败不影响其他包
+    failed = []
+    for i, pkg in enumerate(PACKAGES, 1):
+        print(f"  [{i}/{len(PACKAGES)}] 安装 {pkg} ...")
+        r = subprocess.run(
+            [str(venv_pip), "install", pkg] + mirror,
+            capture_output=True, text=True
+        )
+        if r.returncode == 0:
+            ok(f"{pkg} 安装成功")
+        else:
+            # 清华源失败则尝试官方源
+            print(f"       清华源失败，尝试官方源...")
+            r2 = subprocess.run(
+                [str(venv_pip), "install", pkg],
+                capture_output=True, text=True
+            )
+            if r2.returncode == 0:
+                ok(f"{pkg} 安装成功（官方源）")
+            else:
+                fail(f"{pkg} 安装失败")
+                failed.append(pkg)
+        print()
+
+    if failed:
+        warn(f"以下 {len(failed)} 个包安装失败: {', '.join(failed)}")
+        warn("不影响核心功能，可稍后在 start.bat 报错时再补装")
+        return False
+    ok("全部依赖安装完成")
+    return True
+
+
+def create_config():
+    """检查项目配置文件"""
+    CONFIG_DIR.mkdir(exist_ok=True)
+    config_path = CONFIG_DIR / "strategies.json"
+
+    if config_path.exists():
+        ok("策略配置文件就绪 (config/strategies.json)")
+        return True
+
+    warn("未找到 config/strategies.json，部署包可能不完整")
+    return False
+
+
+def verify():
+    """验证安装结果"""
+    venv_python = get_venv_python()
+    print("  正在验证依赖导入...")
+
+    check_modules = ["pandas", "numpy", "yaml", "requests", "flask", "akshare"]
+    all_ok = True
+    for mod in check_modules:
+        r = subprocess.run(
+            [str(venv_python), "-c", f"import {mod}; print('{mod} OK')"],
+            capture_output=True, text=True
+        )
+        if r.returncode == 0:
+            ok(f"{mod}")
+        else:
+            fail(f"{mod} 导入失败")
+            all_ok = False
+
+    return all_ok
+
+
+def setup_git_auto_update():
+    """步骤5: 关联 GitHub 仓库，启用自动更新 + 注册每日任务"""
+    print("  检测 Git...")
+    r = subprocess.run(["git", "--version"], capture_output=True, text=True)
+    if r.returncode != 0:
+        warn("未检测到 Git。自动更新需先安装 Git for Windows:")
+        print("     下载 https://git-scm.com/download/win 安装后重新运行本脚本")
+        return False
+
+    ok("Git 已就绪")
+
+    # 把当前目录关联到代码仓库（首次 setup 后即可 git pull 更新）
+    if not (BASE_DIR / ".git").exists():
+        print("  关联代码仓库 origin ...")
+        subprocess.run(["git", "init"], cwd=str(BASE_DIR), capture_output=True)
+        subprocess.run(["git", "remote", "add", "origin",
+                        "git@github.com:you9095/quant-monitor.git"],
+                       cwd=str(BASE_DIR), capture_output=True)
+        r = subprocess.run(["git", "fetch", "origin", "master"],
+                           cwd=str(BASE_DIR), capture_output=True, text=True, timeout=120)
+        if r.returncode == 0:
+            subprocess.run(["git", "reset", "--hard", "origin/master"],
+                           cwd=str(BASE_DIR), capture_output=True)
+            ok("已关联代码仓库，以后可自动从 GitHub 更新")
+        else:
+            warn("代码仓库 fetch 失败（可能 SSH 未配置）。后续可手动 git pull")
+
+    # clone 数据仓库
+    live_data = BASE_DIR / "live-data"
+    if not live_data.exists():
+        print("  拉取实盘数据仓库 ...")
+        r = subprocess.run(
+            ["git", "clone", "git@github.com:you9095/quant-monitor-live-data.git", "live-data"],
+            cwd=str(BASE_DIR), capture_output=True, text=True, timeout=120)
+        if r.returncode == 0:
+            ok("实盘数据仓库已拉取到 live-data/")
+        else:
+            warn("数据仓库 clone 失败（需先在 GitHub 建私有仓库 quant-monitor-live-data）")
+
+    # 注册 Windows 计划任务：两段式
+    #   工作日 09:35 execute：开盘后按昨日信号真实成交
+    #   工作日 15:30 decide：收盘后更新代码+算今日信号+上传数据+重启面板
+    venv_py = get_venv_python()
+    task_base = f'"\\"{venv_py}\\" \\"{BASE_DIR / "daily_task.py"}\\""'
+
+    print("  注册开盘执行任务（工作日 09:35）...")
+    r1 = subprocess.run(
+        ["schtasks", "/create", "/tn", "QuantExecuteTask", "/tr",
+         task_base + " execute",
+         "/sc", "weekly", "/d", "MON,TUE,WED,THU,FRI", "/st", "09:35", "/f"],
+        capture_output=True, text=True)
+    if r1.returncode == 0:
+        ok("开盘任务已注册：工作日 09:35 自动按昨日信号真实成交")
+    else:
+        warn(f"开盘任务注册失败: {r1.stderr.strip()}")
+
+    print("  注册收盘决策任务（工作日 15:30）...")
+    r2 = subprocess.run(
+        ["schtasks", "/create", "/tn", "QuantDecideTask", "/tr",
+         task_base + " decide",
+         "/sc", "weekly", "/d", "MON,TUE,WED,THU,FRI", "/st", "15:30", "/f"],
+        capture_output=True, text=True)
+    if r2.returncode == 0:
+        ok("收盘任务已注册：工作日 15:30 自动 更新代码+算信号+上传+重启面板")
+    else:
+        warn(f"收盘任务注册失败: {r2.stderr.strip()}")
+
+
+def main():
+    print("=" * 55)
+    print("  AI量化监控系统 - 模拟盘环境安装")
+    print("  模式: 模拟盘（不连接任何真实券商）")
+    print("=" * 55)
+    print(f"  安装目录: {BASE_DIR}")
+    print(f"  Python: {sys.version.split()[0]} ({sys.executable})")
+
+    total = 5
+
+    # 步骤1: 创建虚拟环境
+    step(1, total, "创建 Python 虚拟环境")
+    if not create_venv():
+        print("\n安装失败，请检查 Python 是否正确安装")
+        input("按回车键退出...")
+        return 1
+
+    # 步骤2: 安装依赖
+    step(2, total, "安装 Python 依赖包")
+    install_packages()
+
+    # 步骤3: 检查配置
+    step(3, total, "检查项目配置文件")
+    create_config()
+
+    # 步骤4: 验证
+    step(4, total, "验证安装结果")
+    verify()
+
+    # 步骤5: 关联 GitHub 自动更新 + 注册每日任务
+    step(5, total, "关联 GitHub（自动更新 + 每日 15:30 自动运行上传）")
+    setup_git_auto_update()
+
+    # 完成
+    print("\n" + "=" * 55)
+    print("  安装完成")
+    print("=" * 55)
+    print()
+    print("  下一步（双击即可，不用敲命令）:")
+    print()
+    print("    1. 双击 start.bat  启动监控面板")
+    print("    2. 浏览器打开 http://localhost:8000")
+    print()
+    print("  自动化说明:")
+    print("    每个工作日 15:30 自动：拉最新代码→跑实盘→上传GitHub→重启")
+    print("    macOS 端 push 新版本后，第二天 Windows 自动更新，无需再打包拷贝")
+    print()
+    print("  注意: 本系统为模拟盘，不连接任何真实券商")
+    print("=" * 55)
+    print()
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
