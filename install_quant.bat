@@ -5,23 +5,16 @@ title AI Quant Monitor - One-click Installer
 REM ============================================================
 REM  AI Quant Monitor - ALL-IN-ONE installer (single file)
 REM  Target: D:\quant-monitor   (Simulation only, no real broker)
-REM  VERSION: 2026-10-04  v5  NO-UAC-SINGLE-INSTANCE
+REM  VERSION: 2026-10-04  v6  SSH443-FIRST
 REM
-REM  No administrator elevation is required: cloning, venv,
-REM  deps, the matching engine and heartbeats all run as the
-REM  current user. Scheduled tasks are created for the current
-REM  logged-in user (also no admin needed). Double-click = one
-REM  window, no UAC relaunch, no second instance.
-REM
-REM  Order (network proven FIRST):
-REM   1. single-instance lock + self-check Git/Python/D drive
-REM   2. connect GitHub + clone small DATA repo via
-REM      SSH22 -> SSH443 -> HTTPS, push ONLINE immediately
-REM   3. clone/update CODE repo (same 3 channels)
-REM   4. setup.py: venv, deps (CN mirror), live-data,
-REM      scheduled tasks, self-test, final heartbeat
-REM  Log: D:\quant-monitor-install.log  and
-REM       D:\quant-monitor\install_setup.log
+REM  No admin/UAC. Single instance lock. Network proven FIRST.
+REM  Channel order (CN networks often block :22 and reset HTTPS):
+REM    1) SSH over 443  -> ssh.github.com port 443   (primary)
+REM    2) SSH over 22
+REM    3) HTTPS (may pop a browser sign-in)
+REM  An SSH auth self-test runs first; every channel error is
+REM  written to D:\quant-monitor-install.log and the tail is
+REM  printed on screen if all channels fail.
 REM ============================================================
 
 set "INSTALL_DIR=D:\quant-monitor"
@@ -32,21 +25,22 @@ set "CODE_HTTPS=https://github.com/you9095/quant-monitor.git"
 set "DATA_SSH=git@github.com:you9095/quant-monitor-live-data.git"
 set "DATA_HTTPS=https://github.com/you9095/quant-monitor-live-data.git"
 set "LOG=D:\quant-monitor-install.log"
+set "SSHTEST=%TEMP%\qm_sshtest.txt"
 
 echo ========================================
 echo   AI Quant Monitor - One-click Installer
-echo   VERSION: 2026-10-04  v5  NO-UAC
+echo   VERSION: 2026-10-04  v6  SSH443-FIRST
 echo   Target: %INSTALL_DIR%
 echo   Mode  : Simulation (no real broker)
 echo ========================================
 echo.
 echo Full log: %LOG%
-echo [%DATE% %TIME%] installer v5 started on %COMPUTERNAME% > "%LOG%"
+echo [%DATE% %TIME%] installer v6 started on %COMPUTERNAME% > "%LOG%"
 echo.
 
 goto :main
 
-REM ============== single exit point (release lock + hold window) ==============
+REM ============== single exit point ==============
 :quit
 set "RC=%~1"
 if not defined RC set "RC=0"
@@ -58,7 +52,7 @@ echo ========================================
 pause
 exit /b %RC%
 
-REM ============== helper: enable SSH over port 443 ==============
+REM ============== persist SSH-over-443 config (also used by daily tasks) ==============
 :enable_ssh_443
 if not exist "%USERPROFILE%\.ssh" mkdir "%USERPROFILE%\.ssh"
 if not exist "%USERPROFILE%\.ssh\config" type nul > "%USERPROFILE%\.ssh\config"
@@ -73,7 +67,34 @@ if errorlevel 1 (
 )
 goto :eof
 
-REM ============== helper: report a step to the data repo ==============
+REM ============== SSH key + 443 auth self-test, result to log ==============
+:ssh_diag
+echo       Checking SSH key...
+set "HASKEY=no"
+if exist "%USERPROFILE%\.ssh\id_ed25519" set "HASKEY=yes"
+if exist "%USERPROFILE%\.ssh\id_rsa" set "HASKEY=yes"
+echo [DIAG] SSH key present: !HASKEY! >> "%LOG%"
+if "!HASKEY!"=="no" (
+    echo       [DIAG] NO SSH KEY found in %USERPROFILE%\.ssh
+    echo [DIAG] NO_SSH_KEY >> "%LOG%"
+    goto :eof
+)
+echo       Testing SSH auth via ssh.github.com port 443...
+call :enable_ssh_443
+ssh -p 443 -o HostName=ssh.github.com -o StrictHostKeyChecking=accept-new -o BatchMode=yes -o ConnectTimeout=20 -T git@github.com > "%SSHTEST%" 2>&1
+findstr /C:"successfully authenticated" "%SSHTEST%" >nul 2>&1
+if not errorlevel 1 (
+    echo       [DIAG] SSH443 auth OK
+    echo [DIAG] SSH443_AUTH_OK >> "%LOG%"
+) else (
+    echo       [DIAG] SSH443 auth/network failed:
+    type "%SSHTEST%"
+    echo [DIAG] SSH443_FAIL >> "%LOG%"
+    type "%SSHTEST%" >> "%LOG%"
+)
+goto :eof
+
+REM ============== report a step to the data repo ==============
 :report
 if not exist "%STATUS_DIR%\.git" goto :eof
 if not exist "%STATUS_DIR%\_install_status" mkdir "%STATUS_DIR%\_install_status"
@@ -86,14 +107,24 @@ git push origin master >nul 2>&1
 cd /d "%~dp0"
 goto :eof
 
-REM ============== helper: smart clone (SSH22/SSH443/HTTPS) ==============
+REM ============== smart clone: SSH443 -^> SSH22 -^> HTTPS ==============
 :smart_clone
 set "GC_DIR=%~1"
 if exist "%GC_DIR%\.git" (
     set "CLONE_MODE=existing"
     goto :eof
 )
-echo       Trying SSH over port 22...
+echo       [1/3] Trying SSH over port 443 (best for CN networks)...
+call :enable_ssh_443
+set "GIT_SSH_COMMAND=ssh -p 443 -o HostName=ssh.github.com -o StrictHostKeyChecking=accept-new -o BatchMode=yes -o ConnectTimeout=20"
+git clone "%~2" "%GC_DIR%" >> "%LOG%" 2>&1
+if not errorlevel 1 (
+    set "CLONE_MODE=ssh443"
+    goto :eof
+)
+if exist "%GC_DIR%" rmdir /s /q "%GC_DIR%"
+
+echo       [2/3] Trying SSH over port 22...
 set "GIT_SSH_COMMAND=ssh -o StrictHostKeyChecking=accept-new -o BatchMode=yes -o ConnectTimeout=15"
 git clone "%~2" "%GC_DIR%" >> "%LOG%" 2>&1
 if not errorlevel 1 (
@@ -101,19 +132,11 @@ if not errorlevel 1 (
     goto :eof
 )
 if exist "%GC_DIR%" rmdir /s /q "%GC_DIR%"
-echo       SSH22 failed. Enabling SSH over port 443...
-call :enable_ssh_443
-git clone "%~2" "%GC_DIR%" >> "%LOG%" 2>&1
-if not errorlevel 1 (
-    set "CLONE_MODE=ssh443"
-    goto :eof
-)
-if exist "%GC_DIR%" rmdir /s /q "%GC_DIR%"
-echo       SSH failed. Trying HTTPS...
-echo       ** If a GitHub sign-in window opens, complete it once. **
+
+echo       [3/3] Trying HTTPS (a browser sign-in window may open)...
 set "GIT_SSH_COMMAND="
 git config --global credential.helper manager >> "%LOG%" 2>&1
-git clone "%~3" "%GC_DIR%"
+git clone "%~3" "%GC_DIR%" >> "%LOG%" 2>&1
 if not errorlevel 1 (
     set "CLONE_MODE=https"
     goto :eof
@@ -124,14 +147,14 @@ goto :eof
 
 :main
 
-REM ----- 0. D drive must exist (the lock lives on D:) -----
+REM ----- 0. D drive -----
 if not exist D:\ (
     echo [ERROR] D drive not found. This installer requires a D drive.
     pause
     exit /b 1
 )
 
-REM ----- single-instance lock (atomic mkdir; stale after 30 min is reclaimed) -----
+REM ----- single-instance lock -----
 if exist "%LOCKDIR%" (
     set "LOCKAGE=fresh"
     for /f %%a in ('powershell -NoProfile -Command "try{if(((Get-Date)-(Get-Item 'D:\_qm_install.lock').CreationTime).TotalMinutes -gt 30){'stale'}else{'fresh'}}catch{'stale'}"') do set "LOCKAGE=%%a"
@@ -141,8 +164,7 @@ if exist "%LOCKDIR%" (
         echo ========================================
         echo   Another installer is already running.
         echo   This window closes in 8 seconds.
-        echo   If you are SURE nothing else is running,
-        echo   delete this folder and double-click again:
+        echo   If sure nothing else runs, delete:
         echo     %LOCKDIR%
         echo ========================================
         timeout /t 8
@@ -175,9 +197,12 @@ if not defined PYCMD (
 echo [2/4] Python found (%PYCMD%).
 echo [3/4] D drive ready.
 
-REM ----- 2. FIRST: connect + clone the small DATA repo, report ONLINE immediately -----
-echo [4/4] Connecting to GitHub and establishing status channel FIRST...
+REM ----- 2. SSH auth self-test FIRST -----
+echo [4/4] Network: SSH auth self-test, then connect...
 git config --global credential.helper manager >> "%LOG%" 2>&1
+call :ssh_diag
+
+REM ----- clone the small DATA repo and report ONLINE immediately -----
 if exist "%STATUS_DIR%\.git" (
     cd /d "%STATUS_DIR%"
     git pull --no-rebase origin master >> "%LOG%" 2>&1
@@ -189,16 +214,20 @@ if exist "%STATUS_DIR%\.git" (
 if "!CLONE_MODE!"=="FAIL" (
     echo.
     echo ========================================
-    echo   [ERROR] Cannot reach GitHub.
-    echo   Tried SSH22, SSH443 and HTTPS, all failed.
-    echo   If a GitHub sign-in window appeared, finish it.
-    echo   Otherwise check network/proxy, then run again.
-    echo   Details: %LOG%
+    echo   [ERROR] Cannot reach GitHub on all 3 channels.
+    echo   Diagnostic log tail (send a photo of this):
+    echo ========================================
+    powershell -NoProfile -Command "Get-Content '%LOG%' -Tail 35"
+    echo ========================================
+    echo   Common fixes:
+    echo    - NO_SSH_KEY: SSH key not added to this PC/GitHub
+    echo    - timeout/reset: network blocks GitHub, use a proxy/VPN
+    echo    - Permission denied: SSH key not linked to GitHub account
     echo ========================================
     echo [%DATE% %TIME%] NETWORK_FAIL all 3 channels >> "%LOG%"
     call :quit 1
 )
-call :report ONLINE "connected via !CLONE_MODE!; git/python/drive OK"
+call :report ONLINE "connected via !CLONE_MODE!; key=!HASKEY!"
 echo       Status channel connected via !CLONE_MODE!.
 
 REM ----- 3. clone/update the CODE repo -----
@@ -221,7 +250,8 @@ if exist "%INSTALL_DIR%\.git" (
 )
 if "!CLONE_MODE!"=="FAIL" (
     call :report FAILED "code clone failed on all channels"
-    echo [ERROR] Could not get the code. Details: %LOG%
+    echo [ERROR] Could not get the code.
+    powershell -NoProfile -Command "Get-Content '%LOG%' -Tail 20"
     call :quit 1
 )
 call :report CODE_READY "code at %INSTALL_DIR% via !CLONE_MODE!"
@@ -257,8 +287,8 @@ if %RC%==0 (
     call :report FAILED "setup.py returned rc=%RC%"
     echo ========================================
     echo   SETUP REPORTED AN ERROR (code %RC%).
-    echo   It was reported; the boot self-check will
-    echo   retry after login. Details: %LOG%
+    echo   It was reported; the boot self-check retries.
+    echo   Details: %LOG%
     echo   and %INSTALL_DIR%\install_setup.log
     echo ========================================
 )

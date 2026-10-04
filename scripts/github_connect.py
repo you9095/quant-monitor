@@ -3,9 +3,9 @@
 """
 GitHub 连接自愈模块（Windows 一键安装 / 每日任务共用）
 
-国内网络连 GitHub 常见三道坎，本模块按顺序自动尝试、选第一条通的：
-  1. SSH over 22 （标准端口，常被阻断）
-  2. SSH over 443 （ssh.github.com:443，绕过 22 端口封锁，仍用同一把密钥）
+国内网络连 GitHub 常见三道坎，本模块按"国内最可靠优先"自动尝试、选第一条通的：
+  1. SSH over 443 （ssh.github.com:443，绕过 22 端口封锁与 HTTPS 重置，首选）
+  2. SSH over 22 （标准端口，常被阻断）
   3. HTTPS over 443（Git Credential Manager 首次弹一次浏览器登录，之后永久缓存）
 
 纯标准库，无第三方依赖。任何 git 失败都返回 (False, 报错文本)，不抛异常。
@@ -47,11 +47,22 @@ def run(args, cwd=None, timeout=60, env=None):
 
 
 def _ssh_env():
-    """SSH 专用环境：自动信任主机指纹、禁用交互卡死、15s 连接超时。"""
+    """SSH(22) 专用环境：自动信任主机指纹、禁用交互卡死、15s 连接超时。"""
     env = dict(os.environ)
     env["GIT_SSH_COMMAND"] = (
         "ssh -o StrictHostKeyChecking=accept-new "
         "-o BatchMode=yes -o ConnectTimeout=15"
+    )
+    return env
+
+
+def _ssh443_env():
+    """SSH over 443 专用环境：显式连 ssh.github.com:443（国内首选，最可靠）。"""
+    env = dict(os.environ)
+    env["GIT_SSH_COMMAND"] = (
+        "ssh -p 443 -o HostName=ssh.github.com "
+        "-o StrictHostKeyChecking=accept-new "
+        "-o BatchMode=yes -o ConnectTimeout=20"
     )
     return env
 
@@ -84,15 +95,14 @@ def enable_ssh_over_443():
         f.write(_SSH443_BLOCK)
 
 
-def _probe(url, use_ssh, timeout=45):
+def _probe(url, env=None, timeout=45):
     """用 ls-remote 轻量探测某 URL 是否可读（私有仓库也能验证权限）。"""
-    env = _ssh_env() if use_ssh else None
     ok, _ = run(["git", "ls-remote", url, "HEAD"], timeout=timeout, env=env)
     return ok
 
 
 def best_url(ssh_url, https_url, verbose=True):
-    """依次探测 SSH22 → SSH443 → HTTPS，返回 (可用URL, 模式名) 或 (None, 'none')。
+    """依次探测 SSH443 → SSH22 → HTTPS，返回 (可用URL, 模式名) 或 (None, 'none')。
 
     副作用：自动写好 ssh 443 配置、git 凭据管理器。
     HTTPS 首次会弹 GitHub 登录窗，给 240s 让用户完成授权。
@@ -101,27 +111,27 @@ def best_url(ssh_url, https_url, verbose=True):
         if verbose:
             log(m)
 
-    # 1) SSH over 22
-    p("  探测 GitHub SSH (端口22) ...")
-    if _probe(ssh_url, True, timeout=30):
-        p("  [通] SSH 端口22 可用")
-        return ssh_url, "ssh22"
-
-    # 2) SSH over 443
-    p("  SSH22 不通，自动切换到 SSH over 443（绕过端口封锁）...")
+    # 1) SSH over 443（国内首选，显式指定 ssh.github.com:443，不依赖隐式配置）
     enable_ssh_over_443()
-    if _probe(ssh_url, True, timeout=30):
+    p("  探测 GitHub SSH over 443 (ssh.github.com:443，国内首选) ...")
+    if _probe(ssh_url, env=_ssh443_env(), timeout=30):
         p("  [通] SSH 端口443 可用")
         return ssh_url, "ssh443"
+
+    # 2) SSH over 22
+    p("  SSH443 不通，尝试 SSH 端口22 ...")
+    if _probe(ssh_url, env=_ssh_env(), timeout=25):
+        p("  [通] SSH 端口22 可用")
+        return ssh_url, "ssh22"
 
     # 3) HTTPS（可能弹登录窗，给足时间）
     p("  SSH 均不通，改用 HTTPS。若弹出 GitHub 登录/授权窗口，请在浏览器完成一次登录 ...")
     configure_git()
-    if _probe(https_url, False, timeout=240):
+    if _probe(https_url, env=None, timeout=240):
         p("  [通] HTTPS 可用")
         return https_url, "https"
 
-    p("  [失败] SSH22 / SSH443 / HTTPS 三种方式均无法连接 GitHub")
+    p("  [失败] SSH443 / SSH22 / HTTPS 三种方式均无法连接 GitHub")
     return None, "none"
 
 
@@ -153,7 +163,10 @@ def clone_fallback(ssh_url, https_url, dir_name, cwd, verbose=True, timeout=600)
                 log(f"  旧目录已备份为 {backup.name}")
         except Exception as e:
             log(f"  无法备份旧目录 {target}: {e}")
-    env = _ssh_env() if url.startswith("git@") else None
+    if url.startswith("git@"):
+        env = _ssh443_env() if mode == "ssh443" else _ssh_env()
+    else:
+        env = None
     ok, out = run(["git", "clone", url, dir_name], cwd=cwd, timeout=timeout, env=env)
     if ok:
         if verbose:
@@ -167,14 +180,17 @@ def clone_fallback(ssh_url, https_url, dir_name, cwd, verbose=True, timeout=600)
 
 
 def hard_update(repo_dir, timeout=300):
-    """对已克隆的代码仓库强制同步到远程 master（自动更新）。"""
+    """对已克隆的代码仓库强制同步到远程 master（自动更新）。SSH443 优先，22 回退。"""
     repo_dir = Path(repo_dir)
     if not (repo_dir / ".git").exists():
         return False, "not a git repo"
-    # 确保远程可达（必要时补 443 配置）
-    run(["git", "fetch", "origin", "master"], cwd=repo_dir, timeout=timeout, env=_ssh_env())
-    ok, out = run(["git", "reset", "--hard", "origin/master"], cwd=repo_dir, timeout=60)
-    return ok, out
+    enable_ssh_over_443()
+    ok, out = run(["git", "fetch", "origin", "master"], cwd=repo_dir, timeout=timeout, env=_ssh443_env())
+    if not ok:
+        ok, out = run(["git", "fetch", "origin", "master"], cwd=repo_dir, timeout=timeout, env=_ssh_env())
+    if not ok:
+        return False, out
+    return run(["git", "reset", "--hard", "origin/master"], cwd=repo_dir, timeout=60)
 
 
 if __name__ == "__main__":
