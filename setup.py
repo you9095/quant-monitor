@@ -303,43 +303,48 @@ def setup_git_auto_update():
         else:
             warn("数据仓库连接失败：三种通道均不通，实盘数据暂无法回传")
 
-    # 注册 Windows 计划任务：两段式
-    #   工作日 09:35 execute：开盘后按昨日信号真实成交
-    #   工作日 15:30 decide：收盘后更新代码+算今日信号+上传数据+重启面板
+    # ===== 计划任务（2026-10-04 改单段式，适配只在交易日 13:00-17:00 开机）=====
     venv_py = get_venv_python()
     task_base = f'"\\"{venv_py}\\" \\"{BASE_DIR / "daily_task.py"}\\""'
 
-    print("  注册开盘执行任务（工作日 09:35）...")
+    # 先删除旧两段式任务（09:35 execute / 15:30 decide），"不存在"错误忽略
+    for _old in ("QuantExecuteTask", "QuantDecideTask"):
+        subprocess.run(["schtasks", "/delete", "/tn", _old, "/f"],
+                       capture_output=True, text=True)
+
+    # 1) 开机即交易：登录后 3 分钟跑 trade（窗口 13:00-17:00，窗口外自行跳过）
+    print("  注册开机交易任务（登录后3分钟，窗口13:00-17:00）...")
     r1 = subprocess.run(
-        ["schtasks", "/create", "/tn", "QuantExecuteTask", "/tr",
-         task_base + " execute",
-         "/sc", "weekly", "/d", "MON,TUE,WED,THU,FRI", "/st", "09:35", "/f"],
+        ["schtasks", "/create", "/tn", "QuantDailyTrade", "/tr",
+         task_base + " trade",
+         "/sc", "onlogon", "/delay", "0003:00", "/f"],
         capture_output=True, text=True)
     if r1.returncode == 0:
-        ok("开盘任务已注册：工作日 09:35 自动按昨日信号真实成交")
+        ok("开机交易任务已注册：交易日开机后自动 决策+成交+上传")
     else:
-        warn(f"开盘任务注册失败: {r1.stderr.strip()}")
+        warn(f"开机交易任务注册失败: {r1.stderr.strip()}")
 
-    print("  注册收盘决策任务（工作日 15:30）...")
+    # 2) 下午兜底：工作日 15:10 再跑一次（引擎当日幂等，已成交则跳过）
+    print("  注册下午兜底任务（工作日 15:10）...")
     r2 = subprocess.run(
-        ["schtasks", "/create", "/tn", "QuantDecideTask", "/tr",
-         task_base + " decide",
-         "/sc", "weekly", "/d", "MON,TUE,WED,THU,FRI", "/st", "15:30", "/f"],
+        ["schtasks", "/create", "/tn", "QuantDailyTradePM", "/tr",
+         task_base + " trade",
+         "/sc", "weekly", "/d", "MON,TUE,WED,THU,FRI", "/st", "15:10", "/f"],
         capture_output=True, text=True)
     if r2.returncode == 0:
-        ok("收盘任务已注册：工作日 15:30 自动 更新代码+算信号+上传+重启面板")
+        ok("下午兜底任务已注册：工作日15:10确保收盘后成交一次（幂等）")
     else:
-        warn(f"收盘任务注册失败: {r2.stderr.strip()}")
+        warn(f"下午兜底任务注册失败: {r2.stderr.strip()}")
 
-    # 开机自检：登录 Windows 2 分钟后自动更新代码+确保数据仓库+上报心跳（不交易）
+    # 3) 开机网络自检：登录后 1 分钟，只更新代码+自愈数据仓库+上报，不交易
     fix_cmd = f'"\\"{venv_py}\\" \\"{BASE_DIR / "scripts" / "fix_and_report.py"}\\""'
-    print("  注册开机自检任务（登录后2分钟）...")
+    print("  注册开机自检任务（登录后1分钟）...")
     r3 = subprocess.run(
         ["schtasks", "/create", "/tn", "QuantBootCheck", "/tr", fix_cmd,
-         "/sc", "onlogon", "/delay", "0002:00", "/f"],
+         "/sc", "onlogon", "/delay", "0001:00", "/f"],
         capture_output=True, text=True)
     if r3.returncode == 0:
-        ok("开机自检已注册：每次开机登录后自动更新并上报状态")
+        ok("开机自检已注册：登录后先自愈网络并上报，3分钟后交易任务再跑")
     else:
         warn(f"开机自检注册失败: {r3.stderr.strip()}")
 

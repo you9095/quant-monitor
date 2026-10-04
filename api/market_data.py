@@ -67,3 +67,21 @@ def load_etf_close(code: str, days: int = 120, use_cache: bool = True) -> list:
             except Exception:
                 pass
         return []
+
+
+def load_etf_dates(code: str, days: int = 5, use_cache: bool = True) -> list:
+    """返回最近 days 个交易日的日期 list（YYYY-MM-DD，旧→新）。失败返回[]。"""
+    cache = _cache_path(code)
+    if cache.exists():
+        try:
+            with open(cache, encoding="utf-8") as f:
+                rows = list(csv.reader(f))
+            dates = [r[0] for r in rows[1:] if r]
+            if dates:
+                return dates[-days:]
+        except Exception:
+            pass
+    # 无缓存则先拉一次收盘（会写缓存），再读日期
+    if load_etf_close(code, days=max(days, 30), use_cache=use_cache):
+        return load_etf_dates(code, days, use_cache=True)
+    return []

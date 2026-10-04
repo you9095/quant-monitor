@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Windows 端每日自动任务（两段式）
-================================
-由 Windows 任务计划程序在两个时间点触发：
+Windows 端每日自动任务（现行：单段式，适配"只在交易日 13:00-17:00 开机"）
+=====================================================================
+由 Windows 任务计划程序触发：
 
-  09:35  execute 阶段：开盘后按昨日信号真实成交（用实时价≈开盘价）
-  15:30  decide   阶段：收盘后更新代码 + 算今日信号 + 上传数据 + 重启面板
+  QuantDailyTrade   onlogon 开机登录后 3 分钟：开机即跑当日完整流程（主）
+  QuantDailyTradePM 工作日 15:10：下午兜底（电脑一直开着时确保收盘后跑一次）
+  QuantBootCheck    onlogon 开机后 1 分钟：只做网络自愈 + 上报，不交易
 
-时间窗口硬限制：
-  execute: 工作日 09:30-10:00
-  decide:  工作日 15:00-17:00
-周末/夜间/早间一律不跑，绝不 7x24。
+trade 流程（引擎内部当日幂等，重复触发不会重复成交）：
+  更新代码 → 装依赖 → run_daily.py once（决策+按开机时刻最新价成交）
+  → 上传数据 → 上报心跳 → 重启面板
+
+时间窗口硬限制：trade 仅工作日 13:00-17:00；其余时间一律不交易，绝不 7x24。
+旧 execute(09:35)/decide(15:30) 两段式仅保留兼容，不再注册任务。
 """
 import os
 import sys
@@ -46,9 +49,12 @@ def in_time_window(phase):
     if now.weekday() >= 5:
         log(f"周末（{now.strftime('%A')}），跳过。")
         return False
-    if phase == "execute":
-        ok = (9, 30) <= (now.hour, now.minute) < (10, 0)
-    else:
+    hm = (now.hour, now.minute)
+    if phase == "trade":
+        ok = (13, 0) <= hm < (17, 0)
+    elif phase == "execute":      # 旧两段式，保留
+        ok = (9, 30) <= hm < (10, 0)
+    else:                        # decide 旧两段式，保留
         ok = 15 <= now.hour < 17
     if not ok:
         log(f"当前 {now.strftime('%H:%M')} 不在 {phase} 窗口，跳过。")
@@ -65,7 +71,7 @@ def step_update_code():
         return
     r = subprocess.run(["git", "reset", "--hard", "origin/master"], cwd=str(BASE_DIR),
                        capture_output=True, text=True, timeout=60)
-    log(f"  代码已同步到最新")
+    log("  代码已同步到最新")
 
 
 def step_install_deps():
@@ -78,14 +84,14 @@ def step_install_deps():
                    cwd=str(BASE_DIR), capture_output=True, timeout=300)
 
 
-def step_run_engine(phase):
-    log(f"运行引擎 [{phase}]...")
+def step_run_engine(engine_phase):
+    log(f"运行引擎 [{engine_phase}]...")
     engine = BASE_DIR / "run_daily.py"
-    r = subprocess.run([str(VENV_PY), str(engine), phase], cwd=str(BASE_DIR),
+    r = subprocess.run([str(VENV_PY), str(engine), engine_phase], cwd=str(BASE_DIR),
                        capture_output=True, text=True, timeout=600)
-    log("  引擎输出: " + (r.stdout.strip()[-500:] if r.stdout else "(空)"))
+    log("  引擎输出: " + (r.stdout.strip()[-800:] if r.stdout else "(空)"))
     if r.returncode != 0:
-        log("  引擎错误: " + r.stderr.strip()[-500:])
+        log("  引擎错误: " + r.stderr.strip()[-800:])
 
 
 def step_push_data():
@@ -118,7 +124,7 @@ def step_report_heartbeat():
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("phase", choices=["execute", "decide"])
+    ap.add_argument("phase", choices=["trade", "execute", "decide"])
     args = ap.parse_args()
     phase = args.phase
     log("=" * 50)
@@ -126,8 +132,16 @@ def main():
     if not in_time_window(phase):
         return
     try:
-        if phase == "decide":
-            # 收盘阶段：更新代码 + 装依赖 + 决策 + 上传 + 重启面板
+        if phase == "trade":
+            # 开机即跑当日完整流程（引擎 once 内部当日幂等）
+            step_update_code()
+            step_install_deps()
+            step_run_engine("once")
+            step_push_data()
+            step_report_heartbeat()
+            step_restart_panel()
+        elif phase == "decide":
+            # 旧两段式（兼容）
             step_update_code()
             step_install_deps()
             step_run_engine("decide")
@@ -135,7 +149,7 @@ def main():
             step_report_heartbeat()
             step_restart_panel()
         else:
-            # 开盘阶段：只执行成交 + 上传数据（不更新代码，避免盘中变动）
+            # 旧 execute（兼容）：只成交 + 上传
             step_run_engine("execute")
             step_push_data()
             step_report_heartbeat()
