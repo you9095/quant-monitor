@@ -5,21 +5,18 @@ title AI Quant Monitor - One-click Installer
 REM ============================================================
 REM  AI Quant Monitor - ALL-IN-ONE SELF-HEALING installer
 REM  Target: D:\quant-monitor   (Simulation only, no real broker)
-REM  VERSION: 2026-10-04  v7  SELF-HEAL
+REM  VERSION: 2026-10-04  v8  VISIBLE-DIAG
 REM
-REM  Single file, double-click, no admin/UAC. It detects and
-REM  AUTO-FIXES every common failure before reporting:
-REM   - locate Git/Python (PATH, common dirs, winget fallback)
-REM   - git identity (user.name/email) auto-set so commits work
-REM   - SSH key: auto-generate, fix private-key permissions,
-REM     test auth over ssh.github.com:443, and if the key is not
-REM     linked to GitHub: upload via gh CLI, or open the key page
-REM     with the public key copied, then poll until linked
-REM   - channels: SSH443 -> SSH22 -> HTTPS, auto-detect a local
-REM     proxy (Clash/v2ray/etc) and configure git to use it
-REM   - single-instance lock, full log, on-failure diagnostics
-REM  Only needs the user (rarely): link the key once in browser,
-REM  or turn on a VPN/proxy if the network fully blocks GitHub.
+REM  v8 fixes the two "silent" failures:
+REM   1) On ANY failure it copies the full log to the Desktop and
+REM      opens it in Notepad automatically, so the user only has
+REM      to Ctrl+A / Ctrl+C and paste it - no reading, no judging.
+REM   2) A leftover single-instance lock no longer closes a re-run
+REM      after 8s; it asks for a keypress and then takes over.
+REM  Plus all v7 self-healing: locate Git/Python (PATH, common
+REM  dirs, winget), git identity, SSH key create/fix-perms/auth
+REM  over ssh.github.com:443, key linking (gh or browser+clip and
+REM  poll), proxy detection, channels SSH443->SSH22->HTTPS.
 REM ============================================================
 
 set "INSTALL_DIR=D:\quant-monitor"
@@ -32,17 +29,22 @@ set "DATA_HTTPS=https://github.com/you9095/quant-monitor-live-data.git"
 set "LOG=D:\quant-monitor-install.log"
 set "SSHTEST=%TEMP%\qm_sshtest.txt"
 set "PUBKEY=%USERPROFILE%\.ssh\id_ed25519.pub"
+set "DESKTOP=%USERPROFILE%\Desktop"
 
 echo ========================================
 echo   AI Quant Monitor - One-click Installer
-echo   VERSION: 2026-10-04  v7  SELF-HEAL
+echo   VERSION: 2026-10-04  v8  VISIBLE-DIAG
 echo   Target: %INSTALL_DIR%
 echo   Mode  : Simulation (no real broker)
 echo ========================================
 echo.
 echo Full log: %LOG%
-echo [%DATE% %TIME%] installer v7 started on %COMPUTERNAME% > "%LOG%"
+echo [%DATE% %TIME%] installer v8 started on %COMPUTERNAME% > "%LOG%"
+echo [ENV] COMPUTERNAME=%COMPUTERNAME% >> "%LOG%"
+echo [ENV] USERPROFILE=%USERPROFILE% >> "%LOG%"
+echo [ENV] PATH=%PATH% >> "%LOG%"
 echo.
+timeout /t 2 >nul
 
 goto :main
 
@@ -57,6 +59,22 @@ echo   Window stays open. Read the lines above.
 echo ========================================
 pause
 exit /b %RC%
+
+REM ===================== open full diagnostics in Notepad =====================
+:dump_log
+for /f "delims=" %%d in ('powershell -NoProfile -Command "[Environment]::GetFolderPath('Desktop')"') do set "DESKTOP=%%d"
+if not exist "%DESKTOP%" set "DESKTOP=%USERPROFILE%\Desktop"
+if exist "%LOG%" copy /y "%LOG%" "%DESKTOP%\quant-install-log.txt" >nul 2>&1
+if exist "%INSTALL_DIR%\install_setup.log" copy /y "%INSTALL_DIR%\install_setup.log" "%DESKTOP%\quant-setup-log.txt" >nul 2>&1
+echo.
+echo ============================================================
+echo   A diagnostic file was saved to your Desktop:
+echo     quant-install-log.txt
+echo   It is opening in Notepad now. Press Ctrl+A then Ctrl+C and
+echo   paste the whole thing back to the assistant. No judging.
+echo ============================================================
+start "" notepad "%DESKTOP%\quant-install-log.txt"
+goto :eof
 
 REM ===================== persist SSH-over-443 =====================
 :enable_ssh_443
@@ -157,12 +175,15 @@ if not defined KEYFILE (
 )
 if not defined KEYFILE (
     set "SSH_AUTH=nokey"
+    echo [DIAG] SSH_AUTH_NOKEY >> "%LOG%"
     goto :eof
 )
+echo [DIAG] using key %KEYFILE% >> "%LOG%"
 call :fix_key_perms "%KEYFILE%"
 call :enable_ssh_443
 echo       Testing SSH auth via ssh.github.com port 443...
 ssh -p 443 -o HostName=ssh.github.com -o StrictHostKeyChecking=accept-new -o BatchMode=yes -o ConnectTimeout=20 -T git@github.com > "%SSHTEST%" 2>&1
+type "%SSHTEST%" >> "%LOG%"
 findstr /C:"successfully authenticated" "%SSHTEST%" >nul 2>&1
 if not errorlevel 1 (
     set "SSH_AUTH=ok"
@@ -175,14 +196,12 @@ if not errorlevel 1 (
     set "SSH_AUTH=denied"
     echo       [DIAG] SSH key exists but is NOT linked to GitHub
     echo [DIAG] SSH_AUTH_DENIED >> "%LOG%"
-    type "%SSHTEST%" >> "%LOG%"
     goto :eof
 )
 set "SSH_AUTH=netfail"
 echo       [DIAG] SSH443 network failed:
 type "%SSHTEST%"
 echo [DIAG] SSH443_NETFAIL >> "%LOG%"
-type "%SSHTEST%" >> "%LOG%"
 goto :eof
 
 REM ===================== link SSH key to GitHub =====================
@@ -201,7 +220,7 @@ echo       Copying public key to clipboard and opening GitHub key page...
 if exist "%PUBKEY%" clip < "%PUBKEY%"
 start "" https://github.com/settings/ssh/new
 echo       In the browser: paste the key (already copied), give it a
-echo       title, click "Add SSH key", then return here - it continues.
+echo       title, click "Add SSH key". This window keeps retrying.
 goto :eof
 
 REM ===================== report a step =====================
@@ -264,25 +283,30 @@ goto :eof
 REM ----- D drive -----
 if not exist D:\ (
     echo [ERROR] D drive not found. This installer requires a D drive.
-    pause
-    exit /b 1
+    echo [ERROR] no-D-drive >> "%LOG%"
+    call :dump_log
+    call :quit 1
 )
 
-REM ----- single-instance lock -----
+REM ----- single-instance lock (take over on keypress instead of closing) -----
 if exist "%LOCKDIR%" (
     set "LOCKAGE=fresh"
     for /f %%a in ('powershell -NoProfile -Command "try{if(((Get-Date)-(Get-Item 'D:\_qm_install.lock').CreationTime).TotalMinutes -gt 30){'stale'}else{'fresh'}}catch{'stale'}"') do set "LOCKAGE=%%a"
     if "!LOCKAGE!"=="stale" (
+        echo Found a stale lock from an old run, taking over...
+        echo [DIAG] stale lock removed >> "%LOG%"
         rmdir /s /q "%LOCKDIR%" 2>nul
     ) else (
         echo ========================================
-        echo   Another installer is already running.
-        echo   This window closes in 8 seconds.
-        echo   If sure nothing else runs, delete:
-        echo     %LOCKDIR%
+        echo   Another installer may still be running.
+        echo   If you are SURE no other black install
+        echo   window is open (e.g. the last one froze),
+        echo   press any key to take over and continue.
+        echo   If another one IS running, close THIS window.
         echo ========================================
-        timeout /t 8
-        exit /b
+        echo [DIAG] fresh lock - user prompted to take over >> "%LOG%"
+        pause
+        rmdir /s /q "%LOCKDIR%" 2>nul
     )
 )
 mkdir "%LOCKDIR%" 2>nul
@@ -294,8 +318,10 @@ git --version >nul 2>&1
 if errorlevel 1 (
     echo [ERROR] Git not found. Install Git for Windows from https://git-scm.com/download/win then run again.
     echo [ERROR] git-not-found >> "%LOG%"
+    call :dump_log
     call :quit 1
 )
+for /f "delims=" %%g in ('git --version 2^>^&1') do echo [ENV] %%g >> "%LOG%"
 echo       Git OK.
 
 echo [2/5] Locating Python...
@@ -303,22 +329,30 @@ call :find_python
 if not defined PYCMD (
     echo [ERROR] Python not found. Install Python 3.11 and tick "Add Python to PATH", then run again.
     echo [ERROR] python-not-found >> "%LOG%"
+    call :dump_log
     call :quit 1
 )
+for /f "delims=" %%v in ('%PYCMD% --version 2^>^&1') do echo [ENV] %%v ^(command: %PYCMD%^) >> "%LOG%"
 echo       Python OK (%PYCMD%).
 
 echo [3/5] Preparing git identity and network diagnostics...
 call :git_identity
 call :detect_proxy
 
-REM ----- SSH auth self-test; link key if needed; poll up to 5 minutes -----
+REM ----- SSH auth self-test; link key if needed; poll up to ~3.5 minutes -----
 echo [4/5] SSH authentication self-test...
 call :ssh_auth_test
 if "!SSH_AUTH!"=="denied" (
     call :upload_key
-    echo       Waiting for the key to be linked (up to 5 minutes, retrying every 10s)...
-    for /l %%n in (1,1,30) do (
+    echo       ****************************************************
+    echo       ACTION NEEDED IN BROWSER: add the SSH key on the
+    echo       GitHub page that just opened (key is copied), then
+    echo       this window detects it automatically. Waiting...
+    echo       ****************************************************
+    set "DONE_WAIT=0"
+    for /l %%n in (1,1,20) do (
         if not "!SSH_AUTH!"=="ok" (
+            echo       ...waiting for key link, attempt %%n of 20 ^(every 10s^)
             timeout /t 10 >nul
             call :ssh_auth_test
         )
@@ -326,6 +360,7 @@ if "!SSH_AUTH!"=="denied" (
 )
 call :ssh_auth_test
 echo       SSH auth result: !SSH_AUTH! (proxy: !PROXYPORT!)
+echo [DIAG] final SSH_AUTH=!SSH_AUTH! proxy=!PROXYPORT! >> "%LOG%"
 
 REM ----- clone DATA repo, report ONLINE immediately -----
 echo [5/5] Connecting data channel first...
@@ -345,14 +380,13 @@ if "!CLONE_MODE!"=="FAIL" (
     echo ========================================
     if "!SSH_AUTH!"=="denied" echo   - SSH key not linked to GitHub. Add it at the page that opened ^(key was copied^).
     if "!SSH_AUTH!"=="nokey"   echo   - No SSH key could be created. Check %USERPROFILE%\.ssh permissions.
-    if "!SSH_AUTH!"=="netfail" if not defined PROXYPORT echo   - Network blocks GitHub and NO local proxy found. Start your VPN/Clash, then run again.
+    if "!SSH_AUTH!"=="netfail" if not defined PROXYPORT echo   - Network blocks GitHub and NO local proxy found. Start your VPN/Clash (global/TUN mode), then run again.
     if "!SSH_AUTH!"=="netfail" if defined PROXYPORT     echo   - Network blocks GitHub even via proxy port !PROXYPORT!. Set proxy to global/TUN mode.
+    if "!SSH_AUTH!"=="ok"      echo   - Auth succeeded but clone failed; see the log for the git error (disk/permission/quota).
     echo   - If the repo reports 404/not-found, the key belongs to a different GitHub account.
     echo ----------------------------------------
-    echo   Log tail ^(photo this screen if needed^):
-    powershell -NoProfile -Command "Get-Content '%LOG%' -Tail 40"
-    echo ========================================
     echo [%DATE% %TIME%] NETWORK_FAIL auth=!SSH_AUTH! proxy=!PROXYPORT! >> "%LOG%"
+    call :dump_log
     call :quit 1
 )
 call :report ONLINE "connected via !CLONE_MODE!; auth=!SSH_AUTH!; proxy=!PROXYPORT!"
@@ -378,7 +412,7 @@ if exist "%INSTALL_DIR%\.git" (
 if "!CLONE_MODE!"=="FAIL" (
     call :report FAILED "code clone failed"
     echo [ERROR] Could not get the code.
-    powershell -NoProfile -Command "Get-Content '%LOG%' -Tail 25"
+    call :dump_log
     call :quit 1
 )
 call :report CODE_READY "code at %INSTALL_DIR% via !CLONE_MODE!"
@@ -414,8 +448,7 @@ if %RC%==0 (
     call :report FAILED "setup.py rc=%RC%"
     echo ========================================
     echo   SETUP REPORTED AN ERROR (code %RC%).
-    echo   Details: %LOG%
-    echo   and %INSTALL_DIR%\install_setup.log
     echo ========================================
+    call :dump_log
 )
 call :quit %RC%
