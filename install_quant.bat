@@ -5,29 +5,28 @@ title AI Quant Monitor - One-click Installer
 REM ============================================================
 REM  AI Quant Monitor - ALL-IN-ONE installer (single file)
 REM  Target: D:\quant-monitor   (Simulation only, no real broker)
+REM  VERSION: 2026-10-04  v5  NO-UAC-SINGLE-INSTANCE
 REM
-REM  STEP ORDER (network is proven FIRST, before anything heavy):
-REM   1. self-check Git / Python / D drive
-REM   2. connect to GitHub + clone the small DATA repo, trying
-REM        SSH22 -> SSH443 (ssh.github.com) -> HTTPS
-REM      and IMMEDIATELY push an "ONLINE" heartbeat (first report)
-REM   3. clone/update the CODE repo (same 3 channels)
-REM   4. run setup.py: venv, deps (CN mirror), live-data,
+REM  No administrator elevation is required: cloning, venv,
+REM  deps, the matching engine and heartbeats all run as the
+REM  current user. Scheduled tasks are created for the current
+REM  logged-in user (also no admin needed). Double-click = one
+REM  window, no UAC relaunch, no second instance.
+REM
+REM  Order (network proven FIRST):
+REM   1. single-instance lock + self-check Git/Python/D drive
+REM   2. connect GitHub + clone small DATA repo via
+REM      SSH22 -> SSH443 -> HTTPS, push ONLINE immediately
+REM   3. clone/update CODE repo (same 3 channels)
+REM   4. setup.py: venv, deps (CN mirror), live-data,
 REM      scheduled tasks, self-test, final heartbeat
-REM  Every step is pushed to the data repo as it happens.
-REM  Log: D:\quant-monitor-install.log
+REM  Log: D:\quant-monitor-install.log  and
+REM       D:\quant-monitor\install_setup.log
 REM ============================================================
-
-REM ----- auto request administrator (needed for schtasks) -----
-net session >nul 2>&1
-if %errorlevel% neq 0 (
-    echo Requesting administrator privileges, please click Yes...
-    powershell -NoProfile -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
-    exit /b
-)
 
 set "INSTALL_DIR=D:\quant-monitor"
 set "STATUS_DIR=D:\_qm_live"
+set "LOCKDIR=D:\_qm_install.lock"
 set "CODE_SSH=git@github.com:you9095/quant-monitor.git"
 set "CODE_HTTPS=https://github.com/you9095/quant-monitor.git"
 set "DATA_SSH=git@github.com:you9095/quant-monitor-live-data.git"
@@ -36,16 +35,28 @@ set "LOG=D:\quant-monitor-install.log"
 
 echo ========================================
 echo   AI Quant Monitor - One-click Installer
-echo   VERSION: 2026-10-04  v4  FIRST-HEARTBEAT
+echo   VERSION: 2026-10-04  v5  NO-UAC
 echo   Target: %INSTALL_DIR%
 echo   Mode  : Simulation (no real broker)
 echo ========================================
 echo.
 echo Full log: %LOG%
-echo [%DATE% %TIME%] installer v4 started on %COMPUTERNAME% > "%LOG%"
+echo [%DATE% %TIME%] installer v5 started on %COMPUTERNAME% > "%LOG%"
 echo.
 
 goto :main
+
+REM ============== single exit point (release lock + hold window) ==============
+:quit
+set "RC=%~1"
+if not defined RC set "RC=0"
+rmdir /s /q "%LOCKDIR%" 2>nul
+echo.
+echo ========================================
+echo   Window stays open. Read the lines above.
+echo ========================================
+pause
+exit /b %RC%
 
 REM ============== helper: enable SSH over port 443 ==============
 :enable_ssh_443
@@ -63,7 +74,6 @@ if errorlevel 1 (
 goto :eof
 
 REM ============== helper: report a step to the data repo ==============
-REM %~1 = token, %~2 = detail
 :report
 if not exist "%STATUS_DIR%\.git" goto :eof
 if not exist "%STATUS_DIR%\_install_status" mkdir "%STATUS_DIR%\_install_status"
@@ -77,7 +87,6 @@ cd /d "%~dp0"
 goto :eof
 
 REM ============== helper: smart clone (SSH22/SSH443/HTTPS) ==============
-REM %~1 = target dir, %~2 = ssh url, %~3 = https url ; sets CLONE_MODE
 :smart_clone
 set "GC_DIR=%~1"
 if exist "%GC_DIR%\.git" (
@@ -115,15 +124,41 @@ goto :eof
 
 :main
 
+REM ----- 0. D drive must exist (the lock lives on D:) -----
+if not exist D:\ (
+    echo [ERROR] D drive not found. This installer requires a D drive.
+    pause
+    exit /b 1
+)
+
+REM ----- single-instance lock (atomic mkdir; stale after 30 min is reclaimed) -----
+if exist "%LOCKDIR%" (
+    set "LOCKAGE=fresh"
+    for /f %%a in ('powershell -NoProfile -Command "try{if(((Get-Date)-(Get-Item 'D:\_qm_install.lock').CreationTime).TotalMinutes -gt 30){'stale'}else{'fresh'}}catch{'stale'}"') do set "LOCKAGE=%%a"
+    if "!LOCKAGE!"=="stale" (
+        rmdir /s /q "%LOCKDIR%" 2>nul
+    ) else (
+        echo ========================================
+        echo   Another installer is already running.
+        echo   This window closes in 8 seconds.
+        echo   If you are SURE nothing else is running,
+        echo   delete this folder and double-click again:
+        echo     %LOCKDIR%
+        echo ========================================
+        timeout /t 8
+        exit /b
+    )
+)
+mkdir "%LOCKDIR%" 2>nul
+
 REM ----- 1. self-check -----
 git --version >nul 2>&1
 if errorlevel 1 (
     echo [ERROR] Git for Windows not found. Install from https://git-scm.com/download/win
     echo [ERROR] git-not-found >> "%LOG%"
-    pause
-    exit /b 1
+    call :quit 1
 )
-echo [1/5] Git found.
+echo [1/4] Git found.
 
 set "PYCMD="
 python --version >nul 2>&1
@@ -135,21 +170,13 @@ if not defined PYCMD (
 if not defined PYCMD (
     echo [ERROR] Python not found. Install Python 3.11 and tick "Add Python to PATH".
     echo [ERROR] python-not-found >> "%LOG%"
-    pause
-    exit /b 1
+    call :quit 1
 )
-echo [2/5] Python found (%PYCMD%).
-
-if not exist D:\ (
-    echo [ERROR] D drive not found.
-    echo [ERROR] no-d-drive >> "%LOG%"
-    pause
-    exit /b 1
-)
-echo [3/5] D drive ready.
+echo [2/4] Python found (%PYCMD%).
+echo [3/4] D drive ready.
 
 REM ----- 2. FIRST: connect + clone the small DATA repo, report ONLINE immediately -----
-echo [4/5] Connecting to GitHub and establishing status channel FIRST...
+echo [4/4] Connecting to GitHub and establishing status channel FIRST...
 git config --global credential.helper manager >> "%LOG%" 2>&1
 if exist "%STATUS_DIR%\.git" (
     cd /d "%STATUS_DIR%"
@@ -169,14 +196,13 @@ if "!CLONE_MODE!"=="FAIL" (
     echo   Details: %LOG%
     echo ========================================
     echo [%DATE% %TIME%] NETWORK_FAIL all 3 channels >> "%LOG%"
-    pause
-    exit /b 1
+    call :quit 1
 )
 call :report ONLINE "connected via !CLONE_MODE!; git/python/drive OK"
 echo       Status channel connected via !CLONE_MODE!.
 
 REM ----- 3. clone/update the CODE repo -----
-echo [5/5] Getting the latest code (same auto network path)...
+echo Getting the latest code (same auto network path)...
 if exist "%INSTALL_DIR%\.git" (
     echo       Existing installation found, updating...
     call :enable_ssh_443
@@ -196,8 +222,7 @@ if exist "%INSTALL_DIR%\.git" (
 if "!CLONE_MODE!"=="FAIL" (
     call :report FAILED "code clone failed on all channels"
     echo [ERROR] Could not get the code. Details: %LOG%
-    pause
-    exit /b 1
+    call :quit 1
 )
 call :report CODE_READY "code at %INSTALL_DIR% via !CLONE_MODE!"
 echo       Code ready via !CLONE_MODE!.
@@ -234,7 +259,7 @@ if %RC%==0 (
     echo   SETUP REPORTED AN ERROR (code %RC%).
     echo   It was reported; the boot self-check will
     echo   retry after login. Details: %LOG%
+    echo   and %INSTALL_DIR%\install_setup.log
     echo ========================================
 )
-echo.
-pause
+call :quit %RC%
