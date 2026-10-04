@@ -36,12 +36,13 @@ set "LOG=D:\quant-monitor-install.log"
 
 echo ========================================
 echo   AI Quant Monitor - One-click Installer
+echo   VERSION: 2026-10-04  v4  FIRST-HEARTBEAT
 echo   Target: %INSTALL_DIR%
 echo   Mode  : Simulation (no real broker)
 echo ========================================
 echo.
 echo Full log: %LOG%
-echo [%DATE% %TIME%] installer started on %COMPUTERNAME% > "%LOG%"
+echo [%DATE% %TIME%] installer v4 started on %COMPUTERNAME% > "%LOG%"
 echo.
 
 goto :main

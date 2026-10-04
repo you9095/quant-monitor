@@ -26,6 +26,44 @@ BASE_DIR = Path(__file__).parent
 VENV_DIR = BASE_DIR / "venv"
 CONFIG_DIR = BASE_DIR / "config"
 
+# 全程日志落盘：即使黑窗口闪退，D:\quant-monitor\install_setup.log 也有完整错误
+class _Tee:
+    def __init__(self, *streams):
+        self._streams = streams
+
+    def write(self, s):
+        for st in self._streams:
+            try:
+                st.write(s)
+                st.flush()
+            except Exception:
+                pass
+
+    def flush(self):
+        for st in self._streams:
+            try:
+                st.flush()
+            except Exception:
+                pass
+
+    def reconfigure(self, **kw):
+        for st in self._streams:
+            try:
+                st.reconfigure(**kw)
+            except Exception:
+                pass
+
+
+try:
+    import datetime as _dt
+    _logf = open(BASE_DIR / "install_setup.log", "a", encoding="utf-8", errors="replace")
+    _logf.write("\n\n===== setup.py run %s (v4) =====\n" % _dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    sys.stdout = _Tee(sys.stdout, _logf)
+    sys.stderr = _Tee(sys.stderr, _logf)
+except Exception:
+    _logf = None
+
+
 # 连接自愈：SSH22 → SSH443(ssh.github.com) → HTTPS 三通道自动选择
 sys.path.insert(0, str(BASE_DIR / "scripts"))
 try:
@@ -175,23 +213,37 @@ def create_config():
 
 
 def verify():
-    """验证安装结果"""
+    """验证安装结果。核心模块硬性检查（带超时）；akshare 为行情源，软验证不阻断。"""
     venv_python = get_venv_python()
     print("  正在验证依赖导入...")
 
-    check_modules = ["pandas", "numpy", "yaml", "requests", "flask", "akshare"]
     all_ok = True
-    for mod in check_modules:
-        r = subprocess.run(
-            [str(venv_python), "-c", f"import {mod}; print('{mod} OK')"],
-            capture_output=True, text=True
-        )
-        if r.returncode == 0:
-            ok(f"{mod}")
-        else:
-            fail(f"{mod} 导入失败")
+    # 面板/引擎启动必需的核心模块
+    for mod in ["pandas", "numpy", "yaml", "requests", "flask"]:
+        try:
+            r = subprocess.run(
+                [str(venv_python), "-c", f"import {mod}; print('{mod} OK')"],
+                capture_output=True, text=True, timeout=60)
+            if r.returncode == 0:
+                ok(mod)
+            else:
+                fail(f"{mod} 导入失败")
+                all_ok = False
+        except subprocess.TimeoutExpired:
+            fail(f"{mod} 导入超时(60s)")
             all_ok = False
 
+    # akshare 只是每日行情源，首次导入可能很慢，给 120s；任何结果都不阻断安装
+    try:
+        r = subprocess.run(
+            [str(venv_python), "-c", "import akshare; print('akshare OK')"],
+            capture_output=True, text=True, timeout=120)
+        if r.returncode == 0:
+            ok("akshare（行情源就绪）")
+        else:
+            warn("akshare 导入异常，但不影响安装；每日行情运行前会自动补装/重试")
+    except subprocess.TimeoutExpired:
+        warn("akshare 首次导入超时(120s)，不阻断安装（多为首次初始化慢，稍后重试即可）")
     return all_ok
 
 
@@ -306,7 +358,7 @@ def step0_connect():
 
 def main():
     print("=" * 55)
-    print("  AI量化监控系统 - 模拟盘环境安装")
+    print("  AI量化监控系统 - 模拟盘环境安装  (setup v4)")
     print("  模式: 模拟盘（不连接任何真实券商）")
     print("=" * 55)
     print(f"  安装目录: {BASE_DIR}")
@@ -314,36 +366,56 @@ def main():
 
     # 步骤0：最先打通 GitHub 连接（失败不阻断本地安装，开机后自动重试）
     print("\n[步骤 0/5] 连接 GitHub 并建立数据回传通道")
-    step0_connect()
+    try:
+        step0_connect()
+    except Exception as e:
+        warn(f"连接步骤异常（不阻断本地安装）: {e}")
 
     total = 5
 
-    # 步骤1: 创建虚拟环境
+    # 步骤1: 创建虚拟环境（唯一硬依赖，失败才终止）
     step(1, total, "创建 Python 虚拟环境")
-    if not create_venv():
-        print("\n安装失败，请检查 Python 是否正确安装")
+    try:
+        venv_ok = create_venv()
+    except Exception as e:
+        venv_ok = False
+        fail(f"创建虚拟环境异常: {e}")
+    if not venv_ok:
+        print("\n安装失败：无法创建虚拟环境，请检查 Python 是否正确安装")
         input("按回车键退出...")
         return 1
 
-    # 步骤2: 安装依赖
+    # 步骤2: 安装依赖（失败不阻断，verify 会复核，缺包开机任务可补装）
     step(2, total, "安装 Python 依赖包")
-    install_packages()
+    try:
+        install_packages()
+    except Exception as e:
+        warn(f"依赖安装阶段异常（继续）: {e}")
 
     # 步骤3: 检查配置
     step(3, total, "检查项目配置文件")
-    create_config()
+    try:
+        create_config()
+    except Exception as e:
+        warn(f"配置检查异常（继续）: {e}")
 
-    # 步骤4: 验证
+    # 步骤4: 验证（akshare 软验证，绝不卡死整个安装）
     step(4, total, "验证安装结果")
-    verify()
+    try:
+        verify()
+    except Exception as e:
+        warn(f"验证阶段异常（继续）: {e}")
 
-    # 步骤5: 关联 GitHub 自动更新 + 注册每日任务
-    step(5, total, "关联 GitHub（自动更新 + 每日 15:30 自动运行上传）")
-    setup_git_auto_update()
+    # 步骤5: 关联 GitHub + clone 数据仓库 + 注册每日任务（关键收尾，必须执行）
+    step(5, total, "关联 GitHub（自动更新 + 每日定时运行上传）")
+    try:
+        setup_git_auto_update()
+    except Exception as e:
+        warn(f"关联/注册任务阶段异常: {e}")
 
     # 完成
     print("\n" + "=" * 55)
-    print("  安装完成")
+    print("  安装流程已走完")
     print("=" * 55)
     print()
     print("  下一步（双击即可，不用敲命令）:")
@@ -352,14 +424,14 @@ def main():
     print("    2. 浏览器打开 http://localhost:8000")
     print()
     print("  自动化说明:")
-    print("    每个工作日 15:30 自动：拉最新代码→跑实盘→上传GitHub→重启")
-    print("    macOS 端 push 新版本后，第二天 Windows 自动更新，无需再打包拷贝")
+    print("    每个工作日 09:35 成交 / 15:30 决策并上传，开机后自检自动更新")
+    print("    macOS 端 push 新版本后，Windows 自动更新，无需再打包拷贝")
     print()
     print("  注意: 本系统为模拟盘，不连接任何真实券商")
     print("=" * 55)
     print()
 
-    # 部署心跳上报：让 macOS 端能远程判断 Windows 是否部署成功
+    # 最终部署心跳（无论前面有无警告都尝试上报，让 macOS 端能看到结果）
     try:
         import subprocess as _sp
         print("正在上报部署状态到 GitHub ...")
@@ -369,7 +441,7 @@ def main():
         print(r.stdout[-600:] if r.stdout else "")
         if r.returncode != 0:
             print(r.stderr[-400:] if r.stderr else "")
-            warn("部署心跳上报失败（不影响本地运行，可稍后手动跑 scripts/report_deploy.py）")
+            warn("部署心跳上报失败（不影响本地运行，开机自检会补报）")
     except Exception as e:
         warn(f"部署心跳上报异常: {e}")
 
@@ -377,4 +449,13 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except Exception as e:
+        # 兜底：任何未预料的异常都打印出来并停住，绝不静默闪退
+        import traceback
+        print("\n[安装器异常] 安装过程中出现未预料的错误：")
+        traceback.print_exc()
+        print(f"\n错误摘要: {e}")
+        input("按回车键退出（请把上方红色/英文错误反馈）...")
+        sys.exit(1)
