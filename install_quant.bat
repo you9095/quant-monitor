@@ -3,18 +3,23 @@ setlocal enabledelayedexpansion
 title AI Quant Monitor - One-click Installer
 
 REM ============================================================
-REM  AI Quant Monitor - ALL-IN-ONE installer (single file)
+REM  AI Quant Monitor - ALL-IN-ONE SELF-HEALING installer
 REM  Target: D:\quant-monitor   (Simulation only, no real broker)
-REM  VERSION: 2026-10-04  v6  SSH443-FIRST
+REM  VERSION: 2026-10-04  v7  SELF-HEAL
 REM
-REM  No admin/UAC. Single instance lock. Network proven FIRST.
-REM  Channel order (CN networks often block :22 and reset HTTPS):
-REM    1) SSH over 443  -> ssh.github.com port 443   (primary)
-REM    2) SSH over 22
-REM    3) HTTPS (may pop a browser sign-in)
-REM  An SSH auth self-test runs first; every channel error is
-REM  written to D:\quant-monitor-install.log and the tail is
-REM  printed on screen if all channels fail.
+REM  Single file, double-click, no admin/UAC. It detects and
+REM  AUTO-FIXES every common failure before reporting:
+REM   - locate Git/Python (PATH, common dirs, winget fallback)
+REM   - git identity (user.name/email) auto-set so commits work
+REM   - SSH key: auto-generate, fix private-key permissions,
+REM     test auth over ssh.github.com:443, and if the key is not
+REM     linked to GitHub: upload via gh CLI, or open the key page
+REM     with the public key copied, then poll until linked
+REM   - channels: SSH443 -> SSH22 -> HTTPS, auto-detect a local
+REM     proxy (Clash/v2ray/etc) and configure git to use it
+REM   - single-instance lock, full log, on-failure diagnostics
+REM  Only needs the user (rarely): link the key once in browser,
+REM  or turn on a VPN/proxy if the network fully blocks GitHub.
 REM ============================================================
 
 set "INSTALL_DIR=D:\quant-monitor"
@@ -26,21 +31,22 @@ set "DATA_SSH=git@github.com:you9095/quant-monitor-live-data.git"
 set "DATA_HTTPS=https://github.com/you9095/quant-monitor-live-data.git"
 set "LOG=D:\quant-monitor-install.log"
 set "SSHTEST=%TEMP%\qm_sshtest.txt"
+set "PUBKEY=%USERPROFILE%\.ssh\id_ed25519.pub"
 
 echo ========================================
 echo   AI Quant Monitor - One-click Installer
-echo   VERSION: 2026-10-04  v6  SSH443-FIRST
+echo   VERSION: 2026-10-04  v7  SELF-HEAL
 echo   Target: %INSTALL_DIR%
 echo   Mode  : Simulation (no real broker)
 echo ========================================
 echo.
 echo Full log: %LOG%
-echo [%DATE% %TIME%] installer v6 started on %COMPUTERNAME% > "%LOG%"
+echo [%DATE% %TIME%] installer v7 started on %COMPUTERNAME% > "%LOG%"
 echo.
 
 goto :main
 
-REM ============== single exit point ==============
+REM ===================== exit point =====================
 :quit
 set "RC=%~1"
 if not defined RC set "RC=0"
@@ -52,7 +58,7 @@ echo ========================================
 pause
 exit /b %RC%
 
-REM ============== persist SSH-over-443 config (also used by daily tasks) ==============
+REM ===================== persist SSH-over-443 =====================
 :enable_ssh_443
 if not exist "%USERPROFILE%\.ssh" mkdir "%USERPROFILE%\.ssh"
 if not exist "%USERPROFILE%\.ssh\config" type nul > "%USERPROFILE%\.ssh\config"
@@ -67,34 +73,138 @@ if errorlevel 1 (
 )
 goto :eof
 
-REM ============== SSH key + 443 auth self-test, result to log ==============
-:ssh_diag
-echo       Checking SSH key...
-set "HASKEY=no"
-if exist "%USERPROFILE%\.ssh\id_ed25519" set "HASKEY=yes"
-if exist "%USERPROFILE%\.ssh\id_rsa" set "HASKEY=yes"
-echo [DIAG] SSH key present: !HASKEY! >> "%LOG%"
-if "!HASKEY!"=="no" (
-    echo       [DIAG] NO SSH KEY found in %USERPROFILE%\.ssh
-    echo [DIAG] NO_SSH_KEY >> "%LOG%"
-    goto :eof
+REM ===================== git identity (commits need this) =====================
+:git_identity
+git config --global --get user.name >nul 2>&1
+if errorlevel 1 git config --global user.name "quant-windows"
+git config --global --get user.email >nul 2>&1
+if errorlevel 1 git config --global user.email "quant@local"
+git config --global credential.helper manager >nul 2>&1
+git config --global http.version HTTP/1.1 >nul 2>&1
+goto :eof
+
+REM ===================== locate Git =====================
+:find_git
+git --version >nul 2>&1 && goto :eof
+for %%P in ("%ProgramFiles%\Git\cmd" "%ProgramFiles(x86)%\Git\cmd" "%LOCALAPPDATA%\Programs\Git\cmd") do (
+    if exist "%%~P\git.exe" set "PATH=%%~P;%PATH%"
 )
-echo       Testing SSH auth via ssh.github.com port 443...
-call :enable_ssh_443
-ssh -p 443 -o HostName=ssh.github.com -o StrictHostKeyChecking=accept-new -o BatchMode=yes -o ConnectTimeout=20 -T git@github.com > "%SSHTEST%" 2>&1
-findstr /C:"successfully authenticated" "%SSHTEST%" >nul 2>&1
+git --version >nul 2>&1 && goto :eof
+echo       Git not on PATH, trying winget install...
+where winget >nul 2>&1
 if not errorlevel 1 (
-    echo       [DIAG] SSH443 auth OK
-    echo [DIAG] SSH443_AUTH_OK >> "%LOG%"
-) else (
-    echo       [DIAG] SSH443 auth/network failed:
-    type "%SSHTEST%"
-    echo [DIAG] SSH443_FAIL >> "%LOG%"
-    type "%SSHTEST%" >> "%LOG%"
+    winget install -e --id Git.Git --accept-source-agreements --accept-package-agreements --silent >> "%LOG%" 2>&1
+    for %%P in ("%ProgramFiles%\Git\cmd" "%LOCALAPPDATA%\Programs\Git\cmd") do if exist "%%~P\git.exe" set "PATH=%%~P;%PATH%"
 )
 goto :eof
 
-REM ============== report a step to the data repo ==============
+REM ===================== locate Python =====================
+:find_python
+set "PYCMD="
+python --version >nul 2>&1 && set "PYCMD=python"
+if not defined PYCMD ( py -3 --version >nul 2>&1 && set "PYCMD=py -3" )
+if not defined PYCMD (
+    for %%V in (313 312 311 310 39) do (
+        for %%D in ("%LOCALAPPDATA%\Programs\Python\Python%%V" "%ProgramFiles%\Python%%V" "%ProgramFiles(x86)%\Python%%V") do (
+            if exist "%%~D\python.exe" set "PATH=%%~D;%PATH%"
+        )
+    )
+    python --version >nul 2>&1 && set "PYCMD=python"
+)
+if not defined PYCMD (
+    echo       Python not on PATH, trying winget install...
+    where winget >nul 2>&1
+    if not errorlevel 1 (
+        winget install -e --id Python.Python.3.11 --scope user --accept-source-agreements --accept-package-agreements --silent >> "%LOG%" 2>&1
+        for %%D in ("%LOCALAPPDATA%\Programs\Python\Python311") do if exist "%%~D\python.exe" set "PATH=%%~D;%PATH%"
+        python --version >nul 2>&1 && set "PYCMD=python"
+    )
+)
+goto :eof
+
+REM ===================== detect local proxy (Clash/v2ray/...) =====================
+:detect_proxy
+set "PROXYPORT="
+for /f "delims=" %%p in ('powershell -NoProfile -ExecutionPolicy Bypass -Command "$ports=7890,7897,10809,10808,1080,8888,8080,2080,33210; foreach($p in $ports){try{$c=New-Object Net.Sockets.TcpClient;$iar=$c.BeginConnect('127.0.0.1',$p,$null,$null);if($iar.AsyncWaitHandle.WaitOne(150,$false)){try{$c.EndConnect($iar)|Out-Null;Write-Output $p}catch{}};$c.Close()}catch{}}"') do set "PROXYPORT=%%p"
+if defined PROXYPORT (
+    echo       [DIAG] Local proxy detected on port !PROXYPORT!
+    echo [DIAG] local proxy port !PROXYPORT! >> "%LOG%"
+) else (
+    echo [DIAG] no local proxy detected >> "%LOG%"
+)
+goto :eof
+
+REM ===================== fix Windows OpenSSH key permissions =====================
+:fix_key_perms
+if exist "%~1" (
+    icacls "%~1" /inheritance:r /grant:r "%USERNAME%:F" >nul 2>&1
+    icacls "%~1" /grant:r "SYSTEM:F" >nul 2>&1
+)
+goto :eof
+
+REM ===================== SSH key + 443 auth self-test =====================
+REM result in SSH_AUTH = ok / denied / netfail / nokey
+:ssh_auth_test
+set "SSH_AUTH=unknown"
+set "KEYFILE="
+if exist "%USERPROFILE%\.ssh\id_ed25519" set "KEYFILE=%USERPROFILE%\.ssh\id_ed25519"
+if not defined KEYFILE if exist "%USERPROFILE%\.ssh\id_rsa" set "KEYFILE=%USERPROFILE%\.ssh\id_rsa"
+if not defined KEYFILE (
+    echo       No SSH key found, generating an ed25519 key...
+    echo [DIAG] generating SSH key >> "%LOG%"
+    ssh-keygen -t ed25519 -N "" -C "quant-windows" -f "%USERPROFILE%\.ssh\id_ed25519" >> "%LOG%" 2>&1
+    if exist "%USERPROFILE%\.ssh\id_ed25519" set "KEYFILE=%USERPROFILE%\.ssh\id_ed25519"
+)
+if not defined KEYFILE (
+    set "SSH_AUTH=nokey"
+    goto :eof
+)
+call :fix_key_perms "%KEYFILE%"
+call :enable_ssh_443
+echo       Testing SSH auth via ssh.github.com port 443...
+ssh -p 443 -o HostName=ssh.github.com -o StrictHostKeyChecking=accept-new -o BatchMode=yes -o ConnectTimeout=20 -T git@github.com > "%SSHTEST%" 2>&1
+findstr /C:"successfully authenticated" "%SSHTEST%" >nul 2>&1
+if not errorlevel 1 (
+    set "SSH_AUTH=ok"
+    echo       [DIAG] SSH443 auth OK
+    echo [DIAG] SSH443_AUTH_OK >> "%LOG%"
+    goto :eof
+)
+findstr /C:"Permission denied" "%SSHTEST%" >nul 2>&1
+if not errorlevel 1 (
+    set "SSH_AUTH=denied"
+    echo       [DIAG] SSH key exists but is NOT linked to GitHub
+    echo [DIAG] SSH_AUTH_DENIED >> "%LOG%"
+    type "%SSHTEST%" >> "%LOG%"
+    goto :eof
+)
+set "SSH_AUTH=netfail"
+echo       [DIAG] SSH443 network failed:
+type "%SSHTEST%"
+echo [DIAG] SSH443_NETFAIL >> "%LOG%"
+type "%SSHTEST%" >> "%LOG%"
+goto :eof
+
+REM ===================== link SSH key to GitHub =====================
+:upload_key
+where gh >nul 2>&1
+if not errorlevel 1 (
+    gh auth status >nul 2>&1
+    if not errorlevel 1 (
+        echo       Uploading SSH key via GitHub CLI...
+        gh ssh-key add "%PUBKEY%" --title "quant-windows-%COMPUTERNAME%" >> "%LOG%" 2>&1
+        echo       Key upload attempted via gh.
+        goto :eof
+    )
+)
+echo       Copying public key to clipboard and opening GitHub key page...
+if exist "%PUBKEY%" clip < "%PUBKEY%"
+start "" https://github.com/settings/ssh/new
+echo       In the browser: paste the key (already copied), give it a
+echo       title, click "Add SSH key", then return here - it continues.
+goto :eof
+
+REM ===================== report a step =====================
 :report
 if not exist "%STATUS_DIR%\.git" goto :eof
 if not exist "%STATUS_DIR%\_install_status" mkdir "%STATUS_DIR%\_install_status"
@@ -107,7 +217,7 @@ git push origin master >nul 2>&1
 cd /d "%~dp0"
 goto :eof
 
-REM ============== smart clone: SSH443 -^> SSH22 -^> HTTPS ==============
+REM ===================== smart clone: SSH443 -^> SSH22 -^> HTTPS(+proxy) =====================
 :smart_clone
 set "GC_DIR=%~1"
 if exist "%GC_DIR%\.git" (
@@ -136,6 +246,10 @@ if exist "%GC_DIR%" rmdir /s /q "%GC_DIR%"
 echo       [3/3] Trying HTTPS (a browser sign-in window may open)...
 set "GIT_SSH_COMMAND="
 git config --global credential.helper manager >> "%LOG%" 2>&1
+if defined PROXYPORT (
+    git config --global http.proxy http://127.0.0.1:!PROXYPORT! >> "%LOG%" 2>&1
+    git config --global https.proxy http://127.0.0.1:!PROXYPORT! >> "%LOG%" 2>&1
+)
 git clone "%~3" "%GC_DIR%" >> "%LOG%" 2>&1
 if not errorlevel 1 (
     set "CLONE_MODE=https"
@@ -147,7 +261,7 @@ goto :eof
 
 :main
 
-REM ----- 0. D drive -----
+REM ----- D drive -----
 if not exist D:\ (
     echo [ERROR] D drive not found. This installer requires a D drive.
     pause
@@ -173,36 +287,48 @@ if exist "%LOCKDIR%" (
 )
 mkdir "%LOCKDIR%" 2>nul
 
-REM ----- 1. self-check -----
+REM ----- locate Git / Python -----
+echo [1/5] Locating Git...
+call :find_git
 git --version >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] Git for Windows not found. Install from https://git-scm.com/download/win
+    echo [ERROR] Git not found. Install Git for Windows from https://git-scm.com/download/win then run again.
     echo [ERROR] git-not-found >> "%LOG%"
     call :quit 1
 )
-echo [1/4] Git found.
+echo       Git OK.
 
-set "PYCMD="
-python --version >nul 2>&1
-if not errorlevel 1 set "PYCMD=python"
+echo [2/5] Locating Python...
+call :find_python
 if not defined PYCMD (
-    py -3 --version >nul 2>&1
-    if not errorlevel 1 set "PYCMD=py -3"
-)
-if not defined PYCMD (
-    echo [ERROR] Python not found. Install Python 3.11 and tick "Add Python to PATH".
+    echo [ERROR] Python not found. Install Python 3.11 and tick "Add Python to PATH", then run again.
     echo [ERROR] python-not-found >> "%LOG%"
     call :quit 1
 )
-echo [2/4] Python found (%PYCMD%).
-echo [3/4] D drive ready.
+echo       Python OK (%PYCMD%).
 
-REM ----- 2. SSH auth self-test FIRST -----
-echo [4/4] Network: SSH auth self-test, then connect...
-git config --global credential.helper manager >> "%LOG%" 2>&1
-call :ssh_diag
+echo [3/5] Preparing git identity and network diagnostics...
+call :git_identity
+call :detect_proxy
 
-REM ----- clone the small DATA repo and report ONLINE immediately -----
+REM ----- SSH auth self-test; link key if needed; poll up to 5 minutes -----
+echo [4/5] SSH authentication self-test...
+call :ssh_auth_test
+if "!SSH_AUTH!"=="denied" (
+    call :upload_key
+    echo       Waiting for the key to be linked (up to 5 minutes, retrying every 10s)...
+    for /l %%n in (1,1,30) do (
+        if not "!SSH_AUTH!"=="ok" (
+            timeout /t 10 >nul
+            call :ssh_auth_test
+        )
+    )
+)
+call :ssh_auth_test
+echo       SSH auth result: !SSH_AUTH! (proxy: !PROXYPORT!)
+
+REM ----- clone DATA repo, report ONLINE immediately -----
+echo [5/5] Connecting data channel first...
 if exist "%STATUS_DIR%\.git" (
     cd /d "%STATUS_DIR%"
     git pull --no-rebase origin master >> "%LOG%" 2>&1
@@ -214,29 +340,30 @@ if exist "%STATUS_DIR%\.git" (
 if "!CLONE_MODE!"=="FAIL" (
     echo.
     echo ========================================
-    echo   [ERROR] Cannot reach GitHub on all 3 channels.
-    echo   Diagnostic log tail (send a photo of this):
+    echo   [ERROR] Cannot reach GitHub on all channels.
+    echo   Diagnosed cause and fix:
     echo ========================================
-    powershell -NoProfile -Command "Get-Content '%LOG%' -Tail 35"
+    if "!SSH_AUTH!"=="denied" echo   - SSH key not linked to GitHub. Add it at the page that opened ^(key was copied^).
+    if "!SSH_AUTH!"=="nokey"   echo   - No SSH key could be created. Check %USERPROFILE%\.ssh permissions.
+    if "!SSH_AUTH!"=="netfail" if not defined PROXYPORT echo   - Network blocks GitHub and NO local proxy found. Start your VPN/Clash, then run again.
+    if "!SSH_AUTH!"=="netfail" if defined PROXYPORT     echo   - Network blocks GitHub even via proxy port !PROXYPORT!. Set proxy to global/TUN mode.
+    echo   - If the repo reports 404/not-found, the key belongs to a different GitHub account.
+    echo ----------------------------------------
+    echo   Log tail ^(photo this screen if needed^):
+    powershell -NoProfile -Command "Get-Content '%LOG%' -Tail 40"
     echo ========================================
-    echo   Common fixes:
-    echo    - NO_SSH_KEY: SSH key not added to this PC/GitHub
-    echo    - timeout/reset: network blocks GitHub, use a proxy/VPN
-    echo    - Permission denied: SSH key not linked to GitHub account
-    echo ========================================
-    echo [%DATE% %TIME%] NETWORK_FAIL all 3 channels >> "%LOG%"
+    echo [%DATE% %TIME%] NETWORK_FAIL auth=!SSH_AUTH! proxy=!PROXYPORT! >> "%LOG%"
     call :quit 1
 )
-call :report ONLINE "connected via !CLONE_MODE!; key=!HASKEY!"
-echo       Status channel connected via !CLONE_MODE!.
+call :report ONLINE "connected via !CLONE_MODE!; auth=!SSH_AUTH!; proxy=!PROXYPORT!"
+echo       Data channel connected via !CLONE_MODE!.
 
-REM ----- 3. clone/update the CODE repo -----
-echo Getting the latest code (same auto network path)...
+REM ----- clone/update CODE repo -----
+echo Getting the latest code...
 if exist "%INSTALL_DIR%\.git" (
     echo       Existing installation found, updating...
     call :enable_ssh_443
     cd /d "%INSTALL_DIR%"
-    git config --global credential.helper manager >nul 2>&1
     git fetch origin master >> "%LOG%" 2>&1
     git reset --hard origin/master >> "%LOG%" 2>&1
     cd /d "%~dp0"
@@ -249,15 +376,15 @@ if exist "%INSTALL_DIR%\.git" (
     call :smart_clone "%INSTALL_DIR%" "%CODE_SSH%" "%CODE_HTTPS%"
 )
 if "!CLONE_MODE!"=="FAIL" (
-    call :report FAILED "code clone failed on all channels"
+    call :report FAILED "code clone failed"
     echo [ERROR] Could not get the code.
-    powershell -NoProfile -Command "Get-Content '%LOG%' -Tail 20"
+    powershell -NoProfile -Command "Get-Content '%LOG%' -Tail 25"
     call :quit 1
 )
 call :report CODE_READY "code at %INSTALL_DIR% via !CLONE_MODE!"
 echo       Code ready via !CLONE_MODE!.
 
-REM ----- 4. run the in-repo all-in-one setup -----
+REM ----- run in-repo setup -----
 cd /d "%INSTALL_DIR%"
 call :report SETUP_START "setup.py starting"
 echo.
@@ -284,10 +411,9 @@ if %RC%==0 (
     echo   Simulation mode - no real broker.
     echo ========================================
 ) else (
-    call :report FAILED "setup.py returned rc=%RC%"
+    call :report FAILED "setup.py rc=%RC%"
     echo ========================================
     echo   SETUP REPORTED AN ERROR (code %RC%).
-    echo   It was reported; the boot self-check retries.
     echo   Details: %LOG%
     echo   and %INSTALL_DIR%\install_setup.log
     echo ========================================

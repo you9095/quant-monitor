@@ -75,6 +75,13 @@ def configure_git():
         run(["git", "config", "--global", "credential.helper", "osxkeychain"])
     run(["git", "config", "--global", "http.version", "HTTP/1.1"])
     run(["git", "config", "--global", "http.postBuffer", "524288000"])
+    # 提交身份：全新 Git 若缺失会导致 commit 失败、心跳 push 不上来
+    ok_name, _ = run(["git", "config", "--global", "--get", "user.name"])
+    if not ok_name:
+        run(["git", "config", "--global", "user.name", "quant-windows"])
+    ok_email, _ = run(["git", "config", "--global", "--get", "user.email"])
+    if not ok_email:
+        run(["git", "config", "--global", "user.email", "quant@local"])
 
 
 def _ssh_config_path():

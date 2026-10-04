@@ -129,11 +129,17 @@ def get_venv_pip():
 
 
 def create_venv():
-    """创建虚拟环境"""
+    """创建虚拟环境；已存在但损坏（python 无法运行）则删除重建。"""
     venv_python = get_venv_python()
     if venv_python.exists():
-        ok("虚拟环境已存在，跳过创建")
-        return True
+        # 验证现有 venv 是否真的可用，避免半安装的坏 venv 卡住后续
+        probe = subprocess.run([str(venv_python), "--version"],
+                               capture_output=True, text=True, timeout=30)
+        if probe.returncode == 0:
+            ok("虚拟环境已存在且可用，跳过创建")
+            return True
+        warn("检测到损坏的虚拟环境，删除后重建 ...")
+        shutil.rmtree(VENV_DIR, ignore_errors=True)
 
     print("  正在创建虚拟环境（约30秒）...")
     try:
@@ -150,50 +156,54 @@ def create_venv():
 
 
 def install_packages():
-    """安装 Python 依赖"""
+    """安装 Python 依赖；多镜像轮换 + 官方兜底，单镜像失败自动换下一个。"""
     venv_python = get_venv_python()
     venv_pip = get_venv_pip()
 
-    # 国内镜像源（清华），大幅加快下载速度
-    mirror = ["-i", "https://pypi.tuna.tsinghua.edu.cn/simple"]
+    # (镜像URL, trusted-host)，按国内速度排序；最后用官方源兜底
+    mirrors = [
+        ("https://pypi.tuna.tsinghua.edu.cn/simple", "pypi.tuna.tsinghua.edu.cn"),
+        ("https://mirrors.aliyun.com/pypi/simple/", "mirrors.aliyun.com"),
+        ("https://pypi.mirrors.ustc.edu.cn/simple/", "pypi.mirrors.ustc.edu.cn"),
+        (None, None),  # 官方源
+    ]
+    common = ["--timeout", "60", "--retries", "3"]
 
-    print("  正在升级 pip...")
-    subprocess.run(
-        [str(venv_python), "-m", "pip", "install", "--upgrade", "pip"] + mirror,
-        shell=False
-    )
+    def pip(args, index=None, host=None):
+        cmd = [str(venv_python), "-m", "pip"] + args + common
+        if index:
+            cmd += ["-i", index, "--trusted-host", host]
+        return subprocess.run(cmd, capture_output=True, text=True)
 
-    print(f"  开始安装 {len(PACKAGES)} 个依赖包（显示下载进度，请耐心等待）...")
-    print("  如果某个包下载慢，会自动继续，请勿关闭窗口")
+    print("  正在升级 pip（多镜像自动轮换）...")
+    for index, host in mirrors:
+        if pip(["install", "--upgrade", "pip"], index, host).returncode == 0:
+            break
+
+    print(f"  开始安装 {len(PACKAGES)} 个依赖包，请耐心等待，勿关闭窗口 ...")
     print()
 
-    # 逐个安装，实时显示进度，失败不影响其他包
     failed = []
     for i, pkg in enumerate(PACKAGES, 1):
         print(f"  [{i}/{len(PACKAGES)}] 安装 {pkg} ...")
-        r = subprocess.run(
-            [str(venv_pip), "install", pkg] + mirror,
-            capture_output=True, text=True
-        )
-        if r.returncode == 0:
-            ok(f"{pkg} 安装成功")
-        else:
-            # 清华源失败则尝试官方源
-            print(f"       清华源失败，尝试官方源...")
-            r2 = subprocess.run(
-                [str(venv_pip), "install", pkg],
-                capture_output=True, text=True
-            )
-            if r2.returncode == 0:
-                ok(f"{pkg} 安装成功（官方源）")
-            else:
-                fail(f"{pkg} 安装失败")
-                failed.append(pkg)
+        ok_flag = False
+        last_err = ""
+        for index, host in mirrors:
+            r = pip(["install", pkg], index, host)
+            if r.returncode == 0:
+                tag = "官方源" if not index else "镜像源"
+                ok(f"{pkg} 安装成功（{tag}）")
+                ok_flag = True
+                break
+            last_err = (r.stderr or r.stdout or "")[-200:]
+        if not ok_flag:
+            fail(f"{pkg} 安装失败：{last_err}")
+            failed.append(pkg)
         print()
 
     if failed:
         warn(f"以下 {len(failed)} 个包安装失败: {', '.join(failed)}")
-        warn("不影响核心功能，可稍后在 start.bat 报错时再补装")
+        warn("核心面板/引擎不依赖全部包，可稍后补装；akshare 仅影响每日行情")
         return False
     ok("全部依赖安装完成")
     return True
