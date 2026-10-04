@@ -26,35 +26,13 @@ BASE_DIR = Path(__file__).parent
 VENV_DIR = BASE_DIR / "venv"
 CONFIG_DIR = BASE_DIR / "config"
 
-# 两套地址：优先 SSH，失败自动回退 HTTPS（HTTPS 首次会弹 GitHub 授权窗，之后系统缓存）
-CODE_REPO_SSH = "git@github.com:you9095/quant-monitor.git"
-CODE_REPO_HTTPS = "https://github.com/you9095/quant-monitor.git"
-DATA_REPO_SSH = "git@github.com:you9095/quant-monitor-live-data.git"
-DATA_REPO_HTTPS = "https://github.com/you9095/quant-monitor-live-data.git"
-
-# SSH 首次连接自动信任主机指纹；需要口令/密钥确认时快速失败而不是卡死
-_SSH_ENV = dict(os.environ)
-_SSH_ENV["GIT_SSH_COMMAND"] = "ssh -o StrictHostKeyChecking=accept-new -o BatchMode=yes"
-
-
-def git_clone_fallback(ssh_url, https_url, target_name, cwd, timeout=180):
-    """先 SSH 克隆，失败自动回退 HTTPS。返回 'ssh' / 'https' / None。"""
-    cwd = Path(cwd)
-    target = cwd / target_name
-    r = subprocess.run(["git", "clone", ssh_url, target_name], cwd=str(cwd),
-                       capture_output=True, text=True, timeout=timeout, env=_SSH_ENV)
-    if r.returncode == 0:
-        return "ssh"
-    if target.exists():
-        shutil.rmtree(target, ignore_errors=True)
-    print("    SSH 不通，改用 HTTPS（若弹出 GitHub 登录/授权窗口，请在浏览器完成一次授权）...")
-    r2 = subprocess.run(["git", "clone", https_url, target_name], cwd=str(cwd),
-                        capture_output=True, text=True, timeout=timeout)
-    if r2.returncode == 0:
-        return "https"
-    print("    [SSH 报错] ", (r.stderr or "").strip()[-300:])
-    print("    [HTTPS报错]", (r2.stderr or "").strip()[-300:])
-    return None
+# 连接自愈：SSH22 → SSH443(ssh.github.com) → HTTPS 三通道自动选择
+sys.path.insert(0, str(BASE_DIR / "scripts"))
+try:
+    import github_connect as gh
+except Exception as _e:
+    gh = None
+    print(f"[警告] 无法加载 github_connect 连接自愈模块: {_e}")
 
 PACKAGES = [
     "pandas>=2.0.0",
@@ -228,38 +206,40 @@ def setup_git_auto_update():
 
     ok("Git 已就绪")
 
-    # 把当前目录关联到代码仓库（首次 setup 后即可 git pull 更新）
+    # 配置 git 凭据管理器 / SSH443 自愈
+    if gh:
+        gh.configure_git()
+
+    # 把当前目录关联到代码仓库（自动在 SSH22/SSH443/HTTPS 中选可用通道）
     if not (BASE_DIR / ".git").exists():
-        print("  关联代码仓库 origin ...")
+        print("  关联代码仓库（自动探测可用通道）...")
         subprocess.run(["git", "init"], cwd=str(BASE_DIR), capture_output=True)
-        linked = False
-        for idx, url in enumerate((CODE_REPO_SSH, CODE_REPO_HTTPS)):
+        url, mode = (gh.best_url(gh.CODE_SSH, gh.CODE_HTTPS) if gh else (None, "none"))
+        if url:
             subprocess.run(["git", "remote", "remove", "origin"],
                            cwd=str(BASE_DIR), capture_output=True)
             subprocess.run(["git", "remote", "add", "origin", url],
                            cwd=str(BASE_DIR), capture_output=True)
-            env = _SSH_ENV if idx == 0 else None
             r = subprocess.run(["git", "fetch", "origin", "master"],
-                               cwd=str(BASE_DIR), capture_output=True,
-                               text=True, timeout=180, env=env)
+                               cwd=str(BASE_DIR), capture_output=True, text=True, timeout=300)
             if r.returncode == 0:
                 subprocess.run(["git", "reset", "--hard", "origin/master"],
                                cwd=str(BASE_DIR), capture_output=True)
-                ok(f"已关联代码仓库（{'SSH' if idx == 0 else 'HTTPS'}），以后可自动更新")
-                linked = True
-                break
-        if not linked:
-            warn("代码仓库关联失败：SSH 与 HTTPS 均未成功")
-
-    # clone 数据仓库（SSH 失败自动回退 HTTPS）
-    live_data = BASE_DIR / "live-data"
-    if not live_data.exists():
-        print("  拉取实盘数据仓库 ...")
-        mode = git_clone_fallback(DATA_REPO_SSH, DATA_REPO_HTTPS, "live-data", BASE_DIR)
-        if mode:
-            ok(f"实盘数据仓库已拉取到 live-data/（{mode.upper()}）")
+                ok(f"已关联代码仓库（{mode}），以后可自动更新")
+            else:
+                warn("代码仓库 fetch 失败")
         else:
-            warn("数据仓库 clone 失败：SSH 与 HTTPS 均未成功，实盘数据将无法回传")
+            warn("代码仓库连接失败：SSH22/SSH443/HTTPS 三种通道均不通")
+
+    # clone 数据仓库（三通道自愈）
+    live_data = BASE_DIR / "live-data"
+    if not (live_data / ".git").exists():
+        print("  拉取实盘数据仓库（自动探测可用通道）...")
+        mode = gh.clone_fallback(gh.DATA_SSH, gh.DATA_HTTPS, "live-data", BASE_DIR) if gh else None
+        if mode:
+            ok(f"实盘数据仓库就绪（{mode}）")
+        else:
+            warn("数据仓库连接失败：三种通道均不通，实盘数据暂无法回传")
 
     # 注册 Windows 计划任务：两段式
     #   工作日 09:35 execute：开盘后按昨日信号真实成交
@@ -302,6 +282,28 @@ def setup_git_auto_update():
         warn(f"开机自检注册失败: {r3.stderr.strip()}")
 
 
+def step0_connect():
+    """最优先：打通 GitHub（SSH22→SSH443→HTTPS 自愈），clone 数据仓库并立即上线报心跳。"""
+    print("  正在连接 GitHub（自动尝试 SSH22 / SSH443 / HTTPS，可能需1-2分钟）...")
+    if not gh:
+        warn("连接自愈模块缺失，跳过联网步骤")
+        return False
+    gh.configure_git()
+    mode = gh.clone_fallback(gh.DATA_SSH, gh.DATA_HTTPS, "live-data", BASE_DIR)
+    if mode:
+        ok(f"GitHub 已连通，数据仓库就绪（{mode}）")
+        try:
+            subprocess.run([sys.executable, str(BASE_DIR / "scripts" / "report_deploy.py")],
+                           cwd=str(BASE_DIR), capture_output=True, text=True, timeout=180)
+            print("  已上报上线状态")
+        except Exception:
+            pass
+        return True
+    warn("GitHub 暂未连通（SSH22/SSH443/HTTPS 均失败）")
+    print("     将先完成本地安装；开机自检任务会在网络恢复后自动重连并补报。")
+    return False
+
+
 def main():
     print("=" * 55)
     print("  AI量化监控系统 - 模拟盘环境安装")
@@ -309,6 +311,10 @@ def main():
     print("=" * 55)
     print(f"  安装目录: {BASE_DIR}")
     print(f"  Python: {sys.version.split()[0]} ({sys.executable})")
+
+    # 步骤0：最先打通 GitHub 连接（失败不阻断本地安装，开机后自动重试）
+    print("\n[步骤 0/5] 连接 GitHub 并建立数据回传通道")
+    step0_connect()
 
     total = 5
 
