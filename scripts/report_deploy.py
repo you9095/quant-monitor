@@ -68,10 +68,37 @@ def collect_status():
 
     # Windows 定时任务
     if sys.platform == "win32":
-        for task in ["QuantExecuteTask", "QuantDecideTask", "QuantBootCheck"]:
-            r = subprocess.run(["schtasks", "/query", "/tn", task],
+        import ctypes
+        try:
+            status["is_admin"] = bool(ctypes.windll.shell32.IsUserAnAdmin())
+        except Exception:
+            status["is_admin"] = None
+
+        def task_exists(name):
+            r = subprocess.run(["schtasks", "/query", "/tn", name],
                                capture_output=True, text=True)
-            status[f"task_{task}"] = "REGISTERED" if r.returncode == 0 else "MISSING"
+            return r.returncode == 0
+
+        # 现行（单段式，2026-10-04 起）任务
+        for t in ["QuantDailyTrade", "QuantDailyTradePM", "QuantBootCheck"]:
+            status[f"task_{t}"] = "REGISTERED" if task_exists(t) else "MISSING"
+        # 旧两段式任务，正确状态应为 MISSING（迁移后已删除）
+        for t in ["QuantExecuteTask", "QuantDecideTask"]:
+            status[f"legacy_{t}"] = "EXISTS_SHOULD_DELETE" if task_exists(t) else "MISSING"
+
+        # 枚举系统里所有 Quant* 任务，便于 macOS 端远程核对
+        try:
+            r = subprocess.run(["schtasks", "/query", "/fo", "csv", "/nh"],
+                               capture_output=True, timeout=30)
+            txt = r.stdout.decode("gbk", errors="ignore")
+            names = set()
+            for line in txt.splitlines():
+                if "Quant" in line:
+                    first = line.split(",")[0].strip().strip('"')
+                    names.add(first.rsplit("\\", 1)[-1])
+            status["tasks_all_Quant"] = sorted(names)
+        except Exception as e:
+            status["tasks_all_Quant"] = f"enum_failed: {e}"
     return status
 
 

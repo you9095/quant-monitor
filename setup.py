@@ -307,46 +307,64 @@ def setup_git_auto_update():
     venv_py = get_venv_python()
     task_base = f'"\\"{venv_py}\\" \\"{BASE_DIR / "daily_task.py"}\\""'
 
-    # 先删除旧两段式任务（09:35 execute / 15:30 decide），"不存在"错误忽略
+    is_admin = True
+    if sys.platform == "win32":
+        try:
+            import ctypes
+            is_admin = bool(ctypes.windll.shell32.IsUserAnAdmin())
+        except Exception:
+            is_admin = True
+    if not is_admin:
+        warn("当前不是管理员权限，可能无法删除旧任务/注册开机任务！")
+        print("     如下方任务迁移未完成，请关闭窗口后右键 install_v9.bat → 以管理员身份运行。")
+
+    def sch(args, label):
+        r = subprocess.run(["schtasks"] + args, capture_output=True, text=True)
+        if r.returncode == 0:
+            ok(label)
+        else:
+            warn(f"{label} 失败: {r.stderr.strip()[:200]}")
+        return r.returncode == 0
+
+    # 先删除旧两段式任务（09:35 execute / 15:30 decide），"不存在"属正常
     for _old in ("QuantExecuteTask", "QuantDecideTask"):
-        subprocess.run(["schtasks", "/delete", "/tn", _old, "/f"],
-                       capture_output=True, text=True)
+        r = subprocess.run(["schtasks", "/delete", "/tn", _old, "/f"],
+                           capture_output=True, text=True)
+        if r.returncode == 0:
+            ok(f"已删除旧任务 {_old}")
+        else:
+            print(f"  旧任务 {_old} 不存在或无需删除")
 
     # 1) 开机即交易：登录后 3 分钟跑 trade（窗口 13:00-17:00，窗口外自行跳过）
-    print("  注册开机交易任务（登录后3分钟，窗口13:00-17:00）...")
-    r1 = subprocess.run(
-        ["schtasks", "/create", "/tn", "QuantDailyTrade", "/tr",
-         task_base + " trade",
+    sch(["/create", "/tn", "QuantDailyTrade", "/tr", task_base + " trade",
          "/sc", "onlogon", "/delay", "0003:00", "/f"],
-        capture_output=True, text=True)
-    if r1.returncode == 0:
-        ok("开机交易任务已注册：交易日开机后自动 决策+成交+上传")
-    else:
-        warn(f"开机交易任务注册失败: {r1.stderr.strip()}")
+        "开机交易任务已注册：交易日开机后自动 决策+成交+上传")
 
     # 2) 下午兜底：工作日 15:10 再跑一次（引擎当日幂等，已成交则跳过）
-    print("  注册下午兜底任务（工作日 15:10）...")
-    r2 = subprocess.run(
-        ["schtasks", "/create", "/tn", "QuantDailyTradePM", "/tr",
-         task_base + " trade",
+    sch(["/create", "/tn", "QuantDailyTradePM", "/tr", task_base + " trade",
          "/sc", "weekly", "/d", "MON,TUE,WED,THU,FRI", "/st", "15:10", "/f"],
-        capture_output=True, text=True)
-    if r2.returncode == 0:
-        ok("下午兜底任务已注册：工作日15:10确保收盘后成交一次（幂等）")
-    else:
-        warn(f"下午兜底任务注册失败: {r2.stderr.strip()}")
+        "下午兜底任务已注册：工作日15:10确保收盘后成交一次（幂等）")
 
     # 3) 开机网络自检：登录后 1 分钟，只更新代码+自愈数据仓库+上报，不交易
     fix_cmd = f'"\\"{venv_py}\\" \\"{BASE_DIR / "scripts" / "fix_and_report.py"}\\""'
-    print("  注册开机自检任务（登录后1分钟）...")
-    r3 = subprocess.run(
-        ["schtasks", "/create", "/tn", "QuantBootCheck", "/tr", fix_cmd,
+    sch(["/create", "/tn", "QuantBootCheck", "/tr", fix_cmd,
          "/sc", "onlogon", "/delay", "0001:00", "/f"],
-        capture_output=True, text=True)
-    if r3.returncode == 0:
-        ok("开机自检已注册：登录后先自愈网络并上报，3分钟后交易任务再跑")
-    else:
-        warn(f"开机自检注册失败: {r3.stderr.strip()}")
+        "开机自检已注册：登录后先自愈网络并上报，3分钟后交易任务再跑")
+
+    # 回查：新任务必须齐全、旧任务必须消失
+    if sys.platform == "win32":
+        def _exists(t):
+            return subprocess.run(["schtasks", "/query", "/tn", t],
+                                  capture_output=True, text=True).returncode == 0
+        new_ok = all(_exists(t) for t in
+                     ("QuantDailyTrade", "QuantDailyTradePM", "QuantBootCheck"))
+        old_gone = all(not _exists(t) for t in
+                       ("QuantExecuteTask", "QuantDecideTask"))
+        if new_ok and old_gone:
+            ok("计划任务迁移完成：新任务齐全、旧 09:35/15:30 任务已删除")
+        else:
+            warn(f"计划任务迁移未完全生效（新任务齐全={new_ok}，旧任务已删={old_gone}）")
+            print("     >>> 请右键 install_v9.bat → 以管理员身份运行，再跑一次。")
 
 
 def step0_connect():
@@ -439,8 +457,8 @@ def main():
     print("    2. 浏览器打开 http://localhost:8000")
     print()
     print("  自动化说明:")
-    print("    每个工作日 09:35 成交 / 15:30 决策并上传，开机后自检自动更新")
-    print("    macOS 端 push 新版本后，Windows 自动更新，无需再打包拷贝")
+    print("    每个交易日开机后自动 决策+成交+上传（窗口13:00-17:00），15:10 兜底")
+    print("    macOS 端 push 新版本后，Windows 开机自动更新，无需再打包拷贝")
     print()
     print("  注意: 本系统为模拟盘，不连接任何真实券商")
     print("=" * 55)
