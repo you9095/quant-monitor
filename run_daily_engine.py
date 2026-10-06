@@ -178,14 +178,26 @@ def fetch_trade_prices(pool: list):
 
 
 def is_trading_day(today: str) -> bool:
-    """非交易日保护。
+    """今天是否 A股交易日（节假日不成交）。
 
-    收盘后(>=15:00)：当日日线应当已生成，若所有标的最新一根日线日期都不是今天，
-    说明今天休市（节假日落在工作日），不成交。
-    盘中(<15:00)：当日未收盘、日线尚未生成，无法用日线日期判断，此时仅靠
-    daily_task 的 weekday 把关（用户法定节假日不开机）。
+    优先用权威交易日历（akshare 新浪日历，覆盖全年，盘中/盘后都准确），
+    休市日（如国庆 10-01~10-07）即使开机也不会拿上一交易日旧价误成交。
+    交易日历取不到（断网等）才退回兜底：周末必不交易；盘后用最新日线日期
+    复核；盘中无法确认时不阻断真实交易日。
     """
+    # 1) 优先权威交易日历（盘中/盘后都准确，休市日开机也不会拿旧价误成交）
+    try:
+        from api.market_data import is_trade_date
+        cal = is_trade_date(today)
+        if cal is not None:
+            return bool(cal)
+    except Exception:
+        pass
+
+    # 2) 交易日历取不到时的保守兜底
     now = datetime.now()
+    if now.weekday() >= 5:
+        return False
     if now.hour < 15:
         return True
     try:

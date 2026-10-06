@@ -105,17 +105,29 @@ def fix_data_repo():
         if not cloned:
             log(False, f"数据仓库 clone 失败（SSH/HTTPS 均不通）: {last_out[-200:]}")
     else:
-        okb, _ = run(["git", "pull", "origin", "master"], LIVE_DIR, timeout=180)
+        # 已存在：以 GitHub 为唯一真相源强制对齐（fetch + reset --hard）。
+        # 执行端(Windows)无状态、成交后当日即 push；这样远程归零/修正后开机必生效，
+        # 也避免本地脏文件或 pull 冲突导致账本不一致。
+        def _force_sync(env=None):
+            f1, _ = run(["git", "fetch", "origin", "master"], LIVE_DIR,
+                        timeout=180, env=env)
+            if not f1:
+                return False
+            f2, _ = run(["git", "reset", "--hard", "origin/master"], LIVE_DIR,
+                        timeout=180, env=env)
+            return f2
+
+        okb = _force_sync()
         if not okb:
-            # 当前 remote 拉不动，尝试在 SSH/HTTPS 之间切换
+            # 当前 remote 拉不动，在 SSH/HTTPS 之间切换后重试
             for label, url, env in (("SSH", DATA_REPO_SSH, _SSH_ENV),
                                     ("HTTPS", DATA_REPO_HTTPS, None)):
                 run(["git", "remote", "set-url", "origin", url], LIVE_DIR)
-                okb, _ = run(["git", "pull", "origin", "master"], LIVE_DIR,
-                             timeout=180, env=env)
-                if okb:
+                if _force_sync(env):
+                    okb = True
                     break
-        log(okb, "数据仓库已存在并拉取最新" if okb else "数据仓库存在但 pull 失败（继续尝试上报）")
+        log(okb, "数据仓库已强制对齐 GitHub 最新" if okb
+            else "数据仓库同步失败（继续尝试上报）")
 
 
 def report():

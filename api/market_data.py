@@ -6,6 +6,7 @@
 当天已缓存则不重复拉取（Windows 每天只跑一次，天然缓存）
 """
 import csv
+import json
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -85,3 +86,51 @@ def load_etf_dates(code: str, days: int = 5, use_cache: bool = True) -> list:
     if load_etf_close(code, days=max(days, 30), use_cache=use_cache):
         return load_etf_dates(code, days, use_cache=True)
     return []
+
+
+# ===== A股交易日历（判断节假日，防止休市日用旧价误成交）=====
+CAL_PATH = BASE_DIR / "data" / "trade_calendar.json"
+
+
+def load_trade_dates(use_cache: bool = True):
+    """返回 A股交易日集合（'YYYY-MM-DD' 的 set）。失败返回 None。
+
+    用新浪交易日历（akshare tool_trade_date_hist_sina），覆盖全年，
+    本地缓存到 data/trade_calendar.json；只要缓存仍覆盖未来 7 天就沿用，
+    否则重新拉取；拉取失败则回退到旧缓存。
+    """
+    cached = None
+    if use_cache and CAL_PATH.exists():
+        try:
+            cached = json.loads(CAL_PATH.read_text(encoding="utf-8"))
+        except Exception:
+            cached = None
+
+    horizon = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
+    if cached and cached.get("dates") and max(cached["dates"]) >= horizon:
+        return set(cached["dates"])
+
+    try:
+        import akshare as ak
+        df = ak.tool_trade_date_hist_sina()
+        dates = sorted(str(d)[:10] for d in df["trade_date"])
+        try:
+            CAL_PATH.parent.mkdir(parents=True, exist_ok=True)
+            CAL_PATH.write_text(
+                json.dumps({"fetched": datetime.now().strftime("%Y-%m-%d"),
+                            "dates": dates}, ensure_ascii=False),
+                encoding="utf-8")
+        except Exception:
+            pass
+        return set(dates)
+    except Exception as e:
+        print(f"  [行情] 交易日历拉取失败: {e}")
+        return set(cached["dates"]) if cached and cached.get("dates") else None
+
+
+def is_trade_date(date_str: str):
+    """某天是否 A股交易日。返回 True/False；交易日历取不到时返回 None（未知）。"""
+    cal = load_trade_dates()
+    if cal is None:
+        return None
+    return date_str in cal
