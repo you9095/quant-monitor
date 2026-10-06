@@ -85,6 +85,14 @@ def main():
             print("已取消。")
             return
 
+    # 0) 先把数据仓库对齐 GitHub 最新（避免本地落后导致 push non-fast-forward，
+    #    同时拿到 Windows 最新部署心跳；交易数据随后仍会被清空）
+    print("同步数据仓库到 GitHub 最新 ...")
+    run_git(["fetch", "origin", "master"])
+    rs = run_git(["reset", "--hard", "origin/master"])
+    print("  " + ("已对齐 origin/master" if rs.returncode == 0
+                  else "警告: 对齐失败（继续本地归零，push 可能被拒）"))
+
     # 1) 重置账户状态（用全新 Broker 生成，结构保证正确）
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     for sid, cfg in STRATEGIES.items():
@@ -100,7 +108,8 @@ def main():
             continue
         n = 0
         for f in p.rglob("*"):
-            if f.is_file():
+            # 保留 .gitkeep 占位，使空目录仍被 git 跟踪
+            if f.is_file() and f.name != ".gitkeep":
                 f.unlink()
                 n += 1
         # 删空的日期子目录
@@ -116,7 +125,7 @@ def main():
         "reset_time": stamp,
         "reset_date": today,
         "ordered_by": "用户明确指令",
-        "reason": "2026-10-06 17:00 归零，2026-10-07 实盘模拟第一天从零开始",
+        "reason": "2026-10-06 17:00 归零；10-07休市，2026-10-08(节后首个交易日)实盘从零开始",
         "strategies": {sid: {"name": c["name"], "cash": c["capital"],
                              "positions": 0, "trades": 0}
                        for sid, c in STRATEGIES.items()},
