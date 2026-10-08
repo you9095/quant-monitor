@@ -19,6 +19,7 @@
   python run_daily_engine.py decide   # 旧两段式-决策（测试用）
   python run_daily_engine.py execute  # 旧两段式-成交（测试用）
 """
+import os
 import sys
 import json
 import argparse
@@ -27,6 +28,54 @@ from datetime import datetime, date
 
 BASE_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE_DIR / "api"))
+
+# 国内行情/日历域名强制绕过代理：科学上网软件关闭后常残留 127.0.0.1:xxxx 代理，
+# 导致 eastmoney/sina 等国内接口 ProxyError、实时价取不到而回退旧收盘价。
+# GitHub 等确需代理的域名不在此列表，不受影响。
+_NO_PROXY_DOMAINS = [
+    "localhost", "127.0.0.1",
+    ".eastmoney.com", "eastmoney.com",
+    ".sina.com.cn", "sina.com.cn", ".sinajs.cn", "sinajs.cn",
+    ".sse.com.cn", "sse.com.cn", ".szse.cn", ".csindex.com.cn",
+    ".10jqka.com.cn", ".xueqiu.com",
+]
+_PROXY_KEYS = ("HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy",
+               "ALL_PROXY", "all_proxy")
+
+
+def _bypass_proxy_for_domestic():
+    for key in ("NO_PROXY", "no_proxy"):
+        items = [x.strip() for x in os.environ.get(key, "").split(",") if x.strip()]
+        for d in _NO_PROXY_DOMAINS:
+            if d not in items:
+                items.append(d)
+        os.environ[key] = ",".join(items)
+
+
+_bypass_proxy_for_domestic()
+
+
+def _ak_spot_em_no_proxy():
+    """ETF 实时行情；经当前代理失败时，临时彻底关闭代理直连重试（国内行情站无需代理）。"""
+    import akshare as ak
+    try:
+        return ak.fund_etf_spot_em()
+    except Exception as e1:
+        print(f"  [行情] 实时价经当前代理失败（{str(e1)[:120]}），关闭代理直连重试...")
+        saved = {k: os.environ.get(k) for k in _PROXY_KEYS}
+        try:
+            for k in _PROXY_KEYS:
+                os.environ.pop(k, None)
+            return ak.fund_etf_spot_em()
+        except Exception as e2:
+            print(f"  [行情] 实时价关闭代理直连仍失败: {str(e2)[:160]}")
+            raise
+        finally:
+            for k, v in saved.items():
+                if v is not None:
+                    os.environ[k] = v
+
+
 from matching_engine import Broker  # noqa: E402
 
 DATA_REPO = BASE_DIR / "live-data"
@@ -177,8 +226,7 @@ def fetch_trade_prices(pool: list):
     """
     realtime = {}
     try:
-        import akshare as ak
-        df = ak.fund_etf_spot_em()
+        df = _ak_spot_em_no_proxy()
         for code in pool:
             row = df[df["代码"] == code]
             if len(row):

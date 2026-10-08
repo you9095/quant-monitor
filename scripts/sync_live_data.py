@@ -10,7 +10,7 @@
 
 设计原则：
 - 数据仓库与代码仓库物理隔离：本目录是独立 git clone，不污染代码仓库
-- push 受时间窗口限制：仅工作日 15:00-17:00 允许（A股收盘后，避免 7x24）
+- push 受时间窗口限制：仅工作日 13:00-17:00 允许（与开机成交窗口一致，避免 7x24）
 - pull 不限制时间：macOS 随时可拉取查看
 - 任何 git 失败都不能让主流程崩：只打印警告，不抛异常
 """
@@ -27,12 +27,12 @@ REMOTE_URL = "git@github.com:you9095/quant-monitor-live-data.git"
 
 # ---- 时间窗口（仅 push 生效）----
 PUSH_WEEKDAYS = {0, 1, 2, 3, 4}   # 周一~周五（0=周一）
-# 两个允许窗口：开盘执行后 09:30-10:00、收盘决策后 15:00-17:00
-PUSH_WINDOWS = [(9, 30, 10, 0), (15, 0, 17, 0)]
+# 现行单段式：仅交易日 13:00-17:00 开机成交，成交后即上传，窗口与之对齐
+PUSH_WINDOWS = [(13, 0, 17, 0)]
 
 
 def is_push_window(now=None):
-    """是否在允许 push 的时间窗口内（工作日 09:30-10:00 或 15:00-17:00）"""
+    """是否在允许 push 的时间窗口内（工作日 13:00-17:00）"""
     now = now or datetime.now()
     if now.weekday() not in PUSH_WEEKDAYS:
         return False, "今天是周末，不执行上传"
@@ -40,7 +40,7 @@ def is_push_window(now=None):
     for sh, sm, eh, em in PUSH_WINDOWS:
         if sh * 60 + sm <= hm < eh * 60 + em:
             return True, "在允许窗口内"
-    return False, f"当前 {now.strftime('%H:%M')} 不在允许窗口（09:30-10:00 或 15:00-17:00）"
+    return False, f"当前 {now.strftime('%H:%M')} 不在允许窗口（交易日 13:00-17:00）"
 
 
 def git(args, cwd=DATA_REPO_DIR, timeout=60):
