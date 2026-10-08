@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI量化 · 多策略监控面板</title>
+<script>
+/* 双击 index.html（file:// 协议）也能用：此时页面没有同源后台，
+   把所有 API 请求指向本机 Flask 后台 http://localhost:8000；
+   通过 http://localhost:8000 正常访问时保持相对路径。必须最早执行。 */
+window.QM_IS_FILE = (location.protocol === 'file:');
+window.QM_ORIGIN = window.QM_IS_FILE ? 'http://localhost:8000' : '';
+</script>
 <script src="assets/chart.umd.min.js"></script>  <!-- 2026-08-16 v28: CDN 在 ClashX 出口下不可达,改用本地 assets/chart.umd.min.js (205KB) (回退 V20 → V10 路径B) -->
 <style>
 /* ============================================================
@@ -1761,15 +1768,26 @@ body.conn-error > *:not(#conn-error-overlay) { display:none !important; }
 <!-- 数据服务未连接遮罩：file:// 直接打开或后端未运行时显示，绝不用写死假数据冒充 -->
 <div id="conn-error-overlay">
   <div class="conn-error-box">
-    <h2>⚠️ 未连接到数据服务，无法显示任何盈亏数据</h2>
-    <div>为避免把开发用的写死数字当成真实业绩，当前不显示任何模拟 / 实盘数据。</div>
-    <div style="margin-top:10px">请通过本地后端打开面板（不要直接双击 index.html）：</div>
-    <div style="margin-top:8px"><code>http://localhost:8000/?data_mode=live</code> &nbsp;实盘模拟</div>
+    <h2>⚠️ 数据后台没有运行，暂无法显示盈亏数据</h2>
+    <div>为避免把开发用的写死数字当成真实业绩，后台连不上时这里不显示任何模拟 / 实盘数据。</div>
+    <div style="margin-top:10px">最简单的办法——<b>双击项目文件夹里的一键启动文件</b>，它会自动启动数据后台并打开本页面，无需输入任何网址：</div>
+    <div id="launcher-mac" style="margin-top:8px;display:none">Mac：双击 <code>启动AI量化面板.command</code></div>
+    <div id="launcher-win" style="margin-top:8px;display:none">Windows：双击 <code>启动AI量化面板.bat</code></div>
+    <div style="margin-top:12px;color:#94a3b8;font-size:13px">若数据后台其实已经在运行，也可以在浏览器直接访问：</div>
+    <div style="margin-top:4px"><code>http://localhost:8000/?data_mode=live</code> &nbsp;实盘模拟</div>
     <div style="margin-top:4px"><code>http://localhost:8000/?data_mode=simulator</code> &nbsp;模拟盘</div>
     <div id="conn-error-detail" style="margin-top:12px;font-size:13px;color:#94a3b8"></div>
-    <div class="ce-btn" onclick="location.reload()">⟳ 重新连接</div>
+    <div class="ce-btn" onclick="location.reload()">⟳ 我已启动，重新连接</div>
   </div>
 </div>
+<script>
+(function () {
+  var isWin = /Win/i.test(navigator.userAgent || navigator.platform || '');
+  var w = document.getElementById('launcher-win'), m = document.getElementById('launcher-mac');
+  if (w) w.style.display = isWin ? 'block' : 'none';
+  if (m) m.style.display = isWin ? 'none' : 'block';
+})();
+</script>
 
 <!-- 顶部栏 -->
 <header class="topbar">
@@ -3437,7 +3455,12 @@ window.CURRENT_DATA_MODE = currentMode();
 window.apiUrl = function(path) {
   const mode = currentMode();
   const sep = path.includes('?') ? '&' : '?';
-  return `${path}${sep}data_mode=${mode}`;
+  // file:// 双击打开时，把根相对的 /api 请求补成本机后台绝对地址
+  let p = path;
+  if (window.QM_IS_FILE && path.charAt(0) === '/' && path.indexOf('/api') === 0) {
+    p = window.QM_ORIGIN + path;
+  }
+  return `${p}${sep}data_mode=${mode}`;
 };
 
 function updateDataModeUI() {
@@ -3593,7 +3616,7 @@ function openStrategyDetail(sid) {
     if (!ctx) return;
     // 2026-08-24 修复: 打开弹窗 overlay (8-21 重构时误删, 导致弹窗永不显示)
     document.getElementById('modal-overlay').classList.add('active');
-    fetch('/api/v1/strategies')
+    fetch(window.apiUrl('/api/v1/strategies'))
       .then(r => r.json())
       .then(d => {
         const s = d.data.strategies.find(x => x.strategy_id === sid || x.id === sid);

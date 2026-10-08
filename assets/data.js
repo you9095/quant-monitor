@@ -6,7 +6,7 @@ const DataLayer = {
   config: {
     pollInterval: 30000,      // 30秒轮询
     pricePollInterval: 5000,  // 5秒行情轮询
-    apiBase: '/api/v1',  // 2026-08-11 改相对路径,Flask 8000 单端口同时 serve 静态 + API
+    apiBase: (window.QM_IS_FILE ? 'http://localhost:8000/api/v1' : '/api/v1'),  // file://双击打开时指向本机后台8000；经http访问时相对路径（Flask单端口）
     useMock: false            // 使用真实API（Mock服务器）
   },
 

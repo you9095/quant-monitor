@@ -10,7 +10,7 @@ const DataLayer = {
   config: {
     pollInterval: 30000,
     pricePollInterval: 5000,
-    apiBase: '/api/v1',
+    apiBase: (window.QM_IS_FILE ? 'http://localhost:8000/api/v1' : '/api/v1'),
     useMock: false
   },
 

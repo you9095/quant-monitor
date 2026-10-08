@@ -3,7 +3,8 @@
    所有子页面(pnl_history/trades/reconciliation)共用
    ============================================================ */
 
-const API_BASE = '';
+// file:// 双击打开子页面时，API 指向本机后台 8000；http 访问时同源相对
+const API_BASE = (location.protocol === 'file:') ? 'http://localhost:8000' : '';
 
 const STRATEGY_COLORS = {
   zhuidian: '#94a3b8', qixing: '#3b82f6', r32: '#10b981',
