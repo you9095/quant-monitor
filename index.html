@@ -1747,6 +1747,8 @@ body.conn-error > *:not(#conn-error-overlay) { display:none !important; }
   background:#0ea5e9; color:#fff; cursor:pointer; }
 .data-mode-banner.mode-live-banner { background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.4); color:#047857; }
 .data-mode-banner.mode-sim-banner { background:rgba(99,102,241,0.10); border:1px solid rgba(99,102,241,0.35); color:#4f46e5; }
+.data-mode-banner.mode-live-banner.live-warn { background:rgba(245,158,11,0.14); border:1px solid rgba(245,158,11,0.55); color:#92400e; }
+.data-mode-banner.mode-live-banner.live-err { background:rgba(239,68,68,0.14); border:1px solid rgba(239,68,68,0.55); color:#991b1b; }
 </style>
 </head>
 <body>
@@ -2177,7 +2179,7 @@ body.conn-error > *:not(#conn-error-overlay) { display:none !important; }
   </div>
 </div>
 
-  <script src="assets/data.js?v=35"></script>  <!-- cache-bust: 2026-10-08 v35 模拟/实盘彻底隔离：去除写死mock静默回退、连接错误诚实态、URL ?data_mode= -->
+  <script src="assets/data.js?v=36"></script>  <!-- cache-bust: 2026-10-08 v36 成交健康灯：透传 trade_health，实盘横幅显示成交完成/重试中/红灯 -->
   <!-- 2026-08-17 v45: goldcombo v25 5Y → v24 DMAStrategy (v1-v25 最优回退) 多品种版 baseline (signals/goldcombo_2026-08-15.json + config/strategies.json v24) · 5万本金 + 13 标的池 (5 ETF + 3 STK + 5 CB) + DMA 金叉死叉 + 成交量+RSI+MA200 三重过滤 + 10%止损+15%峰值 →-->
   <script>
 
@@ -3469,8 +3471,28 @@ function updateDataModeUI() {
 }
 
 // 用 overview 真实数据填充实盘横幅（运行天数 / 总资产 / 账本同步状态）
+function tradeHealthTxt(h) {
+  if (!h || !h.available) return '';   // Windows 端尚未升级/无心跳时不臆造状态
+  const st = h.status;
+  const src = (h.price_sources
+    ? Object.entries(h.price_sources).filter(([, v]) => v > 0).map(([k]) => k).join('/')
+    : '') || '无';
+  if (st === 'done')
+    return ` · 今日成交 ✅ ${h.done_count}/${h.total}（${h.trades_total || 0}笔·价源${src}·第${h.attempt}轮）`;
+  if (st === 'retrying') {
+    const pend = (h.pending_strategies || []).join(',') || '—';
+    const nr = h.next_retry_at ? `，${String(h.next_retry_at).slice(11, 16)}重试` : '';
+    return ` · 成交健康 🟡 重试中第${h.attempt}轮（待成交 ${pend}${nr}，绝不用旧价）`;
+  }
+  if (st === 'pending_overnight')
+    return ' · 成交健康 🔴 17:00窗口结束仍未成交，已挂起待补单核对';
+  if (st === 'no_trade_day') return ' · 今日非交易日，不成交';
+  return '';
+}
+
 function applyDataModeChrome(data) {
   if (!data || window.CURRENT_DATA_MODE !== 'live' || data.__error__) return;
+  const banner = document.getElementById('data-mode-banner');
   const bannerText = document.getElementById('data-mode-banner-text');
   if (!bannerText) return;
   const label = data.data_mode_label || '实盘模拟（Windows 本机真实撮合，不接券商）';
@@ -3480,7 +3502,14 @@ function applyDataModeChrome(data) {
       ? ` · 账本已同步 ${data.sync.head || ''}（${data.sync.last_ok || ''}）`
       : ` · 账本同步异常：${data.sync.msg || '未知'}`;
   }
-  bannerText.textContent = '💹 ' + label + syncTxt;
+  const h = data.trade_health;
+  bannerText.textContent = '💹 ' + label + syncTxt + tradeHealthTxt(h);
+  if (banner) {
+    banner.style.display = 'block';
+    banner.className = 'data-mode-banner mode-live-banner';
+    if (h && h.available && h.status === 'retrying') banner.classList.add('live-warn');
+    if (h && h.available && h.status === 'pending_overnight') banner.classList.add('live-err');
+  }
 }
 
 function toggleDataMode() {

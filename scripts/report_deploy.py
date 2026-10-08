@@ -79,8 +79,9 @@ def collect_status():
                                capture_output=True, text=True)
             return r.returncode == 0
 
-        # 现行（单段式，2026-10-04 起）任务
-        for t in ["QuantDailyTrade", "QuantDailyTradePM", "QuantBootCheck"]:
+        # 现行（单段式 + 监督器，2026-10-08 起）任务
+        for t in ["QuantDailyTrade", "QuantDailyNoon", "QuantDailyTradePM",
+                  "QuantBootCheck"]:
             status[f"task_{t}"] = "REGISTERED" if task_exists(t) else "MISSING"
         # 旧两段式任务，正确状态应为 MISSING（迁移后已删除）
         for t in ["QuantExecuteTask", "QuantDecideTask"]:

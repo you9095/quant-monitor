@@ -400,6 +400,7 @@ const DataLayer = {
       live_start_date: apiData.live_start_date || null,
       last_date: apiData.last_date || null,
       sync: apiData.sync || null,
+      trade_health: apiData.trade_health || null,
       portfolio: {
         total_value: totalValue,
         total_return: combinedReturn,

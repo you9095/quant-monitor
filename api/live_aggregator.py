@@ -659,6 +659,38 @@ def build_status(sid, root: Path = None):
     return payload
 
 
+def build_trade_health(root: Path = None):
+    """读取 Windows 端成交监督器写的当日健康心跳（_run_logs/trade_health.json）。
+    让 Mac 面板能看到：今日是否交易日、成交是否完成、是否在重试、各行情源命中、
+    尝试轮次、缺哪些策略、下次重试时间。无心跳时诚实返回未上报，不编造状态。"""
+    root = root or LIVE_ROOT
+    f = root / "_run_logs" / "trade_health.json"
+    if not f.exists():
+        return {"available": False, "status": "no_heartbeat",
+                "note": "Windows 端尚未上报当日成交健康心跳（升级到监督器版本后，"
+                        "交易日开机会自动上报）。"}
+    try:
+        d = json.loads(f.read_text(encoding="utf-8"))
+    except Exception as e:
+        return {"available": False, "status": "bad_heartbeat",
+                "note": f"健康心跳解析失败: {str(e)[:120]}"}
+    keep = ("date", "status", "attempt", "is_trading_day", "done_count", "total",
+            "trades_total", "price_sources", "pending_strategies", "retry_reasons",
+            "next_retry_at", "updated_at", "started_at", "note", "backoff_seconds",
+            "window", "mode")
+    out = {"available": True}
+    for k in keep:
+        if k in d:
+            out[k] = d[k]
+    if isinstance(d.get("strategies"), dict):
+        out["strategies"] = {
+            sid: {kk: v.get(kk) for kk in
+                  ("status", "trades", "price_source", "detail", "missing",
+                   "total_asset", "today_pnl", "target")}
+            for sid, v in d["strategies"].items()}
+    return out
+
+
 if __name__ == "__main__":
     # 命令行自检：python api/live_aggregator.py
     import sys

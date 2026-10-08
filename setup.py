@@ -335,21 +335,31 @@ def setup_git_auto_update():
         else:
             print(f"  旧任务 {_old} 不存在或无需删除")
 
-    # 1) 开机即交易：登录后 3 分钟跑 trade（窗口 13:00-17:00，窗口外自行跳过）
+    # 1) 开机即交易：登录后 3 分钟启动成交监督器（主触发）
     sch(["/create", "/tn", "QuantDailyTrade", "/tr", task_base + " trade",
-         "/sc", "onlogon", "/delay", "0003:00", "/f"],
-        "开机交易任务已注册：交易日开机后自动 决策+成交+上传")
+         "/sc", "onlogon", "/delay", "0003:00", "/rl", "HIGHEST", "/f"],
+        "开机交易任务已注册：登录后自动启动成交监督器（行情失败持续重试到成功/17:00）")
 
-    # 2) 下午兜底：工作日 15:10 再跑一次（引擎当日幂等，已成交则跳过）
+    # 2) 时间触发双保险：工作日 13:05 再启动一次（不依赖登录事件）。
+    #    专治"睡眠解锁/未重新登录/onlogon 未触发"（2026-10-08 事故根因）；
+    #    监督器带单实例锁，重复触发不会重复成交。
+    sch(["/create", "/tn", "QuantDailyNoon", "/tr", task_base + " trade",
+         "/sc", "weekly", "/d", "MON,TUE,WED,THU,FRI", "/st", "13:05",
+         "/rl", "HIGHEST", "/f"],
+        "13:05时间触发兜底已注册：即使开机事件没触发，13:05也会启动监督器")
+
+    # 3) 收盘兜底：工作日 15:10 再跑一次（盘后接口现价=当日真实收盘价；
+    #    监督器当日幂等，已成交则直接完成，未成交则补成交）
     sch(["/create", "/tn", "QuantDailyTradePM", "/tr", task_base + " trade",
-         "/sc", "weekly", "/d", "MON,TUE,WED,THU,FRI", "/st", "15:10", "/f"],
-        "下午兜底任务已注册：工作日15:10确保收盘后成交一次（幂等）")
+         "/sc", "weekly", "/d", "MON,TUE,WED,THU,FRI", "/st", "15:10",
+         "/rl", "HIGHEST", "/f"],
+        "收盘兜底任务已注册：工作日15:10按真实收盘价再确保成交一次（幂等）")
 
-    # 3) 开机网络自检：登录后 1 分钟，只更新代码+自愈数据仓库+上报，不交易
+    # 4) 开机网络自检：登录后 1 分钟，只更新代码+自愈数据仓库+上报，不交易
     fix_cmd = f'"\\"{venv_py}\\" \\"{BASE_DIR / "scripts" / "fix_and_report.py"}\\""'
     sch(["/create", "/tn", "QuantBootCheck", "/tr", fix_cmd,
-         "/sc", "onlogon", "/delay", "0001:00", "/f"],
-        "开机自检已注册：登录后先自愈网络并上报，3分钟后交易任务再跑")
+         "/sc", "onlogon", "/delay", "0001:00", "/rl", "HIGHEST", "/f"],
+        "开机自检已注册：登录后先自愈网络并上报，3分钟后交易监督器再跑")
 
     # 回查：新任务必须齐全、旧任务必须消失
     if sys.platform == "win32":
@@ -357,11 +367,12 @@ def setup_git_auto_update():
             return subprocess.run(["schtasks", "/query", "/tn", t],
                                   capture_output=True, text=True).returncode == 0
         new_ok = all(_exists(t) for t in
-                     ("QuantDailyTrade", "QuantDailyTradePM", "QuantBootCheck"))
+                     ("QuantDailyTrade", "QuantDailyNoon", "QuantDailyTradePM",
+                      "QuantBootCheck"))
         old_gone = all(not _exists(t) for t in
                        ("QuantExecuteTask", "QuantDecideTask"))
         if new_ok and old_gone:
-            ok("计划任务迁移完成：新任务齐全、旧 09:35/15:30 任务已删除")
+            ok("计划任务迁移完成：onlogon+13:05+15:10 三触发齐全、旧 09:35/15:30 已删除")
         else:
             warn(f"计划任务迁移未完全生效（新任务齐全={new_ok}，旧任务已删={old_gone}）")
             print("     >>> 请右键 install_v9.bat → 以管理员身份运行，再跑一次。")

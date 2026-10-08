@@ -416,6 +416,7 @@ def get_dashboard_overview():
     if data_mode == 'live':
         live_data = live_agg.build_overview()
         live_data['sync'] = dict(LIVE_SYNC)
+        live_data['trade_health'] = live_agg.build_trade_health()
         return jsonify({
             'code': 0,
             'message': 'success',
