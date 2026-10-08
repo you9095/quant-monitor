@@ -127,6 +127,7 @@
 
 let allTrades = [];
 let filteredTrades = [];
+let emptyNote = '';
 
 function formatShares(v) {
   if (v === null || v === undefined) return '--';
@@ -144,12 +145,15 @@ async function loadTrades() {
   if (action) params.set('action', action);
   if (start) params.set('start', start);
   if (end) params.set('end', end);
+  withMode(params);
   
   try {
     const res = await fetch(`${API_BASE}/api/v1/dashboard/trades?${params}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     allTrades = data.trades || [];
+    emptyNote = data.note || '';
+    updateNatureBanner(data);
     applyFilters();
   } catch (e) {
     console.error('加载买卖记录失败:', e);
@@ -179,7 +183,7 @@ function applyFilters() {
 function renderTradeStats() {
   const container = document.getElementById('trade-stats');
   if (filteredTrades.length === 0) {
-    container.innerHTML = '<div class="empty-state"><div class="icon">📝</div><div>暂无交易记录</div></div>';
+    container.innerHTML = '<div class="empty-state"><div class="icon">📝</div><div>暂无交易记录</div>' + (emptyNote ? `<div class="empty-nature-note">${emptyNote}</div>` : '') + '</div>';
     return;
   }
   
@@ -213,7 +217,7 @@ function renderTradeStats() {
     <div class="card-item"><div class="label">总盈亏</div><div class="val ${totalPnlClass}">${formatMoney(totalPnl)}</div></div>
     <div class="card-item"><div class="label">买入金额</div><div class="val">${formatMoney(totalBuy)}</div></div>
     <div class="card-item"><div class="label">卖出金额</div><div class="val">${formatMoney(totalSell)}</div></div>
-    <div class="card-item"><div class="label">总费用</div><div class="val">佣金${formatMoney(0)} 印花税${formatMoney(0)} 过户费${formatMoney(0)} 滑点${formatMoney(0)}</div></div>
+    <div class="card-item"><div class="label">总费用（佣金 / 印花税 / 过户费 / 滑点）</div><div class="val" style="font-size:15px;">${formatMoney(totalCommission)} / ${formatMoney(totalStampTax)} / ${formatMoney(totalTransferFee)} / ${formatMoney(totalSlippage)}</div></div>
   `;
 }
 
@@ -222,20 +226,20 @@ function renderTradesTable() {
   document.getElementById('trade-count').textContent = `共 ${filteredTrades.length} 笔`;
   
   if (filteredTrades.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="18" class="text-center" style="padding:40px;color:var(--tertiaryLabel)">暂无交易记录</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="18" class="text-center" style="padding:40px;color:var(--tertiaryLabel)">暂无交易记录' + (emptyNote ? `<div class="empty-nature-note">${emptyNote}</div>` : '') + '</td></tr>';
     return;
   }
   
   tbody.innerHTML = filteredTrades.map(t => {
-    const pnlClass = pnlClass(t.realized_pnl);
-    const actionClass = t.action === 'buy' ? 'badge-buy' : 'badge-sell';
     const filledTime = t.filled_time ? t.filled_time.slice(0, 19).replace('T', ' ') : t.order_time ? t.order_time.slice(0, 19).replace('T', ' ') : '--';
+    const sname = (typeof STRATEGY_NAMES !== 'undefined' && STRATEGY_NAMES[t.strategy_id]) || t.strategy_id;
+    const statusText = t.status === 'filled' ? '已成' : (t.status || '--');
     return `
       <tr>
         <td>${filledTime}</td>
-        <td class="text-left"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${STRATEGY_COLORS[t.strategy_id]||'#fff'};margin-right:8px;"></span>${t.strategy_id}</td>
+        <td class="text-left"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${(typeof STRATEGY_COLORS!=='undefined'&&STRATEGY_COLORS[t.strategy_id])||'#fff'};margin-right:8px;"></span>${sname}</td>
         <td class="text-center"><span class="badge ${t.action === 'buy' ? 'badge-buy' : 'badge-sell'}">${t.action === 'buy' ? '买入' : '卖出'}</span></td>
-        <td class="text-left">${t.code}</td>
+        <td class="text-left"><div>${t.name || t.code}</div><div style="font-size:11px;opacity:.60;">${t.code}</div></td>
         <td>${formatShares(t.order_shares)}</td>
         <td>${formatPrice(t.order_price)}</td>
         <td>${formatShares(t.filled_shares)}</td>
@@ -245,8 +249,8 @@ function renderTradesTable() {
         <td>${formatMoney(t.stamp_tax)}</td>
         <td>${formatMoney(t.transfer_fee)}</td>
         <td>${formatMoney(t.slippage)}</td>
-        <td class="text-center"><span class="badge badge-${t.status}">${t.status}</span></td>
-        <td class="text-left">${t.signal_source || '--'}</td>
+        <td class="text-center"><span class="badge badge-${t.status}">${statusText}</span></td>
+        <td class="text-left" style="font-size:11px;">${t.signal_source || '--'}</td>
         <td class="${pnlClass(t.realized_pnl)}">${formatMoney(t.realized_pnl)}</td>
         <td class="${pnlClass(t.realized_pnl_pct)}">${formatPct(t.realized_pnl_pct)}</td>
         <td>${formatPrice(t.cost_basis)}</td>

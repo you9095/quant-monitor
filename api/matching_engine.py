@@ -67,6 +67,7 @@ class Broker:
             return None
         gross = qty * exec_price
         commission = _commission(gross)
+        slip_amount = qty * (exec_price - price)   # 买入滑点金额（高价买入的额外成本）
         total_cost = gross + commission
         if total_cost > self.cash:
             # 现金不足，按可买金额重算
@@ -75,6 +76,7 @@ class Broker:
                 return None
             gross = qty * exec_price
             commission = _commission(gross)
+            slip_amount = qty * (exec_price - price)
             total_cost = gross + commission
         self.cash -= total_cost
 
@@ -92,10 +94,16 @@ class Broker:
                 cost_price=exec_price)
 
         trade = {
-            "date": date, "side": "BUY", "code": code, "name": name,
+            "date": date, "side": "BUY", "code": code,
+            "name": name or self.positions[code].name,
+            "reference_price": round(price, 4),   # 委托参考价（未含滑点）
             "price": round(exec_price, 4), "qty": qty,
             "amount": round(gross, 2), "commission": round(commission, 2),
-            "stamp_tax": 0.0, "cash_after": round(self.cash, 2),
+            "stamp_tax": 0.0, "transfer_fee": 0.0,
+            "slippage": round(slip_amount, 2),    # 滑点金额
+            "realized_pnl": 0.0, "realized_pnl_pct": 0.0,
+            "cost_basis": round(self.positions[code].cost_price, 4),  # 每股持仓成本
+            "cash_after": round(self.cash, 2),
         }
         self.trades.append(trade)
         return trade
@@ -117,12 +125,17 @@ class Broker:
         gross = sell_qty * exec_price
         commission = _commission(gross)
         stamp = gross * STAMP_TAX_RATE
+        slip_amount = sell_qty * (price - exec_price)   # 卖出滑点金额（低价卖出的少收）
         net_cash = gross - commission - stamp
         self.cash += net_cash
 
-        # 实现盈亏
-        cost_basis = pos.cost_price * sell_qty
-        self.realized_pnl += (gross - commission - stamp - cost_basis)
+        # 实现盈亏（单笔，扣费后相对持仓成本）
+        pos_name = name or pos.name
+        cost_price = pos.cost_price
+        cost_basis_total = cost_price * sell_qty
+        realized = gross - commission - stamp - cost_basis_total
+        realized_pct = realized / cost_basis_total * 100 if cost_basis_total > 0 else 0.0
+        self.realized_pnl += realized
 
         pos.qty -= sell_qty
         pos.avail_qty -= sell_qty
@@ -130,10 +143,16 @@ class Broker:
             del self.positions[code]
 
         trade = {
-            "date": date, "side": "SELL", "code": code, "name": name or pos.name,
+            "date": date, "side": "SELL", "code": code, "name": pos_name,
+            "reference_price": round(price, 4),   # 委托参考价（未含滑点）
             "price": round(exec_price, 4), "qty": sell_qty,
             "amount": round(gross, 2), "commission": round(commission, 2),
-            "stamp_tax": round(stamp, 2), "cash_after": round(self.cash, 2),
+            "stamp_tax": round(stamp, 2), "transfer_fee": 0.0,
+            "slippage": round(slip_amount, 2),    # 滑点金额
+            "realized_pnl": round(realized, 2),
+            "realized_pnl_pct": round(realized_pct, 2),
+            "cost_basis": round(cost_price, 4),   # 卖出部分的每股成本
+            "cash_after": round(self.cash, 2),
         }
         self.trades.append(trade)
         return trade
@@ -173,12 +192,13 @@ class Broker:
             pos.avail_qty = pos.qty
 
     def rebalance(self, target: Dict[str, float], prices: Dict[str, float],
-                  date: str = "") -> List[dict]:
+                  date: str = "", names: Optional[Dict[str, str]] = None) -> List[dict]:
         """按目标持仓 {code: weight} 调仓，用 prices 成交。返回当天所有成交。
 
         先卖不在目标里的持仓，再按权重买入目标标的。
-        weight 占总资产比例（0~1）。
+        weight 占总资产比例（0~1）。names 为 {code: 标的名}，写入成交记录。
         """
+        names = names or {}
         all_trades = []
         total_asset = self.cash + sum(
             p.qty * prices.get(c, p.cost_price) for c, p in self.positions.items())
@@ -188,7 +208,7 @@ class Broker:
             if code not in target and code in self.positions:
                 price = prices.get(code)
                 if price and price > 0:
-                    t = self.sell(code, price, date=date)
+                    t = self.sell(code, price, date=date, name=names.get(code, ""))
                     if t:
                         all_trades.append(t)
 
@@ -206,7 +226,8 @@ class Broker:
             held_value = held_qty * price
             buy_amount = target_amount - held_value
             if buy_amount > 0:
-                t = self.buy(code, price, buy_amount, date=date)
+                t = self.buy(code, price, buy_amount, date=date,
+                             name=names.get(code, ""))
                 if t:
                     all_trades.append(t)
         return all_trades

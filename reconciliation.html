@@ -112,6 +112,7 @@
    ============================================================ */
 
 let currentReconData = null;
+let emptyNote = '';
 let currentTab = 'overview';
 
 async function loadReconciliation() {
@@ -123,12 +124,16 @@ async function loadReconciliation() {
   if (strategy) params.set('strategy', strategy);
   if (start) params.set('start', start);
   if (end) params.set('end', end);
+  withMode(params);
   
   try {
     const res = await fetch(`${API_BASE}/api/v1/dashboard/reconciliation?${params}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     currentReconData = data;
+    emptyNote = data.note || '';
+    updateNatureBanner(data);
+    fillTopKpis(data);
     renderSummaryCards(data);
     renderReconTab(currentTab);
   } catch (e) {
@@ -138,10 +143,29 @@ async function loadReconciliation() {
   }
 }
 
+function plainMoney(v) {
+  if (v === null || v === undefined || isNaN(v)) return '--';
+  return Number(v).toLocaleString('zh-CN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+// 顶部 4 个 KPI（账户余额 / 持仓市值 / 总权益 / 当日盈亏）
+function fillTopKpis(data) {
+  const t = (data && data.totals) || {};
+  const put = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = plainMoney(v); };
+  put('cash', t.cash);
+  put('market-value', t.market_value);
+  put('total-equity', t.total_equity);
+  const dp = document.getElementById('daily-pnl');
+  if (dp) {
+    dp.textContent = (t.daily_pnl === null || t.daily_pnl === undefined) ? '--' : formatMoney(t.daily_pnl);
+    dp.className = 'val ' + pnlClass(t.daily_pnl || 0);
+  }
+}
+
 function renderSummaryCards(data) {
   const container = document.getElementById('summary-cards');
-  if (!data || !data.per_strategy) {
-    container.innerHTML = '<div class="empty-state"><div class="icon">📋</div><div>暂无对账数据</div></div>';
+  if (!data || !data.per_strategy || Object.keys(data.per_strategy).length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">📋</div><div>暂无对账数据</div>' + (emptyNote ? `<div class="empty-nature-note">${emptyNote}</div>` : '') + '</div>';
     return;
   }
   
@@ -168,7 +192,7 @@ function renderSummaryCards(data) {
           <span class="badge" style="background:${s.overall_match?'rgba(48,209,88,0.2)':'rgba(255,69,58,0.2)'};color:${s.overall_match?'var(--systemGreen)':'var(--systemRed)'}">${matchIcon}</span>
         </div>
         <div class="val ${pnlClass(s.pnl)}" style="font-size:18px;">${formatMoney(s.pnl)}</div>
-        <div class="label" style="margin-top:4px;">收益率: ${formatPct(s.return_pct)} | 资金: ${formatMoney(s.cash_match)} | 持仓: ${formatMoney(s.mv_match)}</div>
+        <div class="label" style="margin-top:4px;">收益率: ${formatPct(s.return_pct)} | 现金: ${plainMoney(s.cash)} | 市值: ${plainMoney(s.market_value)}</div>
       `;
     }).join('');
   
@@ -202,7 +226,11 @@ function renderReconTab(tab) {
     container.innerHTML = '<div class="empty-state"><div class="icon">📋</div><div>请先加载对账单</div></div>';
     return;
   }
-  
+  if (!currentReconData.per_strategy || Object.keys(currentReconData.per_strategy).length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">📋</div><div>暂无对账数据</div>' + (emptyNote ? `<div class="empty-nature-note">${emptyNote}</div>` : '') + '</div>';
+    return;
+  }
+
   switch (tab) {
     case 'overview':
       renderOverviewTab();

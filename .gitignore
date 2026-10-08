@@ -48,3 +48,6 @@ review/*.json
 results/*.json
 live-data/
 data/etf_cache/
+
+# --- 2026-10-06 UI走查专用虚拟数据（物理隔离，绝不提交/绝不push/绝不冒充实盘）---
+ui-mock/

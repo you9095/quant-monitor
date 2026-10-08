@@ -54,6 +54,18 @@ STRATEGIES = {
                   ["518880"], "mom_window": 20, "hold": 1, "trend_filter": True},
 }
 
+# ETF 代码 → 名称（成交记录/对账单显示用；实时行情接口返回名称时以接口为准）
+ETF_NAMES = {
+    "511880": "银华日利ETF", "510300": "沪深300ETF", "510500": "中证500ETF",
+    "159915": "创业板ETF", "513100": "纳指ETF", "513520": "日经ETF",
+    "518880": "黄金ETF", "159985": "豆粕ETF", "588080": "科创50ETF",
+    "512100": "中证1000ETF", "512040": "国泰价值ETF", "512890": "红利低波ETF",
+    "513130": "恒生科技ETF", "513030": "纳指科技ETF", "161226": "国泰商品ETF",
+    "159967": "创成长ETF", "159980": "有色ETF", "159981": "能源化工ETF",
+    "513080": "法国CAC40ETF", "513500": "标普500ETF", "513690": "恒生股息ETF",
+    "501018": "南方原油LOF",
+}
+
 
 # ============================================================
 # 动量轮动决策
@@ -95,6 +107,24 @@ def _write_live_record(sid, cfg, broker, snap, today, phase, trades=None,
     """写 live-data/latest 和 daily/<today>/"""
     DAILY_DIR.mkdir(parents=True, exist_ok=True)
     LATEST_DIR.mkdir(parents=True, exist_ok=True)
+
+    total_asset = snap["total_asset"]
+    # 今日盈亏：相对上一交易日总权益；首日（无历史）相对初始本金
+    prev_asset = cfg["capital"]
+    prev_latest = LATEST_DIR / f"{sid}.json"
+    if prev_latest.exists():
+        try:
+            prev = json.loads(prev_latest.read_text(encoding="utf-8"))
+            prev_asset = prev.get("total_asset",
+                                  prev.get("cash", 0) + prev.get("market_value", 0))
+        except Exception:
+            pass
+    today_pnl = round(total_asset - prev_asset, 2)
+    today_return = round(today_pnl / prev_asset * 100, 2) if prev_asset else 0.0
+
+    # 真实运行天数 = daily 下该策略已落盘的交易日记录数 + 今日
+    past_days = len(list(DAILY_DIR.glob(f"*/{sid}.json")))
+
     record = {
         "date": today, "strategy_id": sid, "strategy_name": cfg["name"],
         "initial_capital": cfg["capital"],
@@ -103,9 +133,12 @@ def _write_live_record(sid, cfg, broker, snap, today, phase, trades=None,
         "phase": phase,
         "price_source": price_source,
         "run_time": datetime.now().isoformat(timespec="seconds"),
+        "total_asset": round(total_asset, 2),
+        "today_pnl": today_pnl,
+        "today_return": today_return,
         "live_total_pnl": snap["total_pnl"],
         "live_total_return": snap["total_return"],
-        "live_days": len(broker.trades),
+        "live_days": past_days + 1,
         "cash": snap["cash"], "market_value": snap["market_value"],
         "positions": snap["positions"],
         "pending_target": broker.pending_target,
@@ -245,7 +278,7 @@ def run_once(sid: str, cfg: dict, today: str, force: bool = False):
     broker = Broker.load_or_new(state_path, cfg["capital"], sid)
     broker.end_of_day()                          # T+1：昨日买入转可卖
     broker.pending_target = target
-    trades = broker.rebalance(target, prices, date=today)
+    trades = broker.rebalance(target, prices, date=today, names=ETF_NAMES)
     snap = broker.settle(prices)
     broker.save(state_path)
 
@@ -301,7 +334,8 @@ def run_execute(sid, cfg, prices_open, today):
         snap = broker.settle(prices_open)
         rec = _write_live_record(sid, cfg, broker, snap, today, "execute_hold")
         return rec
-    trades = broker.rebalance(broker.pending_target, prices_open, date=today)
+    trades = broker.rebalance(broker.pending_target, prices_open, date=today,
+                              names=ETF_NAMES)
     snap = broker.settle(prices_open)
     broker.save(state_path)
     rec = _write_live_record(sid, cfg, broker, snap, today, "execute", trades)

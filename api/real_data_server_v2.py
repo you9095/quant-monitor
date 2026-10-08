@@ -72,6 +72,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from data_alert_engine import run_alert_engine, get_alerts_summary
 import alerts as alert_module
 import live_data as live_module
+import live_aggregator as live_agg
 
 app = Flask(__name__)
 
@@ -85,6 +86,9 @@ BASE_DIR = Path(__file__).parent.parent
 CONFIG_FILE = BASE_DIR / 'config' / 'strategies.json'
 SIGNALS_DIR = BASE_DIR / 'signals'
 REVIEW_DIR = BASE_DIR / 'review'
+# 实盘数据根目录：默认真实 live-data；UI 走查时用环境变量 QM_LIVE_DATA_DIR
+# 指向隔离的虚拟数据目录（ui-mock/live-data），默认行为不变、绝不污染真实账本
+LIVE_ROOT = Path(os.environ.get('QM_LIVE_DATA_DIR', str(BASE_DIR / 'live-data')))
 
 WORK_LOG_DIR = Path('/Users/junze/.hermes/work_logs')
 
@@ -243,7 +247,8 @@ def get_strategies():
 def build_live_overview():
     """组装实盘视图数据：读取 macOS 从 GitHub 拉取的 live-data/latest/*.json
     这些是 Windows 端真实运行产生的数据；目录为空时返回空状态。"""
-    live_dir = Path(__file__).parent.parent / 'live-data' / 'latest'
+    live_dir = LIVE_ROOT / 'latest'
+    is_mock = (LIVE_ROOT / '_mock_marker.json').exists()
     strategies = []
     total_asset = 0.0
     total_init = 0.0
@@ -293,16 +298,26 @@ def build_live_overview():
             })
 
     has_data = len(strategies) > 0
-    if has_data:
+    if is_mock:
+        label = '【UI测试虚拟数据】仅用于界面走查 · 非实盘 / 非回测 / 不接券商'
+        note = '面板经 QM_LIVE_DATA_DIR 指向隔离目录 ui-mock，数据为固定种子确定性生成，禁止冒充实盘。'
+        nature_label = 'UI测试虚拟数据（隔离，非实盘）'
+        nature_key = 'ui_mock'
+    elif has_data:
         label = f'实盘运行数据（Windows，{total_asset:.0f} 元）— 不连接任何真实券商'
         note = '来自 Windows 端每日运行引擎，经 GitHub 同步回 macOS；与模拟盘历史数据物理隔离。'
+        nature_label = '实盘运行数据（Windows 本机引擎）'
+        nature_key = 'live'
     else:
         label = '实盘 — 尚未开始运行，暂无数据'
         note = '实盘数据从 Windows 端每日引擎运行之日起开始记录。macOS 执行 scripts/sync_live_data.py pull 后即可看到 Windows 实盘数据。'
+        nature_label = '实盘运行数据（Windows 本机引擎）'
+        nature_key = 'live'
     return {
         'data_mode': 'live',
-        'data_nature': 'live',
-        'data_nature_label': '实盘运行数据（Windows 本机引擎）',
+        'data_nature': nature_key,
+        'data_nature_label': nature_label,
+        'is_ui_mock': is_mock,
         'data_nature_note': note,
         'data_mode_label': label,
         'strategies': strategies,
@@ -510,149 +525,63 @@ def get_dashboard_overview():
 
 @app.route('/api/v1/dashboard/pnl_history')
 def api_pnl_history():
-    """盈亏历史：从内存缓存汇总每日 P&L，支持 strategy/start/end 筛选"""
+    """盈亏历史：实盘模式从 live-data 聚合真实账户每日净值（扁平契约）；
+    模拟盘为信号回测，不进行真实撮合、不记录现金/持仓/账户盈亏，给诚实空态。"""
     strategy = request.args.get('strategy', '')
     start = request.args.get('start', '')
     end = request.args.get('end', '')
+    data_mode = request.args.get('data_mode', 'simulator')
 
-    all_signals = get_all_signals()
-    if not all_signals:
-        return jsonify({'code': 0, 'message': 'success', 'data': {'history': []}})
+    if data_mode == 'live':
+        return jsonify(live_agg.build_pnl_history(strategy, start, end))
 
-    # 汇总所有策略的每日信号
-    daily = {}  # {date: {strategy_id: {pnl, return}}}
-    for key, d in all_signals.items():
-        parts = key.rsplit('_', 1)
-        if len(parts) != 2:
-            continue
-        sid, date = parts
-        if strategy and sid != strategy:
-            continue
-        if start and date < start:
-            continue
-        if end and date > end:
-            continue
-        if date not in daily:
-            daily[date] = {}
-        daily[date][sid] = {
-            'pnl': d.get('live_total_pnl', 0) or 0,
-            'return_pct': d.get('live_total_return', 0) or 0,
-            'today_pnl': d.get('today_pnl', 0) or 0,
-        }
-
-    # 转换为历史数组
-    history = []
-    for date in sorted(daily.keys()):
-        strategies_data = daily[date]
-        daily_pnl = sum(s.get('today_pnl', 0) for s in strategies_data.values())
-        cum_pnl = sum(s.get('pnl', 0) for s in strategies_data.values())
-        history.append({
-            'date': date,
-            'daily_pnl': round(daily_pnl, 2),
-            'cumulative_pnl': round(cum_pnl, 2),
-            'cumulative_return_pct': round(cum_pnl / 60000 * 100, 2),
-            'strategies': list(strategies_data.keys()),
-        })
-
-    return jsonify({'code': 0, 'message': 'success', 'data': {'history': history}})
+    return jsonify({
+        'history': [], 'count': 0, 'data_mode': 'simulator',
+        'is_ui_mock': False, 'data_nature': 'simulator',
+        'data_nature_label': '模拟盘（信号回测）',
+        'note': '模拟盘只产出买卖信号与回测收益，不进行真实撮合，不记录现金 / 持仓 / 账户盈亏。真实每日净值请切换到「实盘模拟」。',
+    })
 
 
 @app.route('/api/v1/dashboard/trades')
 def api_trades():
-    """买卖记录：从内存缓存提取交易，支持 strategy/action/start/end 筛选"""
+    """买卖记录：实盘模式从 live-data 成交流水聚合真实成交（扁平契约）；
+    模拟盘为信号回测，无真实成交，给诚实空态。支持 strategy/action/start/end。"""
     strategy = request.args.get('strategy', '')
     action = request.args.get('action', '')
     start = request.args.get('start', '')
     end = request.args.get('end', '')
+    data_mode = request.args.get('data_mode', 'simulator')
 
-    all_signals = get_all_signals()
-    if not all_signals:
-        return jsonify({'code': 0, 'message': 'success', 'data': {'trades': []}})
+    if data_mode == 'live':
+        return jsonify(live_agg.build_trades(strategy, action, start, end))
 
-    trades = []
-    act_map = {'BUY': '买入', 'SELL': '卖出', 'HOLD': '持有', 'FLAT': '空仓'}
-    for key, d in sorted(all_signals.items()):
-        parts = key.rsplit('_', 1)
-        if len(parts) != 2:
-            continue
-        sid, date = parts
-        if strategy and sid != strategy:
-            continue
-        if start and date < start:
-            continue
-        if end and date > end:
-            continue
-        try:
-            action_info = d.get('action', {})
-            act = action_info.get('type', '')
-            act_label = act_map.get(act, act)
-            if action and act_label != action:
-                continue
-            trades.append({
-                'strategy_id': sid,
-                'strategy_name': d.get('strategy_name', sid),
-                'action': act_label,
-                'filled_time': date + 'T15:00:00',
-                'code': action_info.get('target_etf', ''),
-                'name': action_info.get('target_etf', ''),
-                'filled_qty': 0,
-                'filled_price': 0,
-                'amount': 0,
-                'commission': 0,
-                'stamp_tax': 0,
-                'transfer_fee': 0,
-                'slippage': 0,
-                'pnl': 0,
-                'pnl_pct': 0,
-                'cost_price': 0,
-                'source': 'work_logs',
-            })
-        except:
-            continue
-
-    return jsonify({'code': 0, 'message': 'success', 'data': {'trades': trades}})
+    return jsonify({
+        'trades': [], 'count': 0, 'data_mode': 'simulator',
+        'is_ui_mock': False, 'data_nature': 'simulator',
+        'data_nature_label': '模拟盘（信号回测）',
+        'note': '模拟盘只产出买卖信号，不进行真实撮合，因此没有成交流水、佣金 / 印花税 / 滑点与真实账单。真实买卖记录请切换到「实盘模拟」。',
+    })
 
 
 @app.route('/api/v1/dashboard/reconciliation')
 def api_reconciliation():
-    """对账单：从内存缓存读取每日持仓和现金"""
+    """对账单：实盘模式从 live-data 聚合资金/持仓/成交的自洽核对（扁平契约）；
+    模拟盘为信号回测，无现金/持仓/成交可对账，给诚实空态。支持 strategy/start/end。"""
     strategy = request.args.get('strategy', '')
     start = request.args.get('start', '')
     end = request.args.get('end', '')
+    data_mode = request.args.get('data_mode', 'simulator')
 
-    all_signals = get_all_signals()
-    if not all_signals:
-        return jsonify({'code': 0, 'message': 'success', 'data': {'reconciliation': []}})
+    if data_mode == 'live':
+        return jsonify(live_agg.build_reconciliation(strategy, start, end))
 
-    reconciliation = []
-    for key, d in sorted(all_signals.items(), reverse=True):
-        parts = key.rsplit('_', 1)
-        if len(parts) != 2:
-            continue
-        sid, date = parts
-        if strategy and sid != strategy:
-            continue
-        if start and date < start:
-            continue
-        if end and date > end:
-            continue
-        try:
-            positions = d.get('positions', [])
-            reconciliation.append({
-                'date': date,
-                'strategy_id': sid,
-                'strategy_name': d.get('strategy_name', sid),
-                'cash': d.get('cash', 0),
-                'total_asset': d.get('total_asset', 0),
-                'position_count': len(positions),
-                'positions': positions,
-                'live_total_pnl': d.get('live_total_pnl', 0),
-                'live_total_return': d.get('live_total_return', 0),
-            })
-        except:
-            continue
-
-    return jsonify({'code': 0, 'message': 'success', 'data': {'reconciliation': reconciliation}})
+    return jsonify({
+        'per_strategy': {}, 'tolerance': 0.01, 'overall_match': False,
+        'data_mode': 'simulator', 'is_ui_mock': False,
+        'data_nature': 'simulator', 'data_nature_label': '模拟盘（信号回测）',
+        'note': '模拟盘不进行真实撮合，没有现金 / 持仓 / 成交流水可对账。真实资金与持仓核对请切换到「实盘模拟」。',
+    })
 
 
 @app.route('/api/v1/dashboard/nav_curves')
