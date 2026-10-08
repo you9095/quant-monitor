@@ -76,6 +76,65 @@ def _ak_spot_em_no_proxy():
                     os.environ[k] = v
 
 
+def _market_prefix(code: str) -> str:
+    """ETF 代码加交易所前缀：5/6 开头沪市 sh，其余（1 开头等）深市 sz。"""
+    return ("sh" if code[0] in "56" else "sz") + code
+
+
+def _direct_session():
+    """不读系统代理的 requests Session（国内行情站强制直连，绕开失效代理）。"""
+    import requests
+    s = requests.Session()
+    s.trust_env = False
+    return s
+
+
+def _fetch_spot_tencent(pool: list) -> dict:
+    """腾讯行情 qt.gtimg.cn；盘后现价即当日收盘价。返回 {code: price}。"""
+    q = ",".join(_market_prefix(c) for c in pool)
+    r = _direct_session().get(
+        "https://qt.gtimg.cn/q=" + q, timeout=10,
+        headers={"Referer": "https://gu.qq.com/"})
+    r.encoding = "gbk"
+    r.raise_for_status()
+    out = {}
+    for line in r.text.strip().split("\n"):
+        if "~" not in line:
+            continue
+        f = line.split("~")
+        try:
+            code, price = f[2], float(f[3])
+            if code in pool and price > 0:
+                out[code] = price
+        except (IndexError, ValueError):
+            continue
+    return out
+
+
+def _fetch_spot_sina(pool: list) -> dict:
+    """新浪行情 hq.sinajs.cn；盘后现价即当日收盘价。返回 {code: price}。"""
+    q = ",".join(_market_prefix(c) for c in pool)
+    r = _direct_session().get(
+        "https://hq.sinajs.cn/list=" + q, timeout=10,
+        headers={"Referer": "https://finance.sina.com.cn"})
+    r.encoding = "gbk"
+    r.raise_for_status()
+    out = {}
+    for line in r.text.strip().split("\n"):
+        if '="' not in line:
+            continue
+        head, payload = line.split('="', 1)
+        code = head.split("_")[-1].strip()[2:]   # var hq_str_sh513100 -> 513100
+        v = payload.strip('";').split(",")
+        try:
+            price = float(v[3])                   # v[2]=昨收, v[3]=现价/收盘
+            if code in pool and price > 0:
+                out[code] = price
+        except (IndexError, ValueError):
+            continue
+    return out
+
+
 from matching_engine import Broker  # noqa: E402
 
 DATA_REPO = BASE_DIR / "live-data"
@@ -152,7 +211,8 @@ DECIDERS = {sid: decide_for(sid, cfg) for sid, cfg in STRATEGIES.items()}
 
 
 def _write_live_record(sid, cfg, broker, snap, today, phase, trades=None,
-                       data_source="Windows实盘引擎(本机模拟撮合)", price_source=None):
+                       data_source="Windows实盘引擎(本机模拟撮合)", price_source=None,
+                       price_source_detail=None):
     """写 live-data/latest 和 daily/<today>/"""
     DAILY_DIR.mkdir(parents=True, exist_ok=True)
     LATEST_DIR.mkdir(parents=True, exist_ok=True)
@@ -181,6 +241,7 @@ def _write_live_record(sid, cfg, broker, snap, today, phase, trades=None,
         "data_nature": "实盘模拟(本机真实撮合, 非回测, 不接券商)",
         "phase": phase,
         "price_source": price_source,
+        "price_source_detail": price_source_detail,
         "run_time": datetime.now().isoformat(timespec="seconds"),
         "total_asset": round(total_asset, 2),
         "today_pnl": today_pnl,
@@ -218,31 +279,59 @@ def already_traded(sid: str, today: str) -> bool:
 
 
 def fetch_trade_prices(pool: list):
-    """开机时刻成交价。
+    """开机时刻成交价（多行情源冗余，任一源故障不影响成交）。
 
-    盘中(13:00-15:00)：ETF 实时最新价；收盘后(>=15:00)：接口返回的当日收盘价。
-    实时接口缺失的标的，用最新一根日线收盘价兜底。
-    返回 (prices, source)，source ∈ realtime / mixed / close_fallback。
+    盘中(13:00-15:00)取实时最新价；收盘后(>=15:00)接口返回当日收盘价。
+    源链：东财 akshare(含代理绕过+直连重试) → 腾讯 qt.gtimg.cn → 新浪 hq.sinajs.cn，
+    前一源缺的标的由后源补齐；所有实时源都失败的标的，才用最新日线收盘价兜底。
+    返回 (prices, source, detail)：
+      source ∈ realtime(全部来自实时源) / mixed(部分实时+日线兜底) / close_fallback(全兜底)；
+      detail 为实际命中的实时源标签，如 tencent、em+tencent、none。
     """
-    realtime = {}
+    hits = []  # (源标签, {code: price})，按优先级
+
+    # 源1：东财 akshare（已含 NO_PROXY + 禁代理直连重试；其节点偶发 502）
     try:
         df = _ak_spot_em_no_proxy()
+        got = {}
         for code in pool:
             row = df[df["代码"] == code]
             if len(row):
                 v = float(row.iloc[0]["最新价"])
                 if v > 0:
-                    realtime[code] = v
+                    got[code] = v
+        hits.append(("em", got))
+        print(f"  [行情] 东财源取到 {len(got)}/{len(pool)}")
     except Exception as e:
-        print(f"  [行情] 实时价接口失败: {e}")
+        print(f"  [行情] 东财源不可用: {str(e)[:120]}")
+
+    # 源2/3：腾讯、新浪（requests trust_env=False 强制直连，不读系统代理）
+    for tag, fn in (("tencent", _fetch_spot_tencent),
+                    ("sina", _fetch_spot_sina)):
+        try:
+            got = fn(pool)
+            hits.append((tag, got))
+            print(f"  [行情] {tag}源取到 {len(got)}/{len(pool)}")
+        except Exception as e:
+            print(f"  [行情] {tag}源不可用: {str(e)[:120]}")
+
+    # 按源优先级合并：先到先得，后续源只补缺失标的
+    realtime, detail = {}, []
+    for tag, got in hits:
+        added = 0
+        for code, price in got.items():
+            if code in pool and code not in realtime:
+                realtime[code] = price
+                added += 1
+        if added:
+            detail.append(tag)
 
     prices = dict(realtime)
-    if len(prices) < len(pool):
+    missing = [c for c in pool if c not in prices]
+    if missing:
         try:
             from api.market_data import load_etf_close
-            for code in pool:
-                if code in prices:
-                    continue
+            for code in missing:
                 closes = load_etf_close(code, days=5)
                 if closes:
                     prices[code] = closes[-1]
@@ -255,7 +344,10 @@ def fetch_trade_prices(pool: list):
         source = "mixed"
     else:
         source = "close_fallback"
-    return prices, source
+    detail_str = "+".join(detail) if detail else "none"
+    print(f"  [行情] 汇总: 实时{len(realtime)}/{len(pool)} "
+          f"日线兜底{len(prices) - len(realtime)} source={source} detail={detail_str}")
+    return prices, source, detail_str
 
 
 def is_trading_day(today: str) -> bool:
@@ -314,7 +406,7 @@ def run_once(sid: str, cfg: dict, today: str, force: bool = False):
         {c: hist_map.get(c, []) for c in cfg["pool"]})
 
     # 2) 开机时刻成交价
-    prices, source = fetch_trade_prices(cfg["pool"])
+    prices, source, src_detail = fetch_trade_prices(cfg["pool"])
     # 目标标的必须有价；持仓标的也要有价才能结算
     need = set(target) | set()  # 目标为空时也要能结算（用持仓代码）
     if not prices:
@@ -333,7 +425,7 @@ def run_once(sid: str, cfg: dict, today: str, force: bool = False):
     rec = _write_live_record(
         sid, cfg, broker, snap, today, "trade", trades,
         data_source="Windows实盘引擎(开机当日最新价成交,本机模拟撮合)",
-        price_source=source)
+        price_source=source, price_source_detail=src_detail)
     return rec
 
 
@@ -392,7 +484,7 @@ def run_execute(sid, cfg, prices_open, today):
 
 def fetch_realtime_prices(pool: list) -> dict:
     """开盘后：拉实时价（接近开盘价）"""
-    prices, _ = fetch_trade_prices(pool)
+    prices, _, _ = fetch_trade_prices(pool)
     return prices
 
 
