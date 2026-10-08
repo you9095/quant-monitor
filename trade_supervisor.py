@@ -12,10 +12,12 @@
   3. 有策略 no_history / missing_price / error → 写"重试中"健康心跳并上传（Mac 可见），
      按退避计划等待后重试，循环往复，直到成功或窗口结束；
   4. 退避：前 3 轮 2 / 3 / 5 分钟（覆盖开机网络/DNS 抖动），之后固定 10 分钟（用户指定）；
-  5. 到 17:00 仍有策略未成交 → 红灯 pending_overnight 心跳并退出（极端兜底，次日人工/补单）。
+  5. 到 17:00 仍有策略未成交 → 落【持久红标】pending_overnight：红灯跨日持续
+     （次日/周末/节假日都一直亮），冻结一切自动成交与补单，只等人工核对后解除。
 
 铁律：
   * 三源（东财→腾讯→新浪）全失败时【持续重试】，绝不直接判定当日不成交，也绝不用旧价；
+  * 17:00 后仍失败【绝不自动跨日补单】，红灯一直亮到人工运行解除脚本；
   * 不连接任何券商真实账号/资金账号，全部为本机模拟撮合；
   * 只在工作日 13:00-17:00 成交与上传，绝不 7x24；
   * 单实例锁：onlogon/13:05/15:10 多触发器重复启动时，只保留一个监督器在跑。
@@ -23,6 +25,8 @@
 用法（Windows 计划任务调用）：
   python trade_supervisor.py              # 正常当日监督
   python trade_supervisor.py --no-push    # 不上传（本地测试）
+  python trade_supervisor.py --redflag-status                 # 查看红灯是否锁定
+  python trade_supervisor.py --ack-redflag                    # 人工核对后解除红灯
   python trade_supervisor.py --date 2026-10-08 --max-minutes 30   # 回归测试
 """
 import os
@@ -40,6 +44,7 @@ sys.path.insert(0, str(BASE_DIR))
 sys.path.insert(0, str(BASE_DIR / "api"))
 
 import run_daily_engine as eng  # noqa: E402
+import trade_redflag as rf  # noqa: E402  # 跨日红灯锁定（禁止自动补单）
 
 DATA_REPO = BASE_DIR / "live-data"
 LOG_DIR = DATA_REPO / "_run_logs"
@@ -257,6 +262,34 @@ def supervise(today, no_push=False, max_minutes=None):
         return 0
 
     try:
+        # 跨日红灯锁定（最高优先，先于交易日/窗口判断）：
+        # 只要存在未人工解除的红标，任何一天（含周末/节假日/次日）都不自动成交、不补单，
+        # 持续把心跳写成红灯并上传，红灯一直亮到人工核对解除。
+        flag = rf.load_redflag(LOG_DIR)
+        if flag:
+            held_over = today != flag.get("failed_date")
+            cross = "，已跨日持续" if held_over else ""
+            hold = {
+                "date": today, "is_trading_day": None,
+                "status": "pending_overnight", "redflag_active": True,
+                "failed_date": flag.get("failed_date"), "held_over": held_over,
+                "attempt": flag.get("attempt"),
+                "price_sources": flag.get("price_sources", {}),
+                "strategies": flag.get("strategies", {}),
+                "done_count": 0, "total": len(eng.STRATEGIES), "trades_total": 0,
+                "pending_strategies": flag.get("pending_strategies", []),
+                "retry_reasons": flag.get("retry_reasons", {}),
+                "next_retry_at": None,
+                "note": (f"成交红灯持续中（事故日 {flag.get('failed_date')}{cross}）："
+                         "已冻结一切自动成交与补单，红灯一直亮到人工核对解除；"
+                         "解除运行 scripts/ack_trade_redflag.py，被冻结日不补单。"),
+            }
+            write_health(hold)
+            push_to_github(no_push)
+            log(f"🚩 红标锁定中（事故日 {flag.get('failed_date')}）：今日不自动成交、"
+                f"不补单，红灯持续，等待人工解除。")
+            return 2
+
         # 非交易日：写心跳直接退出（节假日/周末开机不成交）
         if not eng.is_trading_day(today):
             log("判定为非交易日，不成交。")
@@ -329,16 +362,24 @@ def supervise(today, no_push=False, max_minutes=None):
             log(f"⏳ 未完成 {len(missing_sids)}/6（{reasons}），"
                 f"{wait_s // 60} 分后重试（第 {attempt} 次）。")
 
-            # 窗口结束仍未成功 → 红灯，交次日处理
+            # 窗口结束仍未成功 → 落持久红标：红灯跨日持续，不自动补单，等人工解除
             remain_min = minutes_to_window_end()
             if remain_min <= WRAP_UP_MINUTES:
                 health["status"] = "pending_overnight"
+                health["redflag_active"] = True
+                health["failed_date"] = today
                 health["next_retry_at"] = None
-                health["note"] = ("17:00 窗口结束仍未取到真实价成交（理论上三源持续全失败"
-                                  "不应发生）。已挂起，次日开机需补单核对。")
+                health["note"] = ("17:00 窗口结束仍未取到三源真实价成交（理论上持续全失败"
+                                  "不应发生）。已落红标：红灯跨日持续、冻结自动成交与补单，"
+                                  "须人工核对后运行 scripts/ack_trade_redflag.py 解除。")
+                rf.raise_redflag(
+                    failed_date=today, strategies=health.get("strategies"),
+                    pending_strategies=missing_sids, retry_reasons=reasons,
+                    price_sources=agg["per_source"], attempt=attempt,
+                    note=health["note"], log_dir=LOG_DIR)
                 write_health(health)
                 push_to_github(no_push)
-                log("🚩 红灯：窗口结束仍未全部成交，已写 pending_overnight 心跳。")
+                log("🚩 红灯：窗口结束仍未全部成交，已落持久红标（跨日持续、禁止自动补单）。")
                 return 2
 
             # 可中断、到点即停、并持续刷新锁心跳的等待
@@ -361,7 +402,42 @@ def main():
     ap.add_argument("--no-push", action="store_true", help="不上传 GitHub（本地测试）")
     ap.add_argument("--max-minutes", type=float, default=None,
                     help="监督最长分钟数（测试用）")
+    ap.add_argument("--ack-redflag", action="store_true",
+                    help="人工核对后解除跨日红灯（红标），解除后下一交易窗口恢复自动成交、不补单")
+    ap.add_argument("--redflag-status", action="store_true",
+                    help="查看当前是否存在未解除的红灯（红标）")
     args = ap.parse_args()
+
+    if args.ack_redflag:
+        ok, info = rf.acknowledge(LOG_DIR, note="人工核对后解除（命令行 --ack-redflag）")
+        if not ok:
+            print(info)
+            sys.exit(1)
+        print(f"✅ 红灯已人工解除（事故日 {info.get('failed_date')}，"
+              f"解除于 {info.get('acknowledged_at')}）。被冻结日不补单。")
+        write_health({
+            "date": date.today().isoformat(), "is_trading_day": None,
+            "status": "redflag_acknowledged", "redflag_active": False,
+            "failed_date": info.get("failed_date"),
+            "attempt": 0, "strategies": {}, "done_count": 0,
+            "total": len(eng.STRATEGIES), "trades_total": 0, "next_retry_at": None,
+            "note": "成交红灯已由人工核对解除；下一交易窗口恢复自动成交，被冻结日不补单。"})
+        pushed, _ = push_to_github(args.no_push)
+        print("解除心跳已上传。" if pushed else "解除已写入本地（--no-push 或上传失败，下次任务补传）。")
+        sys.exit(0)
+
+    if args.redflag_status:
+        f = rf.load_redflag(LOG_DIR)
+        if not f:
+            print("无未解除红灯（红标）。")
+            sys.exit(0)
+        print("🚩 存在未解除红灯（红标）：")
+        print(json.dumps({k: f.get(k) for k in
+                          ("failed_date", "raised_at", "last_seen_date", "attempt",
+                           "pending_strategies", "retry_reasons", "price_sources", "note")},
+                         ensure_ascii=False, indent=2))
+        sys.exit(2)
+
     code = supervise(args.date, no_push=args.no_push, max_minutes=args.max_minutes)
     sys.exit(code or 0)
 

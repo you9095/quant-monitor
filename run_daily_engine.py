@@ -551,6 +551,16 @@ def main():
     today = date.today().isoformat()
     from api.market_data import load_etf_close
 
+    # 跨日红灯锁定（纵深防御）：红标未人工解除前，任何命令行成交/决策入口一律拒绝，
+    # 杜绝绕过监督器的自动补单。
+    import trade_redflag as rf
+    flag = rf.load_redflag(DATA_REPO / "_run_logs")
+    if flag:
+        print(f"🚩 成交红灯锁定中（事故日 {flag.get('failed_date')}）：已冻结自动成交与补单，"
+              f"本次 phase={args.phase} 拒绝执行。请人工核对账目后运行 "
+              f"scripts/ack_trade_redflag.py 解除（被冻结日不补单）。")
+        sys.exit(3)
+
     if args.phase == "once":
         run_once_all(today, force=args.force)
         return

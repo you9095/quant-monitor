@@ -664,6 +664,35 @@ def build_trade_health(root: Path = None):
     让 Mac 面板能看到：今日是否交易日、成交是否完成、是否在重试、各行情源命中、
     尝试轮次、缺哪些策略、下次重试时间。无心跳时诚实返回未上报，不编造状态。"""
     root = root or LIVE_ROOT
+    # 红标优先（最高）：只要存在未人工解除的红标，无论当日心跳是 done / no_trade_day
+    # 还是根本没开机、没心跳，面板都恒亮红灯，直到人工解除（绝不自动补单）。
+    try:
+        from trade_redflag import load_redflag
+    except Exception:
+        from api.trade_redflag import load_redflag
+    flag = load_redflag(root / "_run_logs")
+    if flag:
+        today_s = datetime.now().date().isoformat()
+        held = today_s != flag.get("failed_date")
+        return {
+            "available": True, "status": "pending_overnight",
+            "redflag_active": True, "failed_date": flag.get("failed_date"),
+            "held_over": held, "date": today_s, "is_trading_day": None,
+            "attempt": flag.get("attempt"),
+            "done_count": 0,
+            "total": len(flag.get("strategies") or {}) or 6,
+            "trades_total": 0,
+            "price_sources": flag.get("price_sources", {}),
+            "pending_strategies": flag.get("pending_strategies", []),
+            "retry_reasons": flag.get("retry_reasons", {}),
+            "next_retry_at": None,
+            "strategies": flag.get("strategies", {}),
+            "updated_at": flag.get("updated_at") or flag.get("raised_at"),
+            "note": (f"成交红灯跨日持续（事故日 {flag.get('failed_date')}"
+                     + ("，已跨日" if held else "") + "）：已冻结自动成交与补单，"
+                     "红灯一直亮到人工核对解除，被冻结日不补单。"),
+            "mode": "live_simulation_local_match_no_broker",
+        }
     f = root / "_run_logs" / "trade_health.json"
     if not f.exists():
         return {"available": False, "status": "no_heartbeat",
@@ -677,7 +706,7 @@ def build_trade_health(root: Path = None):
     keep = ("date", "status", "attempt", "is_trading_day", "done_count", "total",
             "trades_total", "price_sources", "pending_strategies", "retry_reasons",
             "next_retry_at", "updated_at", "started_at", "note", "backoff_seconds",
-            "window", "mode")
+            "window", "mode", "redflag_active", "failed_date", "held_over")
     out = {"available": True}
     for k in keep:
         if k in d:

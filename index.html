@@ -3507,8 +3507,15 @@ function tradeHealthTxt(h) {
     const nr = h.next_retry_at ? `，${String(h.next_retry_at).slice(11, 16)}重试` : '';
     return ` · 成交健康 🟡 重试中第${h.attempt}轮（待成交 ${pend}${nr}，绝不用旧价）`;
   }
-  if (st === 'pending_overnight')
-    return ' · 成交健康 🔴 17:00窗口结束仍未成交，已挂起待补单核对';
+  if (st === 'pending_overnight') {
+    if (h.redflag_active) {
+      const cross = h.held_over ? '，已跨日持续' : '';
+      return ` · 成交健康 🔴 红灯持续中（事故日 ${h.failed_date || '—'}${cross}）：已停止自动成交/补单，须人工核对后解除`;
+    }
+    return ' · 成交健康 🔴 17:00窗口结束仍未成交，红灯已挂起，等待人工核对（不自动补单）';
+  }
+  if (st === 'redflag_acknowledged')
+    return ' · 成交红灯已人工解除，下一交易窗口恢复自动成交（被冻结日不补单）';
   if (st === 'no_trade_day') return ' · 今日非交易日，不成交';
   return '';
 }
