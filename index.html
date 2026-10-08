@@ -1732,13 +1732,41 @@ body {
   }
 }
 
+/* ===== 2026-10-08 P0 模拟/实盘彻底隔离 ===== */
+body.mode-live .sim-only { display:none !important; }
+body.mode-live .bt-only { display:none !important; }
+.tlt-datamode.live-dm { background:rgba(16,185,129,0.14) !important; color:#059669 !important; border-color:rgba(16,185,129,0.4) !important; }
+#conn-error-overlay { position:fixed; inset:0; z-index:9999; display:none;
+  background:#0f172a; color:#e2e8f0; align-items:center; justify-content:center; padding:28px; }
+#conn-error-overlay.show { display:flex; }
+body.conn-error > *:not(#conn-error-overlay) { display:none !important; }
+.conn-error-box { max-width:680px; text-align:center; line-height:2; }
+.conn-error-box h2 { font-size:22px; margin-bottom:16px; color:#fca5a5; }
+.conn-error-box code { background:#1e293b; padding:2px 8px; border-radius:6px; color:#7dd3fc; font-size:14px; }
+.conn-error-box .ce-btn { display:inline-block; margin-top:18px; padding:8px 18px; border-radius:8px;
+  background:#0ea5e9; color:#fff; cursor:pointer; }
+.data-mode-banner.mode-live-banner { background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.4); color:#047857; }
+.data-mode-banner.mode-sim-banner { background:rgba(99,102,241,0.10); border:1px solid rgba(99,102,241,0.35); color:#4f46e5; }
 </style>
 </head>
 <body>
 
-<!-- 数据模式横幅（实盘未开始运行时显示） -->
+<!-- 数据模式横幅（文案由 updateDataModeUI / renderAll 按模式与真实天数动态填充） -->
 <div id="data-mode-banner" class="data-mode-banner" style="display:none">
-  <span id="data-mode-banner-text">💹 实盘数据视图 — 实盘尚未开始运行，暂无数据（实盘从本机模拟引擎正式运行之日起记录，不含历史模拟盘数据）</span>
+  <span id="data-mode-banner-text"></span>
+</div>
+
+<!-- 数据服务未连接遮罩：file:// 直接打开或后端未运行时显示，绝不用写死假数据冒充 -->
+<div id="conn-error-overlay">
+  <div class="conn-error-box">
+    <h2>⚠️ 未连接到数据服务，无法显示任何盈亏数据</h2>
+    <div>为避免把开发用的写死数字当成真实业绩，当前不显示任何模拟 / 实盘数据。</div>
+    <div style="margin-top:10px">请通过本地后端打开面板（不要直接双击 index.html）：</div>
+    <div style="margin-top:8px"><code>http://localhost:8000/?data_mode=live</code> &nbsp;实盘模拟</div>
+    <div style="margin-top:4px"><code>http://localhost:8000/?data_mode=simulator</code> &nbsp;模拟盘</div>
+    <div id="conn-error-detail" style="margin-top:12px;font-size:13px;color:#94a3b8"></div>
+    <div class="ce-btn" onclick="location.reload()">⟳ 重新连接</div>
+  </div>
 </div>
 
 <!-- 顶部栏 -->
@@ -1780,7 +1808,7 @@ body {
 <section class="chart-section live-sim-section" id="live-sim-section" style="border-top:none">
   <div class="container">
     <div class="section-header">
-      <span class="section-title">收益曲线 · 模拟盘（非实盘）</span>
+      <span class="section-title" id="live-sim-title">今日交易 · 模拟盘（非实盘）</span>
       <!-- 2026-08-03 审计陷阱#5: 有 API 时由 renderAll 注入真实起始日(portfolio_summary.live_start_date) -->
       <span style="display:flex;gap:12px;align-items:center">
         <span id="live-start-label" style="font-size:12px;color:var(--text-muted)">模拟盘（simulator）· 非真实实盘</span>
@@ -1939,7 +1967,7 @@ body {
      板块: 04_收益曲线板块 (module-nav-curves)
      功能: 2Y/5Y/实盘收益对比曲线
      ============================================================ -->
-<section class="chart-section" id="module-nav-curves">
+<section class="chart-section sim-only" id="module-nav-curves">
   <div class="container">
     <div class="section-header">
       <span class="section-title">收益对比</span>
@@ -1959,7 +1987,7 @@ body {
      板块: 06_每日盈亏趋势 (module-daily-pnl)
      功能: 5策略最近14天Daily P&L趋势
      ============================================================ -->
-<section class="chart-section" id="module-daily-pnl" style="border-top:1px solid var(--border-subtle)">
+<section class="chart-section sim-only" id="module-daily-pnl" style="border-top:1px solid var(--border-subtle)">
   <div class="container">
     <div class="section-header">
       <span class="section-title">📈 每日盈亏趋势（5 策略最近 14 天）</span>
@@ -1981,7 +2009,7 @@ body {
      板块: 07_WFA分析板块 (module-wfa)
      功能: WFA过拟合审计 + 样本外P&L曲线
      ============================================================ -->
-<section class="chart-section" id="module-wfa" style="border-top:1px solid var(--border-subtle)">
+<section class="chart-section sim-only" id="module-wfa" style="border-top:1px solid var(--border-subtle)">
   <div class="container">
     <div class="section-header">
       <span class="section-title">🔬 WFA 滚动前推过拟合审计（5 策略）</span>
@@ -2010,7 +2038,7 @@ body {
      板块: 08_参数稳定性板块 (module-param-stability)
      功能: 参数稳定性监控
      ============================================================ -->
-<section class="chart-section" id="module-param-stability" style="border-top:1px solid var(--border-subtle)">
+<section class="chart-section sim-only" id="module-param-stability" style="border-top:1px solid var(--border-subtle)">
   <div class="container">
     <div class="section-header">
       <span class="section-title">🎯 参数稳定性监控（5 策略"假设网格"·13 训练窗口）</span>
@@ -2036,7 +2064,7 @@ body {
      板块: 09_AB对比板块 (module-ab-comparison)
      功能: A/B对照（grid_mode vs hardcode）
      ============================================================ -->
-<section class="chart-section" id="module-ab-comparison" style="border-top:1px solid var(--border-subtle);background:rgba(99,102,241,0.04)">
+<section class="chart-section sim-only" id="module-ab-comparison" style="border-top:1px solid var(--border-subtle);background:rgba(99,102,241,0.04)">
   <div class="container">
     <div class="section-header">
       <span class="section-title">⚖️ A/B 对照（网格优选 vs 原参数 · 验证 WFA 优化是否真有效）</span>
@@ -2077,7 +2105,7 @@ body {
      板块: 10_风险监控板块 (module-risk)
      功能: 风险监控指标
      ============================================================ -->
-<section class="risk-section" id="module-risk">
+<section class="risk-section sim-only" id="module-risk">
   <div class="container">
     <div class="section-header">
       <span class="section-title">风险监控</span>
@@ -2106,7 +2134,7 @@ body {
      板块: 11_策略日志板块 (module-logs)
      功能: 策略变更日志 + 复盘功能
      ============================================================ -->
-<section class="log-section" id="module-logs">
+<section class="log-section sim-only" id="module-logs">
   <div class="container">
     <div class="section-header">
       <span class="section-title">策略变更日志</span>
@@ -2149,7 +2177,7 @@ body {
   </div>
 </div>
 
-  <script src="assets/data.js?v=34"></script>  <!-- cache-bust: 2026-08-29 v34 数据陈旧警告条 v2 重做样式 (用户硬反馈: 不丑/不突兀/不跳跃/融合 — 苏晏清 AI 团队) -->
+  <script src="assets/data.js?v=35"></script>  <!-- cache-bust: 2026-10-08 v35 模拟/实盘彻底隔离：去除写死mock静默回退、连接错误诚实态、URL ?data_mode= -->
   <!-- 2026-08-17 v45: goldcombo v25 5Y → v24 DMAStrategy (v1-v25 最优回退) 多品种版 baseline (signals/goldcombo_2026-08-15.json + config/strategies.json v24) · 5万本金 + 13 标的池 (5 ETF + 3 STK + 5 CB) + DMA 金叉死叉 + 成交量+RSI+MA200 三重过滤 + 10%止损+15%峰值 →-->
   <script>
 
@@ -2199,6 +2227,26 @@ async function initData() {
    ============================================================ */
 
 async function renderAll(data) {
+  const mode = currentMode();
+  window.CURRENT_DATA_MODE = mode;
+  document.body.classList.toggle('mode-live', mode === 'live');
+  document.body.classList.toggle('mode-sim', mode !== 'live');
+  updateDataModeUI();
+  // 连接失败：显示全屏"未连接"诚实态，绝不渲染任何写死盈亏
+  const errOverlay = document.getElementById('conn-error-overlay');
+  if (data && data.__error__) {
+    document.body.classList.add('conn-error');
+    if (errOverlay) {
+      errOverlay.classList.add('show');
+      const d = document.getElementById('conn-error-detail');
+      if (d) d.textContent = '连接错误：' + (data.errorMsg || '无法连接数据服务') +
+        '（当前模式：' + (mode === 'live' ? '实盘模拟' : '模拟盘') + '）';
+    }
+    return;
+  }
+  document.body.classList.remove('conn-error');
+  if (errOverlay) { errOverlay.classList.remove('show'); }
+  applyDataModeChrome(data);
   // v1.1 (2026-06-26): 预取实盘模拟总览 + 今日动作，让卡片可以读到
   try {
     const [psRes, taRes] = await Promise.all([
@@ -2210,8 +2258,11 @@ async function renderAll(data) {
       // 注入真实实盘起始日 (2026-08-03 审计陷阱#5: 后端 LIVE_START_DATE=2026-05-25)
       if (psRes.data.live_start_date) {
         const lbl = document.getElementById('live-start-label');
-        // 2026-09-20: 若图表已算出真实数据范围(meta.data_range), 不得用起始日占位覆盖(异步时序竞争)
-        if (lbl && !(window.__liveCurveMeta && window.__liveCurveMeta.data_range)) {
+        const __dmStart = currentMode();
+        if (lbl && __dmStart === 'live') {
+          lbl.textContent = `${psRes.data.live_start_date} 实盘模拟起始日 · 本机真实撮合 · 非回测 · 不接券商`;
+        } else if (lbl && !(window.__liveCurveMeta && window.__liveCurveMeta.data_range)) {
+          // 2026-09-20: 若图表已算出真实数据范围(meta.data_range), 不得用起始日占位覆盖(异步时序竞争)
           lbl.textContent = `${psRes.data.live_start_date} 模拟盘起始日 · 非真实实盘`;
         }
       }
@@ -2241,8 +2292,11 @@ async function renderAll(data) {
   renderStrategyCards(data.strategies);
   renderActionItems(filtered);
   renderTradeDetails(filtered);
-  renderNavCurves(data.strategies);
-  renderLogs(filtered);
+  // 回测净值曲线 / 模拟盘轮次日志仅模拟盘渲染；实盘模式零回测泄漏（区块也已 CSS 隐藏）
+  if (mode !== 'live') {
+    renderNavCurves(data.strategies);
+    renderLogs(filtered);
+  }
   updatePortfolio(data.portfolio);
   // 2026-08-21: 5 端精简 + 展开/收起
   enhanceCardsForResponsive();
@@ -2381,8 +2435,9 @@ function renderStrategyCards(strategies) {
 }
 
 function buildCardHtml(sid, sname, s) {
-  // 数据来源标记：全部回测（非实盘）
-  const isBacktest = true; // 策略卡片均为回测数据
+  // 数据来源标记：live=实盘模拟真实账本；simulator=模拟盘 / 回测
+  const __modeLive = currentMode() === 'live';
+  const isBacktest = !__modeLive; // 实盘模式卡片不是回测数据
   // 从数据中提取字段
   const holdings = s.holdings || [];
 
@@ -2445,6 +2500,8 @@ function buildCardHtml(sid, sname, s) {
   // ===== v1.1 (2026-06-26) + 2026-08-03 P0 fix: 总盈亏大字区块 =====
   // 优先用后端真实持仓市值(__portfolioPerStrategy.current_value),否则从本地 holdings 算市值
   const initCap = isLive ? (s.initial_capital || (window.__portfolioPerStrategy && window.__portfolioPerStrategy[sid]?.initial_capital) || 10000) : 0;
+  // 2026-10-08 实盘真实费用（佣金+印花税+过户费，取自当日真实成交）；模拟盘沿用笔数估算
+  const __liveFees = (() => { const _t = (window.__todayActions && window.__todayActions[sid] && window.__todayActions[sid].trades) || []; return _t.reduce((a, t) => a + (+t.commission || 0) + (+t.stamp_tax || 0) + (+t.transfer_fee || 0), 0); })();
   let curVal = window.__portfolioPerStrategy && window.__portfolioPerStrategy[sid]?.current_value;
   if (curVal == null) {
     // 本地 fallback: sum(qty * price) + cash; 没有 qty*price 时 sum(cost-weight) + cost
@@ -2478,7 +2535,9 @@ function buildCardHtml(sid, sname, s) {
   const returnStr = (totalReturn !== undefined && totalReturn !== null) ? ((totalReturn >= 0 ? '+' : '') + totalReturn.toFixed(2) + '%') : '--';
   const profitBlock = isLive ? `
     <div class="profit-block">
-      <div class="pb-label">总盈亏（模拟盘 ${initCap >= 1000 ? (initCap/1000).toFixed(0) + 'k本金' : initCap + '本金'} 至今）${alertBadge('live_total_pnl')}</div>
+      <div class="pb-label">${__modeLive
+        ? `总盈亏（实盘模拟 ${(initCap/10000).toFixed(0)}万本金 · 第 ${s.data_period_days || 1} 天 · 本机真实撮合）`
+        : `总盈亏（模拟盘 ${initCap >= 1000 ? (initCap/1000).toFixed(0) + 'k本金' : initCap + '本金'} 至今）`}${alertBadge('live_total_pnl')}</div>
       <div class="pb-amount ${pnlClass} pb-font-${sid} ${fieldAlertClass('live_total_pnl')}" data-metric="card-pnl-amount">${pnlStr}</div>
       <div class="pb-meta">
         <span class="pb-meta-item"><span class="lbl">收益率</span>${returnStr}</span>
@@ -2522,7 +2581,7 @@ function buildCardHtml(sid, sname, s) {
   }
 
   // 2026-08-24 任务C: 移除整卡 onclick=openStrategyDetail — 弹窗改由 .three-layer-tags 标签区触发 (绑定见 enhanceCardsForResponsive); 卡片其余区域 = 今日动作⇄收益曲线 toggle (任务B)
-  return `<div class="strategy-card ${sid} backtest" data-strategy="${sid}" data-source="backtest">
+  return `<div class="strategy-card ${sid} ${__modeLive ? 'live-card' : 'backtest'}" data-strategy="${sid}" data-source="${__modeLive ? 'live' : 'backtest'}">
     <div class="card-header ${sid}"></div>
     <div class="card-body">
       <div class="card-title-row">
@@ -2552,7 +2611,9 @@ function buildCardHtml(sid, sname, s) {
       })()}
       <div class="three-layer-tags" data-source="${s.signal_date || s.metrics?.signal_date || ''}" role="button" title="点击查看策略核心规则（弹窗）">
         <!-- 字段0: 数据模式 — 明确标注模拟盘/实盘 -->
-        <span class="tlt-tag tlt-datamode" title="当前为模拟盘（simulator），非真实实盘交易">⚠️ 模拟盘</span>
+        ${__modeLive
+          ? '<span class="tlt-tag tlt-datamode live-dm" title="实盘模拟：Windows 本机按真实行情真实撮合记账，非回测，不连接任何券商">💹 实盘模拟</span>'
+          : '<span class="tlt-tag tlt-datamode" title="当前为模拟盘（simulator），非真实实盘交易">⚠️ 模拟盘</span>'}
         <!-- 字段1: 版本 — 来自 config.{sid}.version (经后端 cfg.get('version')) -->
         <span class="tlt-tag tlt-version" title="策略版本号">📦 ${s.version_tag != null ? s.version_tag : '—'}</span>
         <!-- 字段2: 运行天数 — 来自 signal.live_days (数字, 用户要"运行天数"语义) -->
@@ -2565,11 +2626,11 @@ function buildCardHtml(sid, sname, s) {
       ${profitBlock}
       <div class="metric-row">
         <div class="metric full-only">
-          <div class="metric-label">模拟总收益</div>
+          <div class="metric-label">${__modeLive ? '累计盈亏' : '模拟总收益'}</div>
           <div class="metric-value ${s.live_total_return != null ? (s.live_total_return >= 0 ? 'up' : 'down') : 'neutral'}" data-metric="live-total-return">${s.live_total_return != null ? (s.live_total_return >= 0 ? '+' : '') + s.live_total_return.toFixed(2) + '%' : '--'}</div>
           <div class="metric-sub">${s.live_total_pnl != null ? (s.live_total_pnl >= 0 ? '+' : '') + s.live_total_pnl.toFixed(2) + ' 元 / ' + (s.data_period_days || '?') + ' 天' : '--'}</div>
         </div>
-        <div class="metric full-only">
+        <div class="metric full-only bt-only">
           <div class="metric-label">2Y 年化 (主)</div>
           <div class="metric-value ${(() => { const _ar = s.metrics?.annualized_return_2y ?? s.annualized_return_2y ?? s.annualized_return ?? null; return _ar !== null && _ar !== undefined ? (_ar >= 0 ? 'up' : 'down') : 'neutral'; })()}" data-metric="annualized-return" data-period="2y">${(() => { const _ar = s.metrics?.annualized_return_2y ?? s.annualized_return_2y ?? s.annualized_return ?? null; return _ar !== null && _ar !== undefined ? (_ar >= 0 ? '+' : '') + _ar.toFixed(2) + '%' : '--'; })()}</div>
           <div class="metric-sub">回撤 ${s.metrics?.max_dd_2y != null ? s.metrics.max_dd_2y.toFixed(2) + '%' : '--'}</div>
@@ -2588,7 +2649,7 @@ function buildCardHtml(sid, sname, s) {
       </div>
       <div class="card-footer full-only">
         <span class="card-footer-cash">交易 ${s.metrics?.trades_count || 0} 笔</span>
-        <span>成本 ¥${(s.metrics?.trades_count !== undefined ? (s.metrics.trades_count * 6).toFixed(2) : '0.00')}</span>
+        <span>成本 ¥${__modeLive ? (__liveFees ? __liveFees.toFixed(2) : '0.00') : (s.metrics?.trades_count !== undefined ? (s.metrics.trades_count * 6).toFixed(2) : '0.00')}</span>
       </div>
     </div>
   </div>`;
@@ -2762,6 +2823,8 @@ function renderTradeDetails(strategies) {
 // 渲染收益对比图 (3+1 四策略)
 // v1.1 (2026-06-26): 改为实盘模拟累计曲线，从实盘模拟首日 (2026-05-25) 到今天
 async function renderNavCurves(strategies) {
+  // 实盘模式零回测泄漏：不渲染任何模拟盘 / 回测净值曲线，也不覆盖实盘标注
+  if (currentMode() === 'live') return;
   const ctx = document.getElementById('returnChart');
   if (!ctx) return;
   const colors = {
@@ -3362,31 +3425,62 @@ updateClock();
 initReviewDateSelect();
 
 // ========== 数据模式切换（模拟/实盘） ==========
-window.CURRENT_DATA_MODE = localStorage.getItem('data_mode') || 'simulator';
+function currentMode() {
+  try { if (window.DataLayer && DataLayer.getMode) return DataLayer.getMode(); } catch (e) {}
+  return localStorage.getItem('data_mode') || 'simulator';
+}
+window.CURRENT_DATA_MODE = currentMode();
 
 // 统一拼接 data_mode 参数，确保所有 API 请求都带上当前模式
 window.apiUrl = function(path) {
-  const mode = localStorage.getItem('data_mode') || 'simulator';
+  const mode = currentMode();
   const sep = path.includes('?') ? '&' : '?';
   return `${path}${sep}data_mode=${mode}`;
 };
 
 function updateDataModeUI() {
+  const mode = window.CURRENT_DATA_MODE;
   const btn = document.getElementById('data-mode-toggle');
   const icon = document.getElementById('data-mode-icon');
   const text = document.getElementById('data-mode-text');
   const banner = document.getElementById('data-mode-banner');
-  if (window.CURRENT_DATA_MODE === 'live') {
+  const bannerText = document.getElementById('data-mode-banner-text');
+  const titleEl = document.getElementById('live-sim-title');
+  const startLbl = document.getElementById('live-start-label');
+  document.body.classList.toggle('mode-live', mode === 'live');
+  document.body.classList.toggle('mode-sim', mode !== 'live');
+  if (mode === 'live') {
     if (btn) { btn.classList.add('mode-live'); }
     if (icon) { icon.textContent = '💹'; }
     if (text) { text.textContent = '实盘'; }
-    if (banner) { banner.style.display = 'block'; }
+    if (banner) { banner.style.display = 'block'; banner.className = 'data-mode-banner mode-live-banner'; }
+    if (bannerText) { bannerText.textContent = '💹 实盘模拟视图（Windows 本机真实撮合 · 不连接任何券商）— 正在载入真实账本…'; }
+    if (titleEl) { titleEl.textContent = '今日交易 · 实盘模拟（本机真实撮合，不接券商）'; }
+    if (startLbl) { startLbl.textContent = '实盘模拟（live）· 非回测 · 不连接任何券商'; }
   } else {
     if (btn) { btn.classList.remove('mode-live'); }
     if (icon) { icon.textContent = '📊'; }
     if (text) { text.textContent = '模拟盘'; }
-    if (banner) { banner.style.display = 'none'; }
+    if (banner) { banner.style.display = 'block'; banner.className = 'data-mode-banner mode-sim-banner'; }
+    if (bannerText) { bannerText.textContent = '📊 模拟盘视图 — 以下为模拟盘虚拟成交 / 回测数据，非真实实盘交易，不代表真实业绩'; }
+    if (titleEl) { titleEl.textContent = '今日交易 · 模拟盘（非实盘）'; }
+    if (startLbl) { startLbl.textContent = '模拟盘（simulator）· 虚拟成交 · 非真实实盘'; }
   }
+}
+
+// 用 overview 真实数据填充实盘横幅（运行天数 / 总资产 / 账本同步状态）
+function applyDataModeChrome(data) {
+  if (!data || window.CURRENT_DATA_MODE !== 'live' || data.__error__) return;
+  const bannerText = document.getElementById('data-mode-banner-text');
+  if (!bannerText) return;
+  const label = data.data_mode_label || '实盘模拟（Windows 本机真实撮合，不接券商）';
+  let syncTxt = '';
+  if (data.sync) {
+    syncTxt = data.sync.ok
+      ? ` · 账本已同步 ${data.sync.head || ''}（${data.sync.last_ok || ''}）`
+      : ` · 账本同步异常：${data.sync.msg || '未知'}`;
+  }
+  bannerText.textContent = '💹 ' + label + syncTxt;
 }
 
 function toggleDataMode() {
@@ -3556,7 +3650,7 @@ function initChart() {
 async function loadNavCurves(period) {
   currentChartPeriod = period;
   try {
-    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/nav_curves?period=${encodeURIComponent(period)}`);
+    const res = await fetch(window.apiUrl(`${DataLayer.config.apiBase}/dashboard/nav_curves?period=${encodeURIComponent(period)}`));
     const result = await res.json();
     if (result.code === 0) {
       renderMultiChart(result.data.curves, period);
@@ -3586,7 +3680,7 @@ let dailyPnlData = null;  // 缓存 API 数据
 
 async function loadDailyPnlTrend(days = 14) {
   try {
-    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/daily_pnl_trend?days=${days}&cumulative=true`);
+    const res = await fetch(window.apiUrl(`${DataLayer.config.apiBase}/dashboard/daily_pnl_trend?days=${days}&cumulative=true`));
     const data = await res.json();
     if (data.code !== 0) {
       throw new Error(data.message || 'API 返回错误');
@@ -3694,7 +3788,7 @@ async function switchDailyPnlView(viewMode) {
     // 重新拉取 cumulative=false 的数据
     try {
       const days = dailyPnlData.days;
-      const res = await fetch(`${DataLayer.config.apiBase}/dashboard/daily_pnl_trend?days=${days}&cumulative=false`);
+      const res = await fetch(window.apiUrl(`${DataLayer.config.apiBase}/dashboard/daily_pnl_trend?days=${days}&cumulative=false`));
       const data = await res.json();
       if (data.code === 0) {
         renderDailyPnlTrendChart(data.data, 'daily');
@@ -3718,7 +3812,7 @@ let wfaOosCurveData = null;
 
 async function loadWfaSummary() {
   try {
-    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/wfa_summary`);
+    const res = await fetch(window.apiUrl(`${DataLayer.config.apiBase}/dashboard/wfa_summary`));
     const data = await res.json();
     if (data.code !== 0) {
       throw new Error(data.message || 'API 返回错误');
@@ -3790,7 +3884,7 @@ function renderWfaSummaryCards(payload) {
 
 async function loadWfaOosCurve() {
   try {
-    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/wfa_oos_curve`);
+    const res = await fetch(window.apiUrl(`${DataLayer.config.apiBase}/dashboard/wfa_oos_curve`));
     const data = await res.json();
     if (data.code !== 0) {
       throw new Error(data.message || 'API 返回错误');
@@ -3946,7 +4040,7 @@ function renderWfaOosCurveChart(data) {
 
 async function loadParamStability() {
   try {
-    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/param_stability`);
+    const res = await fetch(window.apiUrl(`${DataLayer.config.apiBase}/dashboard/param_stability`));
     const data = await res.json();
     if (data.code !== 0) {
       throw new Error(data.message || 'API 返回错误');
@@ -4049,7 +4143,7 @@ async function loadAbComparison() {
   
   // 数据源 1: /dashboard/ab_comparison (优先)
   try {
-    const res = await fetch(`${DataLayer.config.apiBase}/dashboard/ab_comparison?days=60`, {cache: 'no-store'});
+    const res = await fetch(window.apiUrl(`${DataLayer.config.apiBase}/dashboard/ab_comparison?days=60`), {cache: 'no-store'});
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     console.log('[loadAb] fetch ok, data.code=' + data.code + ', hasData=' + !!data.data + ', date=' + (data.data?.date || 'NONE'));

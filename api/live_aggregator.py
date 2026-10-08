@@ -345,6 +345,320 @@ def build_reconciliation(strategy="", start="", end="", root: Path = None):
     return report
 
 
+STRATEGY_COLORS = {
+    "qixing": "#3b82f6", "r32": "#10b981", "zhuidian": "#f59e0b",
+    "sanhe": "#8b5cf6", "lightning": "#ef4444", "goldcombo": "#ec4899",
+}
+
+
+def _ordered_sids(sids):
+    """按 STRATEGY_ORDER 稳定排序，未知策略排末尾。"""
+    known = [s for s in STRATEGY_ORDER if s in sids]
+    extra = sorted(s for s in sids if s not in STRATEGY_ORDER)
+    return known + extra
+
+
+def _read_latest(root: Path = None):
+    """读取 latest/<sid>.json 最新快照，返回 {sid: rec}。"""
+    root = root or LIVE_ROOT
+    out = {}
+    latest = root / "latest"
+    if not latest.exists():
+        return out
+    for f in latest.glob("*.json"):
+        try:
+            out[f.stem] = json.loads(f.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+    return out
+
+
+def _live_dates(root: Path = None):
+    root = root or LIVE_ROOT
+    daily = root / "daily"
+    if not daily.exists():
+        return []
+    return sorted(d.name for d in daily.iterdir() if d.is_dir())
+
+
+def _map_position(p):
+    qty = int(_num(p.get("qty")))
+    cost = _num(p.get("cost_price", p.get("cost")))
+    price = _num(p.get("current_price", cost))
+    mv = _num(p.get("market_value"), qty * price)
+    pnl = _num(p.get("pnl"), (price - cost) * qty)
+    pnl_pct = _num(p.get("pnl_pct"), (pnl / (qty * cost) * 100) if qty and cost else 0.0)
+    return {
+        "code": p.get("code", ""), "name": p.get("name", ""),
+        "quantity": qty, "qty": qty, "avail_qty": int(_num(p.get("avail_qty"))),
+        "cost_price": round(cost, 4), "current_price": round(price, 4),
+        "market_value": round(mv, 2), "pnl": round(pnl, 2),
+        "pnl_pct": round(pnl_pct, 3), "weight": 0.0,
+    }
+
+
+def _action_from_rec(rec):
+    """从当日成交流水推断动作类型。"""
+    trades = rec.get("trades_today", []) or []
+    sides = { (t.get("side") or "").upper() for t in trades }
+    if "SELL" in sides and "BUY" in sides:
+        return "REBALANCE"
+    if "SELL" in sides:
+        return "SELL"
+    if "BUY" in sides:
+        return "BUY"
+    act = rec.get("action")
+    if isinstance(act, dict):
+        return act.get("type") or act.get("action") or "HOLD"
+    return act or "HOLD"
+
+
+# ============================================================
+# 4) 首页总览（策略卡 / KPI 数据源，替代前端写死 mock）
+# ============================================================
+def build_overview(root: Path = None):
+    root = root or LIVE_ROOT
+    mock = is_mock(root)
+    latest = _read_latest(root)
+    dates = _live_dates(root)
+    strategies = []
+    total_asset = total_init = total_pnl = total_today = 0.0
+    for sid in _ordered_sids(set(latest.keys())):
+        rec = latest[sid]
+        init = _num(rec.get("initial_capital"), 10000.0)
+        asset = _num(rec.get("total_asset"), init)
+        pnl = _num(rec.get("live_total_pnl"), asset - init)
+        today = _num(rec.get("today_pnl"))
+        cash = _num(rec.get("cash"))
+        mv = _num(rec.get("market_value"), asset - cash)
+        positions = [_map_position(p) for p in rec.get("positions", [])
+                     if int(_num(p.get("qty"))) > 0]
+        for p in positions:
+            p["weight"] = round(p["market_value"] / asset * 100, 2) if asset > 0 else 0.0
+        days = int(_num(rec.get("live_days"), len(dates) or 0))
+        total_asset += asset
+        total_init += init
+        total_pnl += pnl
+        total_today += today
+        strategies.append({
+            "strategy_id": sid,
+            "strategy_name": rec.get("strategy_name", sid),
+            "status": "running" if days > 0 else "waiting",
+            "today_action": _action_from_rec(rec),
+            "today_pnl": round(today, 2),
+            "today_return": round(_num(rec.get("today_return")), 3),
+            "total_asset": round(asset, 2),
+            "total_return": round(_num(rec.get("live_total_return")), 3),
+            "total_pnl": round(pnl, 2),
+            "initial_capital": round(init, 2),
+            "live_total_pnl": round(pnl, 2),
+            "live_total_return": round(_num(rec.get("live_total_return")), 3),
+            "live_days": days,
+            "live_start_date": dates[0] if dates else None,
+            "cash": round(cash, 2),
+            "market_value": round(mv, 2),
+            "position_ratio": round(mv / asset, 4) if asset > 0 else 0.0,
+            "positions": positions,
+            "holdings": positions,
+            "price_source": rec.get("price_source"),
+            "price_source_detail": rec.get("price_source_detail"),
+            "last_date": rec.get("date"),
+            "backtest_total_return": None, "sharpe_ratio": None,
+            "max_drawdown": None, "trades_count": len(rec.get("trades_today", []) or []),
+        })
+    has_data = bool(strategies)
+    meta = nature_meta(root)
+    meta.update({
+        "strategies": strategies,
+        "combined": {
+            "active_count": len(strategies),
+            "initial_capital": round(total_init, 2),
+            "total_asset": round(total_asset, 2),
+            "total_pnl": round(total_pnl, 2),
+            "today_pnl": round(total_today, 2),
+            "total_return": round(total_pnl / total_init * 100, 3) if total_init else 0.0,
+        },
+        "live_days": len(dates),
+        "live_start_date": dates[0] if dates else None,
+        "last_date": dates[-1] if dates else None,
+        "alerts_summary": {"critical": 0, "warning": 0, "info": 0},
+        "update_time": datetime.now().isoformat(timespec="seconds"),
+    })
+    if not has_data and not mock:
+        meta["data_mode_label"] = "实盘 — 尚未开始运行，暂无数据"
+        meta["data_nature_note"] = ("实盘数据从 Windows 端每日引擎运行之日起记录，经 GitHub 同步；"
+                                    "当前 Mac 尚未拉取到任何实盘账本，不会用模拟盘或回测数据代替。")
+    elif has_data and not mock:
+        meta["data_mode_label"] = (f"实盘模拟（Windows 本机真实撮合 · 第 {len(dates)} 天 · "
+                                   f"不连接任何券商）— 总资产 {total_asset:.0f} 元")
+    return meta
+
+
+# ============================================================
+# 5) 组合总览 KPI
+# ============================================================
+def build_portfolio_summary(root: Path = None):
+    root = root or LIVE_ROOT
+    latest = _read_latest(root)
+    dates = _live_dates(root)
+    per = {}
+    total_init = total_value = total_pnl = total_today = 0.0
+    for sid in _ordered_sids(set(latest.keys())):
+        rec = latest[sid]
+        init = _num(rec.get("initial_capital"), 10000.0)
+        asset = _num(rec.get("total_asset"), init)
+        pnl = _num(rec.get("live_total_pnl"), asset - init)
+        today = _num(rec.get("today_pnl"))
+        total_init += init
+        total_value += asset
+        total_pnl += pnl
+        total_today += today
+        per[sid] = {
+            "name": rec.get("strategy_name", sid),
+            "initial_capital": round(init, 2),
+            "total_asset": round(asset, 2),
+            "total_value": round(asset, 2),
+            "total_pnl": round(pnl, 2),
+            "today_pnl": round(today, 2),
+            "total_return_pct": round(_num(rec.get("live_total_return")), 3),
+            "live_days": int(_num(rec.get("live_days"), len(dates))),
+            "cash": round(_num(rec.get("cash")), 2),
+            "market_value": round(_num(rec.get("market_value")), 2),
+        }
+    payload = {
+        "initial_capital": round(total_init, 2),
+        "total_value": round(total_value, 2),
+        "total_pnl": round(total_pnl, 2),
+        "today_pnl": round(total_today, 2),
+        "total_return_pct": round(total_pnl / total_init * 100, 3) if total_init else 0.0,
+        "per_strategy": per,
+        "live_start_date": dates[0] if dates else None,
+        "live_days": len(dates),
+        "last_date": dates[-1] if dates else None,
+        "update_time": datetime.now().isoformat(timespec="seconds"),
+    }
+    payload.update(nature_meta(root))
+    return payload
+
+
+# ============================================================
+# 6) 今日交易动作
+# ============================================================
+def build_today_actions(root: Path = None):
+    root = root or LIVE_ROOT
+    latest = _read_latest(root)
+    dates = _live_dates(root)
+    today = dates[-1] if dates else datetime.now().strftime("%Y-%m-%d")
+    per = {}
+    for sid in _ordered_sids(set(latest.keys())):
+        rec = latest[sid]
+        if rec.get("date") and rec.get("date") != today:
+            continue
+        trades = rec.get("trades_today", []) or []
+        mapped = [{
+            "side": (t.get("side") or "BUY").upper(),
+            "action": "buy" if (t.get("side") or "BUY").upper() == "BUY" else "sell",
+            "code": t.get("code", ""), "name": t.get("name", ""),
+            "qty": int(_num(t.get("qty"))), "price": round(_num(t.get("price")), 4),
+            "reference_price": t.get("reference_price"),
+            "amount": round(_num(t.get("amount")), 2),
+            "commission": round(_num(t.get("commission")), 2),
+            "stamp_tax": round(_num(t.get("stamp_tax")), 2),
+            "slippage": round(_num(t.get("slippage")), 2),
+        } for t in trades]
+        per[sid] = {
+            "strategy_id": sid, "name": rec.get("strategy_name", sid),
+            "strategy_name": rec.get("strategy_name", sid),
+            "action": _action_from_rec(rec),
+            "target": mapped[0].get("code", "") if mapped else "",
+            "signal_date": today,
+            "trades": mapped, "trade_count": len(mapped),
+            "total_asset": round(_num(rec.get("total_asset")), 2),
+            "today_pnl": round(_num(rec.get("today_pnl")), 2),
+            "price_source_detail": rec.get("price_source_detail"),
+        }
+    payload = {"date": today, "strategies": per, "strategies_list": list(per.values()),
+               "data_mode": "live", "live_days": len(dates), "count": len(per)}
+    payload.update(nature_meta(root))
+    return payload
+
+
+# ============================================================
+# 7) 实盘净值曲线（每日 total_asset）
+# ============================================================
+def build_live_curves(root: Path = None):
+    root = root or LIVE_ROOT
+    records = _load_daily_records("", "", "", root)
+    by_sid = {}
+    dates = set()
+    names = {}
+    for d, sid, rec in records:
+        dates.add(d)
+        names[sid] = rec.get("strategy_name", sid)
+        by_sid.setdefault(sid, {})[d] = _num(rec.get("total_asset"))
+    ordered_dates = sorted(dates)
+    curves = {}
+    for sid in _ordered_sids(set(by_sid.keys())):
+        curves[sid] = {
+            "name": names.get(sid, sid), "color": STRATEGY_COLORS.get(sid, "#94a3b8"),
+            "dates": ordered_dates,
+            "values": [round(by_sid[sid].get(d), 2) if d in by_sid[sid] else None
+                       for d in ordered_dates],
+        }
+    payload = {
+        "curves": curves, "days": len(ordered_dates),
+        "start_date": ordered_dates[0] if ordered_dates else None,
+        "end_date": ordered_dates[-1] if ordered_dates else None,
+        "strategy_ids": list(curves.keys()),
+    }
+    payload.update(nature_meta(root))
+    return payload
+
+
+# ============================================================
+# 8) 单策略持仓 / 状态
+# ============================================================
+def build_positions(sid, root: Path = None):
+    root = root or LIVE_ROOT
+    rec = _read_latest(root).get(sid)
+    if not rec:
+        return {"positions": [], "total_asset": 0, "cash": 0, "market_value": 0,
+                "data_mode": "live", "found": False}
+    positions = [_map_position(p) for p in rec.get("positions", [])
+                 if int(_num(p.get("qty"))) > 0]
+    asset = _num(rec.get("total_asset"))
+    for p in positions:
+        p["weight"] = round(p["market_value"] / asset * 100, 2) if asset > 0 else 0.0
+    payload = {
+        "positions": positions, "total_asset": round(asset, 2),
+        "cash": round(_num(rec.get("cash")), 2),
+        "market_value": round(_num(rec.get("market_value")), 2),
+        "today_pnl": round(_num(rec.get("today_pnl")), 2),
+        "live_days": int(_num(rec.get("live_days"))),
+        "data_mode": "live", "found": True,
+    }
+    payload.update(nature_meta(root))
+    return payload
+
+
+def build_status(sid, root: Path = None):
+    root = root or LIVE_ROOT
+    rec = _read_latest(root).get(sid)
+    if not rec:
+        return {"status": "waiting", "live_days": 0, "data_mode": "live"}
+    payload = {
+        "status": "running" if _num(rec.get("live_days")) > 0 else "waiting",
+        "live_days": int(_num(rec.get("live_days"))),
+        "last_date": rec.get("date"),
+        "price_source": rec.get("price_source"),
+        "price_source_detail": rec.get("price_source_detail"),
+        "today_action": _action_from_rec(rec),
+        "data_mode": "live",
+    }
+    payload.update(nature_meta(root))
+    return payload
+
+
 if __name__ == "__main__":
     # 命令行自检：python api/live_aggregator.py
     import sys
@@ -354,6 +668,16 @@ if __name__ == "__main__":
     rc = build_reconciliation()
     print("trades:", tr["count"], "| pnl days:", ph["count"],
           "| strategies in recon:", len(rc["per_strategy"]))
+    ov = build_overview()
+    print("overview strategies:", len(ov["strategies"]),
+          "| total_asset:", ov["combined"]["total_asset"],
+          "| live_days:", ov["live_days"])
+    ps = build_portfolio_summary()
+    print("portfolio total_value:", ps["total_value"], "pnl:", ps["total_pnl"])
+    ta = build_today_actions()
+    print("today actions:", [(s["strategy_id"], s["action"], s["trade_count"]) for s in ta["strategies"]])
+    lc = build_live_curves()
+    print("live curves days:", lc["days"], "sids:", lc["strategy_ids"])
     if tr["trades"]:
         print("sample trade:", json.dumps(tr["trades"][0], ensure_ascii=False))
     if ph["history"]:

@@ -270,37 +270,56 @@ const DataLayer = {
     }
   },
 
+  // 读取当前数据模式：URL ?data_mode= 优先（便于直链 / 截图），否则 localStorage，默认模拟盘
+  getMode() {
+    try {
+      const u = new URLSearchParams(window.location.search);
+      const m = u.get('data_mode');
+      if (m === 'live' || m === 'simulator') {
+        localStorage.setItem('data_mode', m);
+        return m;
+      }
+    } catch (e) { /* file:// 等场景忽略 */ }
+    return localStorage.getItem('data_mode') || 'simulator';
+  },
+
+  // 仅当 URL 显式带 ?mock=1（UI 走查）时才允许使用内置写死 mock，且页面必须全屏标注
+  isMockUi() {
+    try { return new URLSearchParams(window.location.search).get('mock') === '1'; }
+    catch (e) { return false; }
+  },
+
   // 获取数据（模拟/实盘切换）
   async fetchStrategies() {
-    // 读取当前数据模式（模拟盘/实盘），默认模拟盘
-    const dataMode = localStorage.getItem('data_mode') || 'simulator';
-    console.log('[DEBUG] fetchStrategies called, apiBase=', this.config.apiBase, 'data_mode=', dataMode);
+    const dataMode = this.getMode();
+    console.log('[DEBUG] fetchStrategies data_mode=', dataMode, ' apiBase=', this.config.apiBase);
+    // 显式 UI 走查开关：?mock=1 才用内置 mock（固定种子假数据），并打 __ui_mock__ 标志强制全屏标注
+    if (this.isMockUi()) {
+      const mock = JSON.parse(JSON.stringify(this.mockData));
+      mock.__ui_mock__ = true;
+      mock.data_mode = 'ui_mock';
+      return mock;
+    }
     try {
       const res = await fetch(`${this.config.apiBase}/dashboard/overview?data_mode=${dataMode}`);
-      console.log('[DEBUG] fetch res status=', res.status, 'ok=', res.ok);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
       const result = await res.json();
-      console.log('[DEBUG] fetch result code=', result?.code, 'strategies=', result?.data?.strategies?.length);
+      console.log('[DEBUG] overview code=', result?.code, 'strategies=', result?.data?.strategies?.length);
       if (result.code === 0) {
         return this.transformApiData(result.data);
       }
-      throw new Error(result.message);
+      throw new Error(result.message || '接口返回异常');
     } catch (err) {
-      console.error('API获取失败，回退到模拟数据:', err);
-      // 模拟微小波动
-      const data = JSON.parse(JSON.stringify(this.mockData));
-      data.strategies.forEach(s => {
-        s.holdings.forEach(h => {
-          if (h.price && h.cost) {
-            // 2026-08-03 修复 (P1-6): 移除 Math.random 价格 jitter(每次刷新生成随机假盈亏);
-            // pnl 仅在 qty 存在时可确算, 无 qty 持仓(weight 语义)保持 null, 禁止编造
-            h.pnl = h.qty != null ? +((h.price - h.cost) * h.qty).toFixed(2) : null;
-            // FIX_S3: cost=0 (空仓) 时 (price/cost-1) 为 NaN → 保持 null, 禁止 NaN 上屏
-            h.pnl_pct = h.cost > 0 ? +((h.price / h.cost - 1) * 100).toFixed(2) : null;
-          }
-        });
-      });
-      data.portfolio.last_update = new Date().toISOString();
-      return data;
+      // 2026-10-08 P0 真实性修复：连接失败绝不回退到写死盈亏 mock（否则会把 2026-08-03
+      // 的旧假数据冒充实盘 / 模拟盘）。返回错误标志，由页面显示诚实的"未连接"提示。
+      console.error('数据服务连接失败，显示未连接态（不使用任何写死假数据）:', err);
+      return {
+        __error__: true,
+        errorMsg: String((err && err.message) || err),
+        data_mode: dataMode,
+        strategies: [],
+        portfolio: { total_value: 0, total_return: null, last_update: null }
+      };
     }
   },
 
@@ -371,6 +390,16 @@ const DataLayer = {
 
     return {
       strategies,
+      // 2026-10-08: 透传数据性质 / 模式 / 同步状态，供首页横幅与每块标题强标注
+      data_mode: apiData.data_mode || 'simulator',
+      data_nature: apiData.data_nature || 'simulator',
+      data_nature_label: apiData.data_nature_label || '',
+      data_mode_label: apiData.data_mode_label || '',
+      data_nature_note: apiData.data_nature_note || '',
+      live_days: (apiData.live_days ?? (apiData.combined ? null : null)),
+      live_start_date: apiData.live_start_date || null,
+      last_date: apiData.last_date || null,
+      sync: apiData.sync || null,
       portfolio: {
         total_value: totalValue,
         total_return: combinedReturn,

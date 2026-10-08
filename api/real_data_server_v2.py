@@ -23,6 +23,7 @@ import json
 import os
 import sys
 import random
+import subprocess
 import threading
 import time
 from datetime import datetime
@@ -333,12 +334,88 @@ def build_live_overview():
     }
 
 
+# ============================================================
+# Mac 端 live-data 自动从 GitHub 同步（只读，ff-only，失败不崩）
+# ============================================================
+LIVE_SYNC = {'last_ok': None, 'last_attempt': None, 'ok': None,
+             'msg': '尚未同步', 'head': None}
+
+def sync_live_data(timeout=90):
+    """把 LIVE_ROOT 快进到 origin/master（Windows 上传的最新实盘账本）。
+    Mac 端只读不写，用 ff-only，绝不用模拟/回测数据兜底。"""
+    if (LIVE_ROOT / '_mock_marker.json').exists():
+        LIVE_SYNC['msg'] = 'UI 走查隔离目录，跳过同步'
+        return LIVE_SYNC
+    if not (LIVE_ROOT / '.git').exists():
+        LIVE_SYNC['msg'] = 'live-data 非 git 仓库，跳过自动同步'
+        return LIVE_SYNC
+    LIVE_SYNC['last_attempt'] = datetime.now().isoformat(timespec='seconds')
+    root = str(LIVE_ROOT)
+    try:
+        for args in (['git', '-C', root, 'fetch', '-q', 'origin', 'master'],
+                     ['git', '-C', root, 'merge', '--ff-only', '-q', 'origin/master']):
+            p = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
+            if p.returncode != 0:
+                raise RuntimeError((p.stderr or p.stdout or 'git failed').strip()[:200])
+        head = subprocess.run(['git', '-C', root, 'rev-parse', '--short', 'HEAD'],
+                              capture_output=True, text=True, timeout=15)
+        LIVE_SYNC.update(ok=True, msg='已同步到最新',
+                         last_ok=LIVE_SYNC['last_attempt'],
+                         head=head.stdout.strip())
+    except Exception as e:
+        LIVE_SYNC.update(ok=False, msg=f'同步失败: {str(e)[:160]}')
+        print('[live-sync]', LIVE_SYNC['msg'])
+    return LIVE_SYNC
+
+def _live_sync_loop(interval=180):
+    while True:
+        time.sleep(interval)
+        try:
+            sync_live_data()
+        except Exception as e:
+            print('[live-sync loop]', e)
+
+def start_live_sync():
+    sync_live_data()  # 启动先拉一次
+    threading.Thread(target=_live_sync_loop, daemon=True).start()
+
+# 仅属于模拟盘/回测的端点：实盘模式一律返回"不适用"诚实空态，绝不泄漏回测数字
+BACKTEST_ONLY_ENDPOINTS = {
+    '/api/v1/dashboard/nav_curves',
+    '/api/v1/dashboard/monthly_compare',
+    '/api/v1/dashboard/qixing_flow',
+    '/api/v1/dashboard/daily_pnl_trend',
+    '/api/v1/dashboard/wfa_summary',
+    '/api/v1/dashboard/wfa_oos_curve',
+    '/api/v1/dashboard/param_stability',
+    '/api/v1/dashboard/ab_comparison',
+    '/api/v1/dashboard/strategies_flow_summary',
+    '/api/v1/dashboard/ratchet_evolution',
+}
+
+@app.before_request
+def _live_mode_guard():
+    try:
+        if request.method == 'GET' and request.path in BACKTEST_ONLY_ENDPOINTS \
+                and request.args.get('data_mode') == 'live':
+            return jsonify({'code': 0, 'message': 'success', 'data': {
+                'data_mode': 'live', 'is_ui_mock': False, 'data_nature': 'live',
+                'applicable': False,
+                'data_nature_label': '实盘模拟不适用 · 该模块为模拟盘 / 回测专属',
+                'note': '该图表属于模拟盘 / 回测分析，实盘模拟不产生此类数据；实盘模式已留空，'
+                        '不会用任何模拟盘或回测数字代替。真实盈亏 / 成交 / 对账请看实盘对应页面。'}})
+    except Exception:
+        return None
+    return None
+
+
 @app.route('/api/v1/dashboard/overview')
 def get_dashboard_overview():
     data_mode = request.args.get('data_mode', 'simulator')
     # 实盘模式：读取 macOS 从 GitHub 拉下来的 live-data/latest/（Windows 真实运行数据）
     if data_mode == 'live':
-        live_data = build_live_overview()
+        live_data = live_agg.build_overview()
+        live_data['sync'] = dict(LIVE_SYNC)
         return jsonify({
             'code': 0,
             'message': 'success',
@@ -614,12 +691,10 @@ def get_nav_curves():
 @app.route('/api/v1/dashboard/live_curves')
 def dashboard_live_curves():
     """五策略实盘模拟累计曲线（2026-05-25 → 今）"""
-    # 实盘模式：尚未开始运行，返回空曲线
+    # 实盘模式：从 live-data 聚合真实每日净值曲线（不再返回写死空态）
     if request.args.get('data_mode') == 'live':
-        return jsonify({'code': 0, 'message': 'success', 'data': {
-            'curves': {}, 'days': 0, 'start_date': None, 'end_date': None,
-            'strategy_ids': [], 'data_mode': 'live',
-            'validation_note': '实盘尚未开始运行，暂无数据'}})
+        return jsonify({'code': 0, 'message': 'success',
+                        'data': live_agg.build_live_curves()})
     try:
         data = live_module.get_live_curves()
         return jsonify({'code': 0, 'message': 'success', 'data': data})
@@ -635,13 +710,10 @@ def dashboard_live_curves():
 
 def dashboard_portfolio_summary():
     """组合总览：总资金 / 初始资金 / 总盈亏 / 各策略分项"""
-    # 实盘模式：尚未开始运行，返回零值
+    # 实盘模式：从 live-data 聚合真实组合总览（不再返回写死零值）
     if request.args.get('data_mode') == 'live':
-        return jsonify({'code': 0, 'message': 'success', 'data': {
-            'initial_capital': 0, 'total_value': 0, 'total_pnl': 0,
-            'total_return_pct': 0, 'per_strategy': {}, 'live_start_date': None,
-            'data_mode': 'live',
-            'update_time': datetime.now().isoformat()}})
+        return jsonify({'code': 0, 'message': 'success',
+                        'data': live_agg.build_portfolio_summary()})
     try:
         data = live_module.get_portfolio_summary()
         return jsonify({'code': 0, 'message': 'success', 'data': data})
@@ -657,11 +729,10 @@ def dashboard_portfolio_summary():
 
 def dashboard_today_actions_all():
     """今日交易流程（五策略汇总）"""
-    # 实盘模式：尚未开始运行，返回空动作
+    # 实盘模式：从 live-data 聚合当日真实成交动作
     if request.args.get('data_mode') == 'live':
-        return jsonify({'code': 0, 'message': 'success', 'data': {
-            'date': datetime.now().strftime('%Y-%m-%d'),
-            'strategies': {}, 'data_mode': 'live'}})
+        return jsonify({'code': 0, 'message': 'success',
+                        'data': live_agg.build_today_actions()})
     try:
         data = live_module.get_today_actions()
         # 2026-09-12 修复: 不再强制 signal_date = today, 使用信号文件真实日期
@@ -1735,6 +1806,9 @@ def dashboard_ratchet_evolution():
 
 @app.route('/api/v1/<sid>/positions')
 def get_positions(sid):
+    if request.args.get('data_mode') == 'live':
+        return jsonify({'code': 0, 'message': 'success',
+                        'data': live_agg.build_positions(sid)})
     strategies_config = load_strategies()
     if sid not in strategies_config:
         return jsonify({'code': 404, 'message': f'策略 {sid} 不存在', 'data': None})
@@ -1758,6 +1832,18 @@ def get_positions(sid):
 
 @app.route('/api/v1/<sid>/today_actions')
 def get_today_actions(sid):
+    if request.args.get('data_mode') == 'live':
+        ta = live_agg.build_today_actions()
+        item = next((x for x in ta.get('strategies', [])
+                     if x.get('strategy_id') == sid), None)
+        if not item:
+            return jsonify({'code': 0, 'message': 'success',
+                            'data': {'action': 'NO_DATA', 'trades': []}})
+        trades = item.get('trades', [])
+        return jsonify({'code': 0, 'message': 'success', 'data': {
+            'action': item.get('action', 'HOLD'),
+            'target': (trades[0].get('code', '') if trades else ''),
+            'detail': '', 'trades': trades}})
     strategies_config = load_strategies()
     if sid not in strategies_config:
         return jsonify({'code': 404, 'message': f'策略 {sid} 不存在', 'data': None})
@@ -1780,6 +1866,9 @@ def get_today_actions(sid):
 
 @app.route('/api/v1/<sid>/status')
 def get_status(sid):
+    if request.args.get('data_mode') == 'live':
+        return jsonify({'code': 0, 'message': 'success',
+                        'data': live_agg.build_status(sid)})
     strategies_config = load_strategies()
     if sid not in strategies_config:
         return jsonify({'code': 404, 'message': f'策略 {sid} 不存在', 'data': None})
@@ -2147,5 +2236,6 @@ if __name__ == '__main__':
     print(f'Signals dir: {SIGNALS_DIR}')
     load_signals_to_cache()  # 启动时加载信号到内存缓存
     start_alert_scheduler()
+    start_live_sync()        # 启动即从 GitHub 拉取最新实盘账本，之后每 180s 自动同步
     app.run(host='0.0.0.0', port=port, debug=False)
 
