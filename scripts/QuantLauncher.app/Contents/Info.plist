@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key><string>Quant Launcher</string>
+  <key>CFBundleDisplayName</key><string>Quant Launcher</string>
+  <key>CFBundleIdentifier</key><string>com.quant.launcher</string>
+  <key>CFBundleVersion</key><string>1.0</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleExecutable</key><string>QuantLauncher</string>
+  <key>LSUIElement</key><true/>
+  <key>CFBundleURLTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleURLName</key><string>Quant Panel Launch</string>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>quant</string>
+      </array>
+    </dict>
+  </array>
+</dict>
+</plist>

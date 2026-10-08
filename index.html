@@ -1752,6 +1752,10 @@ body.conn-error > *:not(#conn-error-overlay) { display:none !important; }
 .conn-error-box code { background:#1e293b; padding:2px 8px; border-radius:6px; color:#7dd3fc; font-size:14px; }
 .conn-error-box .ce-btn { display:inline-block; margin-top:18px; padding:8px 18px; border-radius:8px;
   background:#0ea5e9; color:#fff; cursor:pointer; }
+.conn-error-box .ce-btn.ce-btn-primary { background:linear-gradient(135deg,#10b981,#059669);
+  color:#fff; font-weight:700; border:1px solid rgba(255,255,255,0.25);
+  box-shadow:0 6px 20px rgba(16,185,129,0.35); }
+.conn-error-box .ce-btn.ce-btn-primary:hover { filter:brightness(1.08); }
 .data-mode-banner.mode-live-banner { background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.4); color:#047857; }
 .data-mode-banner.mode-sim-banner { background:rgba(99,102,241,0.10); border:1px solid rgba(99,102,241,0.35); color:#4f46e5; }
 .data-mode-banner.mode-live-banner.live-warn { background:rgba(245,158,11,0.14); border:1px solid rgba(245,158,11,0.55); color:#92400e; }
@@ -1770,9 +1774,13 @@ body.conn-error > *:not(#conn-error-overlay) { display:none !important; }
   <div class="conn-error-box">
     <h2>⚠️ 数据后台没有运行，暂无法显示盈亏数据</h2>
     <div>为避免把开发用的写死数字当成真实业绩，后台连不上时这里不显示任何模拟 / 实盘数据。</div>
-    <div style="margin-top:10px">最简单的办法——<b>双击项目文件夹里的一键启动文件</b>，它会自动启动数据后台并打开本页面，无需输入任何网址：</div>
-    <div id="launcher-mac" style="margin-top:8px;display:none">Mac：双击 <code>启动AI量化面板.command</code></div>
-    <div id="launcher-win" style="margin-top:8px;display:none">Windows：双击 <code>启动AI量化面板.bat</code></div>
+    <div style="margin-top:14px">不用去找别的文件，直接点下面这个按钮，就会在本机把数据后台启动起来，启动成功后本页面会自动连接：</div>
+    <div class="ce-btn ce-btn-primary" style="margin-top:12px;font-size:16px;padding:14px 22px" onclick="launchBackend()">▶ 一键启动数据后台（启动后自动连接）</div>
+    <div id="ce-launch-status" style="margin-top:10px;font-size:13px;color:#fbbf24;min-height:18px"></div>
+    <div id="ce-proto-hint" style="margin-top:6px;font-size:12px;color:#94a3b8">首次点击若浏览器弹出“是否打开外部程序 / Quant Launcher”的提示，请点“允许 / 打开”，并勾选“始终允许”，以后不再询问。</div>
+    <div style="margin-top:14px;color:#94a3b8;font-size:13px">万一按钮没有反应（极少数情况，比如这台电脑还没运行过一次安装器完成注册），可用备用方式——双击项目文件夹里的一键启动文件：</div>
+    <div id="launcher-mac" style="margin-top:6px;display:none">Mac：双击 <code>启动AI量化面板.command</code></div>
+    <div id="launcher-win" style="margin-top:6px;display:none">Windows：双击 <code>启动AI量化面板.bat</code></div>
     <div style="margin-top:12px;color:#94a3b8;font-size:13px">若数据后台其实已经在运行，也可以在浏览器直接访问：</div>
     <div style="margin-top:4px"><code>http://localhost:8000/?data_mode=live</code> &nbsp;实盘模拟</div>
     <div style="margin-top:4px"><code>http://localhost:8000/?data_mode=simulator</code> &nbsp;模拟盘</div>
@@ -1781,6 +1789,26 @@ body.conn-error > *:not(#conn-error-overlay) { display:none !important; }
   </div>
 </div>
 <script>
+// 在未连接遮罩里“一键启动后台”：经一次性注册的本机专用链接 quant:// 调起系统启动器。
+// 浏览器安全沙箱禁止网页直接运行本机程序，quant:// 这种自定义协议是浏览器唯一允许的
+// “网页 -> 本机程序”桥接（和点击邮件链接打开邮件客户端是同一机制）。
+function launchBackend() {
+  var st = document.getElementById('ce-launch-status');
+  if (st) st.textContent = '已请求启动数据后台，正在等待连接，请稍候…';
+  try { window.location.href = 'quant://start-backend'; } catch (e) {}
+  var base = (window.QM_ORIGIN || '');
+  var n = 0;
+  var timer = setInterval(function () {
+    fetch(base + '/api/v1/strategies?data_mode=live', { cache: 'no-store' })
+      .then(function (r) { if (r.ok) { clearInterval(timer); location.reload(); } })
+      .catch(function () {});
+    n++;
+    if (n > 45) {
+      clearInterval(timer);
+      if (st) st.textContent = '仍未连上：请用下方“备用方式”双击一键启动文件，或确认这台电脑已运行过一次安装器完成注册。';
+    }
+  }, 2000);
+}
 (function () {
   var isWin = /Win/i.test(navigator.userAgent || navigator.platform || '');
   var w = document.getElementById('launcher-win'), m = document.getElementById('launcher-mac');

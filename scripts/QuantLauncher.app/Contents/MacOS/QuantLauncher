@@ -1,0 +1,33 @@
+#!/bin/bash
+# ============================================================
+# quant:// protocol handler on macOS.
+# This handler RETURNS IMMEDIATELY so the browser / `open` call never
+# blocks. All backend (re)start work runs fully detached in background:
+#   1) ask launchd to (re)start the managed service;
+#   2) if the port is still down after a few seconds, start directly.
+# File: scripts/QuantLauncher.app/Contents/MacOS/QuantLauncher
+# Project root is four levels up from this file.
+# Simulation only, local matching, NO real broker account.
+# ============================================================
+ROOT="$(cd "$(dirname "$0")/../../../../" && pwd)"
+PORT=8000
+LOG="$ROOT/logs/server.log"
+
+if lsof -nP -iTCP:$PORT -sTCP:LISTEN >/dev/null 2>&1; then
+  exit 0
+fi
+
+# Fully detached starter; this handler exits at once.
+nohup /bin/bash -c '
+  ROOT="'"$ROOT"'"; PORT='"$PORT"'; LOG="'"$LOG"'"
+  cd "$ROOT" || exit 1
+  mkdir -p logs
+  launchctl kickstart "gui/$(id -u)/ai.quant.flask" >/dev/null 2>&1
+  sleep 3
+  if lsof -nP -iTCP:$PORT -sTCP:LISTEN >/dev/null 2>&1; then exit 0; fi
+  PY="$ROOT/api/venv/bin/python"
+  [ -x "$PY" ] || PY=/usr/local/bin/python3
+  nohup "$PY" api/real_data_server_v2.py >>"$LOG" 2>&1 </dev/null &
+' </dev/null >/dev/null 2>&1 &
+
+exit 0
