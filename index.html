@@ -1817,7 +1817,7 @@ function launchBackend() {
   var st = document.getElementById('ce-launch-status');
   var help = document.getElementById('ce-proto-help');
   if (help) help.style.display = 'none';
-  if (st) { st.textContent = '正在启动数据后台并等待连接，最长约 30 秒，请稍候…'; st.style.color = '#7dd3fc'; }
+  if (st) { st.textContent = '正在启动数据后台并等待连接，首次约需 30–60 秒（要同步数据），请稍候…'; st.style.color = '#7dd3fc'; }
   // 用隐藏框架触发自定义协议，避免未注册时 location.href 报错卡住页面
   try {
     var ifr = document.createElement('iframe');
@@ -1831,7 +1831,7 @@ function launchBackend() {
     if (ok) { location.reload(); return; }
     if (st) { st.textContent = '暂时还没连上，请按下面的提示操作。'; st.style.color = '#fbbf24'; }
     if (help) help.style.display = 'block';
-  }, 30);
+  }, 60);
 }
 function reconnectBackend() {
   var st = document.getElementById('ce-launch-status');

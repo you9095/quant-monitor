@@ -361,76 +361,17 @@ def setup_git_auto_update():
          "/sc", "onlogon", "/delay", "0001:00", "/rl", "HIGHEST", "/f"],
         "开机自检已注册：登录后先自愈网络并上报，3分钟后交易监督器再跑")
 
-    # 5) 面板开机守护 + quant:// 页面内一键启动（目标：双击 index.html 永远直接可用，
-    #    后台若意外没开，也能在 index.html 页面里点按钮经 quant:// 拉起，无需第二个文件）
+    # 5) 面板开机守护 + quant:// 页面内一键启动（统一交给 win_self_register：
+    #    quant:// 协议与 QuantPanelGuard 任务都直接调 pythonw scripts/launch_panel.py，
+    #    无黑窗、带日志与失败弹窗）。安装器以管理员运行，使用 HighestAvailable。
     if sys.platform == "win32":
-        vbs = BASE_DIR / "scripts" / "panel_guard.vbs"
-
-        # 5a) 注册自定义协议 quant://（HKCU 用户级，普通权限即可写入）
-        def reg(args, label):
-            rr = subprocess.run(["reg"] + args, capture_output=True, text=True)
-            if rr.returncode == 0:
-                ok(label)
-            else:
-                warn(f"{label} 失败: {rr.stderr.strip()[:160]}")
-            return rr.returncode == 0
-
-        proto = r"HKCU\Software\Classes\quant"
-        cmd_val = f'wscript.exe "{vbs}" "%1"'
-        reg(["add", proto, "/ve", "/d", "URL:Quant Panel Launch", "/f"],
-            "quant:// 协议已注册（index.html 页面内可一键启动后台）")
-        reg(["add", proto, "/v", "URL Protocol", "/d", "", "/f"],
-            "quant:// 协议标记已写入")
-        reg(["add", proto + r"\shell\open\command", "/ve", "/d", cmd_val, "/f"],
-            "quant:// 启动处理程序已绑定到面板守护脚本")
-
-        # 5b) 面板守护任务：登录后 30 秒启动，之后每 5 分钟确保 8000 在听；
-        #     脚本幂等（已在听就退出），实现崩溃/被杀后自动拉起，无需常驻进程。
-        root_win = str(BASE_DIR)
-        vbs_win = str(vbs)
-        guard_xml = (
-            '<?xml version="1.0" encoding="UTF-16"?>\r\n'
-            '<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">\r\n'
-            '  <RegistrationInfo><Description>Quant panel guard: keep Flask backend on port 8000 alive (simulation only, no broker).</Description></RegistrationInfo>\r\n'
-            '  <Triggers>\r\n'
-            '    <LogonTrigger>\r\n'
-            '      <Enabled>true</Enabled>\r\n'
-            '      <Delay>PT30S</Delay>\r\n'
-            '      <Repetition><Interval>PT5M</Interval><Duration>P3650D</Duration><StopAtDurationEnd>false</StopAtDurationEnd></Repetition>\r\n'
-            '    </LogonTrigger>\r\n'
-            '  </Triggers>\r\n'
-            '  <Principals>\r\n'
-            '    <Principal id="Author"><LogonType>InteractiveToken</LogonType><RunLevel>HighestAvailable</RunLevel></Principal>\r\n'
-            '  </Principals>\r\n'
-            '  <Settings>\r\n'
-            '    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>\r\n'
-            '    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>\r\n'
-            '    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>\r\n'
-            '    <ExecutionTimeLimit>PT5M</ExecutionTimeLimit>\r\n'
-            '    <Enabled>true</Enabled>\r\n'
-            '  </Settings>\r\n'
-            '  <Actions Context="Author">\r\n'
-            '    <Exec>\r\n'
-            '      <Command>wscript.exe</Command>\r\n'
-            f'      <Arguments>"{vbs_win}"</Arguments>\r\n'
-            f'      <WorkingDirectory>{root_win}</WorkingDirectory>\r\n'
-            '    </Exec>\r\n'
-            '  </Actions>\r\n'
-            '</Task>\r\n'
-        )
-        xml_path = BASE_DIR / "scripts" / "_panel_guard_task.xml"
-        xml_path.write_text(guard_xml, encoding="utf-16")
-        rgx = subprocess.run(["schtasks", "/create", "/tn", "QuantPanelGuard",
-                              "/xml", str(xml_path), "/f"],
-                             capture_output=True, text=True)
-        if rgx.returncode == 0:
-            ok("面板守护任务已注册：登录后每5分钟确保后台在线，双击 index.html 永远直接可用")
-        else:
-            warn(f"面板守护任务注册失败: {rgx.stderr.strip()[:200]}")
         try:
-            os.remove(xml_path)
-        except OSError:
-            pass
+            sys.path.insert(0, str(BASE_DIR / "scripts"))
+            import win_self_register
+            win_self_register.self_register_if_windows(str(BASE_DIR), highest=True)
+            ok("quant:// 一键启动与面板守护已注册（统一启动器 launch_panel.py）")
+        except Exception as exc:
+            warn(f"quant:///面板守护注册异常: {str(exc)[:180]}")
 
     # 回查：新任务必须齐全、旧任务必须消失
     if sys.platform == "win32":
