@@ -9,6 +9,7 @@ signals/
 .DS_Store
 data/alerts_state.json
 logs/.alert_state.json
+logs/launch_panel.lock
 qixing_signal_log.json
 
 # --- 后端源码（入库），仅忽略缓存 ---

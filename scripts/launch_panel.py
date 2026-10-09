@@ -133,14 +133,57 @@ def alert(msg):
             pass
 
 
+def open_in_browser():
+    """用系统默认浏览器打开面板（同源 http，绕开 file:// 的一切限制）。"""
+    url = f"http://localhost:{PORT}/"
+    try:
+        if sys.platform == "win32":
+            os.startfile(url)  # Windows 最可靠，pythonw 无控制台也生效
+        elif sys.platform == "darwin":
+            subprocess.Popen(["open", url], stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL)
+        else:
+            subprocess.Popen(["xdg-open", url], stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL)
+        log(f"browser opened: {url}")
+        return
+    except Exception as exc:
+        log(f"open via os/startfile failed: {exc}")
+    try:
+        import webbrowser
+        webbrowser.open(url, new=2)
+        log(f"browser opened via webbrowser: {url}")
+    except Exception as exc:
+        log(f"open_in_browser failed: {exc}")
+
+
+def wait_healthy():
+    deadline = time.time() + WAIT_SECONDS
+    while time.time() < deadline:
+        time.sleep(2)
+        if healthy():
+            return True
+    return False
+
+
 def main():
+    open_browser = "--open" in sys.argv
     lock = acquire_lock()
+
+    # 另一个启动器（如开机守护）正在拉起后台：本进程不重复 spawn，
+    # 但若是用户双击（--open），仍等后台就绪后把面板打开。
     if lock is None:
-        return 0  # 另一个启动器正在负责拉起
+        log("another launcher holds the lock; waiting only" if open_browser
+            else "another launcher is starting backend; exit")
+        if open_browser and wait_healthy():
+            open_in_browser()
+        return 0
 
     say("启动器：正在检查数据后台是否已在运行…")
     if healthy():
         say("数据后台已在运行，无需重复启动。")
+        if open_browser:
+            open_in_browser()
         return 0
 
     say("数据后台未运行，正在启动（首次约需 30-90 秒，含数据同步）…")
@@ -150,13 +193,12 @@ def main():
         alert(f"启动数据后台失败：{exc}\n\n请把日志文件发给助手排查：\n{BOOTLOG}")
         return 2
 
-    deadline = time.time() + WAIT_SECONDS
-    while time.time() < deadline:
-        time.sleep(2)
-        if healthy():
-            say(f"数据后台已就绪：http://localhost:{PORT}/")
-            report_heartbeat()
-            return 0
+    if wait_healthy():
+        say(f"数据后台已就绪：http://localhost:{PORT}/")
+        report_heartbeat()
+        if open_browser:
+            open_in_browser()
+        return 0
 
     alert(f"数据后台在 {WAIT_SECONDS} 秒内仍未就绪。\n\n"
           f"请把下面的日志文件发给助手排查：\n{BOOTLOG}")

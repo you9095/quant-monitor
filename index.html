@@ -1777,34 +1777,44 @@ body.conn-error > *:not(#conn-error-overlay) { display:none !important; }
   <div class="conn-error-box">
     <h2>⚠️ 数据后台没有运行，暂无法显示盈亏数据</h2>
     <div>为避免把开发用的写死数字当成真实业绩，后台连不上时这里不显示任何模拟 / 实盘数据。</div>
-    <div style="margin-top:14px">不用去找别的文件，直接点下面这个绿色按钮，就会在本机把数据后台启动起来，启动成功后本页面会自动刷新进面板：</div>
-    <div class="ce-btn ce-btn-primary" style="margin-top:12px;font-size:16px;padding:14px 22px" onclick="launchBackend()">▶ 一键启动数据后台（启动后自动连接）</div>
+    <div style="margin-top:14px">直接点下面绿色按钮，在浏览器里打开本机面板（后台已在运行时一点即进，无需任何其它操作）：</div>
+    <div class="ce-btn ce-btn-primary" style="margin-top:12px;font-size:16px;padding:14px 22px" onclick="gotoPanel()">▶ 打开 AI 量化面板</div>
     <div id="ce-launch-status" style="margin-top:10px;font-size:13px;color:#7dd3fc;min-height:18px"></div>
-    <div id="ce-proto-hint" style="margin-top:6px;font-size:12px;color:#94a3b8">首次点击若浏览器弹出“是否打开外部程序 / Quant Launcher”的提示，请点“允许 / 打开”，并勾选“始终允许”。</div>
     <div id="ce-proto-help" style="display:none;margin-top:10px;font-size:13px;color:#fbbf24;border:1px solid rgba(251,191,36,.4);border-radius:8px;padding:10px 12px;background:rgba(251,191,36,.08);text-align:left">
-      按钮没有反应，通常是这台电脑第一次使用、一键启动专用链接还没注册（后台第一次启动后会自动注册，无需管理员）。你可以直接用下面两种方式：
-      <div style="margin-top:6px">① 点下面的“启动器文件”链接运行一次（若浏览器把它下载下来，就点浏览器右上角下载项里的该文件运行）；</div>
-      <div style="margin-top:4px">② 若后台其实已经启动，直接点下面的蓝色网址打开面板。</div>
+      若点绿色按钮后浏览器提示“无法访问此网站 / 无法连接”，说明数据后台还没启动，按系统启动一次即可：
+      <div style="margin-top:6px">· <b>Windows</b>：双击桌面的 <b>AI量化面板</b> 图标（或项目文件夹里的 <b>AI量化面板.vbs</b>），它会静默启动后台并自动打开面板，全程无黑窗；</div>
+      <div style="margin-top:4px">· <b>macOS</b>：双击项目文件夹里的 <b>启动AI量化面板.command</b>；</div>
+      <div style="margin-top:4px">启动约需几十秒，之后回到本页再点一次绿色按钮即可。</div>
     </div>
 
-    <div style="margin-top:16px;font-size:13px;color:#cbd5e1"><b>启动器文件</b>（点一下，按你的系统显示对应一个）：</div>
-    <div id="launcher-mac" style="margin-top:4px;display:none"><a class="ce-link" id="launcher-file-link-mac" href="#">启动AI量化面板.command</a></div>
-    <div id="launcher-win" style="margin-top:4px;display:none"><a class="ce-link" id="launcher-file-link-win" href="#">启动AI量化面板.bat</a></div>
-
-    <div style="margin-top:12px;font-size:13px;color:#cbd5e1"><b>后台已经在运行？直接点网址打开</b>（在新标签页打开）：</div>
+    <div style="margin-top:16px;font-size:13px;color:#cbd5e1"><b>后台已经在运行？也可直接点网址</b>（在新标签页打开）：</div>
     <div style="margin-top:4px"><a class="ce-link" href="http://localhost:8000/?data_mode=live" target="_blank" rel="noopener">http://localhost:8000/?data_mode=live</a>　实盘模拟</div>
     <div style="margin-top:4px"><a class="ce-link" href="http://localhost:8000/?data_mode=simulator" target="_blank" rel="noopener">http://localhost:8000/?data_mode=simulator</a>　模拟盘</div>
 
     <div id="conn-error-detail" style="margin-top:12px;font-size:13px;color:#94a3b8"></div>
-    <div class="ce-btn" onclick="reconnectBackend()">⟳ 我已启动，重新连接</div>
+    <div class="ce-btn" onclick="reconnectBackend()">⟳ 我已启动，重新检测（仍停留在本文件）</div>
   </div>
 </div>
 <script>
-// 未连接遮罩：绿色按钮经一次性注册的本机专用链接 quant:// 启动后台（浏览器安全沙箱
-// 禁止网页直接运行本机程序，自定义协议是唯一合规的“网页 -> 本机程序”桥接）。
-function _qmBase() { return (window.QM_ORIGIN || ''); }
+// 未连接遮罩（新架构：后台同源托管整个面板，主入口是桌面“AI量化面板”图标）。
+// 绿色按钮不再用自定义协议去启动本机程序（那条路被浏览器安全策略限制、极不可靠），
+// 而是做一次“顶层页面跳转”到 http://localhost:8000/ —— 顶层导航不受私有网络跨域
+// (PNA/CORS) 限制，后台在运行时必定打开同源面板。
+function _qmBase() { return (window.QM_ORIGIN || '') || 'http://localhost:8000'; }
+function _panelUrl() {
+  var base = _qmBase();
+  var mode = new URLSearchParams(location.search).get('data_mode');
+  return base + '/' + (mode ? ('?data_mode=' + encodeURIComponent(mode)) : '');
+}
+function gotoPanel() {
+  var st = document.getElementById('ce-launch-status');
+  var help = document.getElementById('ce-proto-help');
+  if (help) help.style.display = 'none';
+  if (st) { st.textContent = '正在打开本机面板 http://localhost:8000/ …'; st.style.color = '#7dd3fc'; }
+  window.location.href = _panelUrl();
+}
 function _qmPoll(onDone, seconds) {
-  var base = _qmBase(); var n = 0; var max = Math.round((seconds || 30) / 1.5);
+  var base = (window.QM_ORIGIN || ''); var n = 0; var max = Math.round((seconds || 30) / 1.5);
   var timer = setInterval(function () {
     fetch(base + '/api/v1/strategies?data_mode=live', { cache: 'no-store' })
       .then(function (r) { if (r.ok) { clearInterval(timer); onDone(true); } })
@@ -1813,45 +1823,21 @@ function _qmPoll(onDone, seconds) {
     if (n >= max) { clearInterval(timer); onDone(false); }
   }, 1500);
 }
-function launchBackend() {
-  var st = document.getElementById('ce-launch-status');
-  var help = document.getElementById('ce-proto-help');
-  if (help) help.style.display = 'none';
-  if (st) { st.textContent = '正在启动数据后台并等待连接，首次约需 30–60 秒（要同步数据），请稍候…'; st.style.color = '#7dd3fc'; }
-  // 用隐藏框架触发自定义协议，避免未注册时 location.href 报错卡住页面
-  try {
-    var ifr = document.createElement('iframe');
-    ifr.style.display = 'none'; ifr.setAttribute('aria-hidden', 'true');
-    ifr.src = 'quant://start-backend'; document.body.appendChild(ifr);
-    setTimeout(function () { try { ifr.remove(); } catch (e) {} }, 3000);
-  } catch (e) {
-    try { window.location.href = 'quant://start-backend'; } catch (e2) {}
-  }
-  _qmPoll(function (ok) {
-    if (ok) { location.reload(); return; }
-    if (st) { st.textContent = '暂时还没连上，请按下面的提示操作。'; st.style.color = '#fbbf24'; }
-    if (help) help.style.display = 'block';
-  }, 60);
-}
 function reconnectBackend() {
   var st = document.getElementById('ce-launch-status');
-  if (st) { st.textContent = '正在重新连接…'; st.style.color = '#7dd3fc'; }
+  var help = document.getElementById('ce-proto-help');
+  if (st) { st.textContent = '正在重新检测后台…'; st.style.color = '#7dd3fc'; }
   _qmPoll(function (ok) {
-    if (ok) { location.reload(); return; }
-    if (st) { st.textContent = '仍未连上：后台可能还没启动，请点上方绿色按钮，或点下方蓝色网址 / 启动器文件。'; st.style.color = '#fbbf24'; }
-  }, 18);
+    if (ok) { gotoPanel(); return; }
+    if (st) { st.textContent = '仍未连上：说明后台还没启动。'; st.style.color = '#fbbf24'; }
+    if (help) help.style.display = 'block';
+  }, 15);
 }
 (function () {
   var isWin = /Win/i.test(navigator.userAgent || navigator.platform || '');
   var w = document.getElementById('launcher-win'), m = document.getElementById('launcher-mac');
-  if (w) w.style.display = isWin ? 'block' : 'none';
-  if (m) m.style.display = isWin ? 'none' : 'block';
-  // 启动器文件与 index.html 同目录：拼出可点击的本地文件链接（file:// 双击场景）
-  var dir = location.href.substring(0, location.href.lastIndexOf('/') + 1);
-  var macLink = document.getElementById('launcher-file-link-mac');
-  var winLink = document.getElementById('launcher-file-link-win');
-  if (macLink) macLink.href = dir + encodeURIComponent('启动AI量化面板.command');
-  if (winLink) winLink.href = dir + encodeURIComponent('启动AI量化面板.bat');
+  if (w) w.style.display = 'none';
+  if (m) m.style.display = 'none';
 })();
 </script>
 
@@ -3609,15 +3595,14 @@ function applyDataModeChrome(data) {
 }
 
 function toggleDataMode() {
-  if (window.CURRENT_DATA_MODE === 'simulator') {
-    window.CURRENT_DATA_MODE = 'live';
-    localStorage.setItem('data_mode', 'live');
-  } else {
-    window.CURRENT_DATA_MODE = 'simulator';
-    localStorage.setItem('data_mode', 'simulator');
-  }
+  const next = (window.CURRENT_DATA_MODE === 'simulator') ? 'live' : 'simulator';
+  window.CURRENT_DATA_MODE = next;
+  localStorage.setItem('data_mode', next);
   updateDataModeUI();
-  location.reload();
+  // 同步更新 URL 的 data_mode 参数再加载，否则旧 URL 参数会把模式拉回（data.js 中 URL 优先）
+  const u = new URL(location.href);
+  u.searchParams.set('data_mode', next);
+  location.href = u.toString();
 }
 
 // 页面加载时初始化按钮状态

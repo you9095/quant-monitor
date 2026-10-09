@@ -21,13 +21,14 @@
 """
 import json
 import os
+import re
 import sys
 import random
 import subprocess
 import threading
 import time
 from datetime import datetime
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, abort
 from pathlib import Path
 
 # ============================================================
@@ -714,6 +715,60 @@ def dashboard_live_curves():
         return jsonify({'code': 1, 'message': str(e), 'data': None}), 500
 
 
+def build_simulator_portfolio_summary():
+    """模拟盘组合总览：与 /dashboard/overview 非 live 分支同口径，
+    基于信号文件的模拟累计收益（live_total_pnl / live_total_return）汇总，
+    仅统计 live_days>0 的在跑每日模拟策略。模拟盘=虚拟成交，非真实实盘。"""
+    strategies_config = load_strategies()
+    per = {}
+    total_value = 0.0
+    initial_total = 0.0
+    active_count = 0
+    for sid, cfg in strategies_config.items():
+        signal = get_latest_signal(sid)
+        init_cap = cfg.get('initial_capital', 10000)
+        live_days = (signal.get('live_days', 0) or 0) if signal else 0
+        active = live_days > 0
+        if signal and active:
+            pnl_amt = signal.get('live_total_pnl', 0) or 0
+            asset = init_cap + pnl_amt
+            raw_tr = signal.get('live_total_return', 0) or signal.get('total_return', 0) or 0
+            ret = float(raw_tr) if signal.get('return_unit') == 'percent' \
+                else live_module._normalize_return_pct(raw_tr)
+        else:
+            pnl_amt, asset, ret = 0.0, float(init_cap), 0.0
+        if active:
+            total_value += asset
+            initial_total += init_cap
+            active_count += 1
+        per[sid] = {
+            'strategy_id': sid,
+            'name': cfg.get('name', sid),
+            'initial_capital': init_cap,
+            'current_value': round(asset, 2),
+            'total_value': round(asset, 2),
+            'pnl': round(asset - init_cap, 2),
+            'total_pnl': round(asset - init_cap, 2),
+            'return_pct': round(ret, 2),
+            'total_return_pct': round(ret, 2),
+            'latest_signal_date': (signal.get('date') or signal.get('latest_signal_date') or '') if signal else '',
+            'version': cfg.get('version'),
+        }
+    total_pnl = total_value - initial_total
+    return {
+        'data_mode': 'simulator',
+        'data_nature': 'simulator',
+        'data_nature_label': '模拟盘（每日虚拟成交，非真实实盘交易）',
+        'is_ui_mock': False,
+        'active_count': active_count,
+        'initial_capital': round(initial_total, 2),
+        'total_value': round(total_value, 2),
+        'total_pnl': round(total_pnl, 2),
+        'total_return_pct': round(total_pnl / initial_total * 100, 2) if initial_total else 0,
+        'per_strategy': per,
+    }
+
+
 @app.route('/api/v1/dashboard/portfolio_summary')
 
 # ============================================================
@@ -726,8 +781,9 @@ def dashboard_portfolio_summary():
     if request.args.get('data_mode') == 'live':
         return jsonify({'code': 0, 'message': 'success',
                         'data': live_agg.build_portfolio_summary()})
+    # 模拟盘：与 overview 同口径汇总模拟累计收益（修复此前误返回初始零值）
     try:
-        data = live_module.get_portfolio_summary()
+        data = build_simulator_portfolio_summary()
         return jsonify({'code': 0, 'message': 'success', 'data': data})
     except Exception as e:
         return jsonify({'code': 1, 'message': str(e), 'data': None}), 500
@@ -1899,20 +1955,53 @@ def get_status(sid):
 def health():
     return jsonify({'code': 0, 'message': 'healthy', 'data': {'status': 'ok'}})
 
-# 托管前端静态文件（Docker 单端口部署）
+# 托管前端静态文件（单端口同源部署：双击启动器 -> http://localhost:8000/ 直接出面板）
 from flask import send_from_directory
+
+# 仅这些根目录页面允许对外
+_FRONT_PAGES = {
+    'index.html', 'trades.html', 'reconciliation.html',
+    'pnl_history.html', 'review.html', 'P3_STATUS.html',
+}
+# assets/ 下允许的静态资源扩展名（排除 .bak 等备份）
+_STATIC_EXT = re.compile(
+    r'\.(?:html?|js|mjs|css|json|png|jpe?g|gif|svg|ico|webp|woff2?|ttf|eot|map|txt)$',
+    re.IGNORECASE)
+# 明确禁止经 HTTP 暴露的路径前缀（源码 / 数据 / 配置 / 版本库 / 虚拟环境）
+_FORBIDDEN_PREFIX = (
+    'api/', 'scripts/', 'live-data/', '.git/', 'venv/', 'strategies/',
+    'signals/', 'data/', 'config/', 'tests/', 'memory/', 'work_logs/',
+    'project_memory/', 'knowledge/', 'docs/', 'references/', 'audit/',
+)
+
 
 @app.route('/')
 def index():
     return send_from_directory(BASE_DIR, 'index.html')
 
+
 @app.route('/review')
 def review():
     return send_from_directory(BASE_DIR, 'review.html')
 
+
 @app.route('/<path:filename>')
 def static_files(filename):
-    return send_from_directory(BASE_DIR, filename)
+    # 同源只托管前端页面与 assets 静态资源；任何源码 / 账本 / .git / venv 一律 404
+    filename = filename.lstrip('/')
+    if filename.startswith(_FORBIDDEN_PREFIX) or '..' in filename.split('/'):
+        abort(404)
+    if filename in _FRONT_PAGES:
+        return send_from_directory(BASE_DIR, filename)
+    if filename == 'favicon.ico':
+        fav = BASE_DIR / 'assets' / 'favicon.ico'
+        return send_from_directory(str(fav.parent), fav.name) if fav.exists() else ('', 204)
+    if filename.startswith('assets/'):
+        name = filename.rsplit('/', 1)[-1]
+        if '.bak' in name or not _STATIC_EXT.search(name):
+            abort(404)
+        return send_from_directory(BASE_DIR, filename)
+    abort(404)
 
 @app.route('/api/v1/alerts/check', methods=['GET', 'POST'])
 

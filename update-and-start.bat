@@ -33,11 +33,12 @@ echo.
 echo [3/3] Starting the panel with the unified launcher...
 set "PY=%~dp0venv\Scripts\python.exe"
 if not exist "%PY%" set "PY=python"
-"%PY%" "%~dp0scripts\launch_panel.py"
+"%PY%" "%~dp0scripts\launch_panel.py" --open
 set RC=%errorlevel%
 echo.
 if "%RC%"=="0" (
-  echo [OK] Panel is ready. Now double-click index.html.
+  echo [OK] Panel is ready. Your browser should open http://localhost:8000/
+  echo From now on just double-click the "AI Quant Panel" icon on the Desktop.
 ) else (
   echo [FAILED] Launcher exit code %RC%.
   echo Please send these two log files to the assistant:

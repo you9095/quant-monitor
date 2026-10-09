@@ -13,6 +13,7 @@ Windows 运行时自我注册（普通用户权限、幂等、绝不阻断面板
 """
 
 import sys
+import base64
 import subprocess
 import tempfile
 import datetime
@@ -87,6 +88,33 @@ def _register_guard_task(root, launcher, pythonw, highest):
             pass
 
 
+def _create_desktop_shortcut(root, launcher, pythonw):
+    """在当前用户桌面创建“AI量化面板”快捷方式（普通权限、幂等）。
+
+    双击它 = pythonw.exe launch_panel.py --open：无黑窗、后台没起就静默拉起，
+    就绪后自动用默认浏览器打开 http://localhost:8000/ 同源面板。
+    PowerShell 用 -EncodedCommand(UTF-16LE base64) 传参，规避中文/GBK 编码雷。
+    """
+    ps = (
+        "$ws = New-Object -ComObject WScript.Shell\n"
+        "$desktop = [Environment]::GetFolderPath('Desktop')\n"
+        "$lnk = Join-Path $desktop 'AI量化面板.lnk'\n"
+        f"$s = $ws.CreateShortcut($lnk)\n"
+        f"$s.TargetPath = '{pythonw}'\n"
+        f"$s.Arguments = '\"{launcher}\" --open'\n"
+        f"$s.WorkingDirectory = '{root}'\n"
+        "$s.WindowStyle = 7\n"
+        "$s.Description = 'AI Quant Panel (simulation, local matching, no broker)'\n"
+        "$s.Save()\n"
+        "Write-Output $lnk\n"
+    )
+    enc = base64.b64encode(ps.encode("utf-16-le")).decode("ascii")
+    r = _run(["powershell", "-NoProfile", "-NonInteractive",
+              "-ExecutionPolicy", "Bypass", "-EncodedCommand", enc], timeout=30)
+    out = (r.stdout or r.stderr or "").strip()
+    return (r.returncode == 0 and out.endswith(".lnk")), out
+
+
 def self_register_if_windows(root=None, highest=False):
     """返回 True 表示在 Windows 上执行了注册尝试；非 Windows 返回 False。"""
     if sys.platform != "win32":
@@ -105,10 +133,12 @@ def self_register_if_windows(root=None, highest=False):
         pythonw = _pythonw()
         command_val = _register_protocol(root, launcher, pythonw)
         guard_ok, guard_msg = _register_guard_task(root, launcher, pythonw, highest)
+        sc_ok, sc_msg = _create_desktop_shortcut(root, launcher, pythonw)
         try:
             with open(log_path, "a", encoding="utf-8") as f:
                 f.write(f"{stamp} quant-protocol=ok handler='{command_val}' "
-                        f"panel-guard={'ok' if guard_ok else 'fail: ' + guard_msg.strip()[:160]}\n")
+                        f"panel-guard={'ok' if guard_ok else 'fail: ' + guard_msg.strip()[:160]} "
+                        f"desktop-shortcut={'ok' if sc_ok else 'fail: ' + sc_msg.strip()[:160]}\n")
         except Exception:
             pass
     except Exception as exc:  # 自我注册永远不能拖垮面板
