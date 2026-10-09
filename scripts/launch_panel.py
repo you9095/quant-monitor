@@ -103,6 +103,26 @@ def spawn_backend():
     return proc
 
 
+def report_heartbeat():
+    """后端就绪后 best-effort 触发一次部署心跳上报（含当前 git 版本号），便于远程确认。"""
+    try:
+        rep = ROOT / "scripts" / "report_deploy.py"
+        if not rep.exists():
+            return
+        py = console_python()
+        kw = dict(cwd=str(ROOT), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                  stdin=subprocess.DEVNULL, close_fds=True)
+        if sys.platform == "win32":
+            kw["creationflags"] = (getattr(subprocess, "DETACHED_PROCESS", 0)
+                                   | getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        else:
+            kw["start_new_session"] = True
+        subprocess.Popen([str(py), str(rep)], **kw)
+        log("heartbeat reporter triggered")
+    except Exception as exc:
+        log(f"heartbeat reporter skipped: {exc}")
+
+
 def alert(msg):
     log("ALERT: " + msg)
     if sys.platform == "win32":
@@ -135,6 +155,7 @@ def main():
         time.sleep(2)
         if healthy():
             say(f"数据后台已就绪：http://localhost:{PORT}/")
+            report_heartbeat()
             return 0
 
     alert(f"数据后台在 {WAIT_SECONDS} 秒内仍未就绪。\n\n"
