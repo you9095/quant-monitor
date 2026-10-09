@@ -2235,6 +2235,19 @@ if __name__ == '__main__':
     print(f'Starting server on http://0.0.0.0:{port}')
     print(f'Strategies: {list(load_strategies().keys())}')
     print(f'Signals dir: {SIGNALS_DIR}')
+
+    # Windows：后端启动即自我注册 quant:// 一键启动协议 + 面板开机守护任务
+    # （普通权限、幂等、异常绝不阻断启动）。非 Windows 为 no-op。
+    try:
+        _project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        _scripts_dir = os.path.join(_project_root, "scripts")
+        if _scripts_dir not in sys.path:
+            sys.path.insert(0, _scripts_dir)
+        import win_self_register  # noqa: E402
+        win_self_register.self_register_if_windows(_project_root)
+    except Exception:
+        pass
+
     load_signals_to_cache()  # 启动时加载信号到内存缓存
     start_alert_scheduler()
     start_live_sync()        # 启动即从 GitHub 拉取最新实盘账本，之后每 180s 自动同步
