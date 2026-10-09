@@ -211,10 +211,21 @@ def fetch_realtime_prices():
     except Exception as e:
         print(f'行情获取失败: {e}')
 
+@app.before_request
+def _cors_preflight():
+    # 双击 index.html（file://，Origin 为 null）连本机后台时，浏览器会先发 OPTIONS 预检，
+    # 并要求私有网络访问放行（Access-Control-Allow-Private-Network）。这里统一应答预检。
+    if request.method == 'OPTIONS':
+        return ('', 204)
+
+
 @app.after_request
 def cors(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    # 允许 file:// 页面（双击打开 index.html）访问本机 localhost 后台（Chrome 私有网络访问策略）
+    response.headers['Access-Control-Allow-Private-Network'] = 'true'
     # 2026-09-14: 禁止浏览器缓存，确保每次修改后手机端/PC端都能立即看到最新内容
     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     response.headers['Pragma'] = 'no-cache'
