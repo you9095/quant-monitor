@@ -198,7 +198,7 @@ function renderPnLTable() {
     const cumCl = pnlClass(h.cumulative_pnl);
     return `
       <tr>
-        <td>${h.date}</td>
+        <td>${h.date}${h.backfill ? ' <span class="badge badge-backfill" title="当日计划任务未成交，事后按当日真实收盘价补记（本机撮合，非回测，不接券商）">事后补记</span>' : ''}</td>
         <td>${formatMoney(h.equity)}</td>
         <td>${formatMoney(h.cash)}</td>
         <td>${formatMoney(h.market_value)}</td>
@@ -208,7 +208,7 @@ function renderPnLTable() {
         <td class="${cumCl}">${formatPct(h.cumulative_return_pct)}</td>
         <td>${h.positions_count || 0}</td>
         <td>${h.top_position_pct ? h.top_position_pct.toFixed(1) + '%' : '--'}</td>
-        <td class="text-left">${h.data_source || 'live'}</td>
+        <td class="text-left">${h.backfill ? '<span class="badge badge-backfill">事后补记</span>' : (h.data_source || 'live')}</td>
       </tr>
     `;
   }).join('');

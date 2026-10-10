@@ -238,7 +238,7 @@ function renderTradesTable() {
       <tr>
         <td>${filledTime}</td>
         <td class="text-left"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${(typeof STRATEGY_COLORS!=='undefined'&&STRATEGY_COLORS[t.strategy_id])||'#fff'};margin-right:8px;"></span>${sname}</td>
-        <td class="text-center"><span class="badge ${t.action === 'buy' ? 'badge-buy' : 'badge-sell'}">${t.action === 'buy' ? '买入' : '卖出'}</span></td>
+        <td class="text-center"><span class="badge ${t.action === 'buy' ? 'badge-buy' : 'badge-sell'}">${t.action === 'buy' ? '买入' : '卖出'}</span>${t.backfill ? '<span class="badge badge-backfill" title="当日计划任务未成交，事后按当日真实收盘价补记（本机撮合，非回测，不接券商）">事后补记</span>' : ''}</td>
         <td class="text-left"><div>${t.name || t.code}</div><div style="font-size:11px;opacity:.60;">${t.code}</div></td>
         <td>${formatShares(t.order_shares)}</td>
         <td>${formatPrice(t.order_price)}</td>

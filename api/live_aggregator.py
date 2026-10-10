@@ -130,6 +130,12 @@ def _map_trade(d, sid, rec, mock):
     cost_basis = _num(d.get("cost_basis"))
     name = d.get("name") or _etf_name(code, rec) or code
     fill_dt = f"{rec.get('date', '')}T15:00:00"
+    is_backfill = bool(rec.get("backfill"))
+    nature = rec.get("data_nature") or ("UI虚拟·本机撮合" if mock else "实盘模拟·本机撮合")
+    if not mock:
+        signal_src = "实盘模拟·事后补记·本机撮合" if is_backfill else "实盘模拟·本机撮合"
+    else:
+        signal_src = "UI虚拟·本机撮合"
     return {
         "strategy_id": sid,
         "strategy_name": rec.get("strategy_name", sid),
@@ -148,10 +154,14 @@ def _map_trade(d, sid, rec, mock):
         "transfer_fee": round(_num(d.get("transfer_fee")), 2),
         "slippage": round(_num(slip), 2),
         "status": "filled",
-        "signal_source": "UI虚拟·本机撮合" if mock else "实盘模拟·本机撮合",
+        "signal_source": signal_src,
         "realized_pnl": round(realized, 2),
         "realized_pnl_pct": round(realized_pct, 2),
         "cost_basis": round(cost_basis, 4),
+        "backfill": is_backfill,
+        "backfill_for_date": rec.get("backfill_for_date"),
+        "backfill_run_at": rec.get("backfill_run_at"),
+        "data_nature": nature,
     }
 
 
@@ -193,7 +203,11 @@ def build_pnl_history(strategy="", start="", end="", root: Path = None):
         day = by_day.setdefault(d, {"cash": 0.0, "mv": 0.0, "asset": 0.0,
                                     "today_pnl": 0.0, "positions_count": 0,
                                     "top_mv": 0.0, "has_today": False,
-                                    "prev_asset": None})
+                                    "prev_asset": None,
+                                    "backfill": False, "data_nature": None})
+        if rec.get("backfill"):
+            day["backfill"] = True
+            day["data_nature"] = rec.get("data_nature") or day["data_nature"]
         cash = _num(rec.get("cash"))
         mv = _num(rec.get("market_value"))
         asset = _num(rec.get("total_asset"), cash + mv)
@@ -237,7 +251,10 @@ def build_pnl_history(strategy="", start="", end="", root: Path = None):
             "cumulative_return_pct": cum_ret,
             "positions_count": agg["positions_count"],
             "top_position_pct": top_pct,
-            "data_source": "UI虚拟" if mock else "实盘模拟",
+            "backfill": agg.get("backfill", False),
+            "data_nature": agg.get("data_nature"),
+            "data_source": ("事后补记" if agg.get("backfill") else
+                            ("UI虚拟" if mock else "实盘模拟")),
         })
         prev_asset = equity
 
