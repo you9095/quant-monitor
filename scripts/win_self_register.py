@@ -88,6 +88,82 @@ def _register_guard_task(root, launcher, pythonw, highest):
             pass
 
 
+def _register_trade_guard_task(root, pythonw, highest):
+    """QuantTradeGuard：成交周期守护（幂等、秒退，根治"开机却没成交"）。
+
+    触发：① 登录后 2 分钟起，每 10 分钟一次（持续 1 天）；
+          ② 工作日 13:00 起每 10 分钟一次（持续 10 小时，覆盖盘中与收盘后补成交）。
+    动作：pythonw trade_supervisor.py --guard
+      - 非交易日 / 当日已成交 / 红标锁定 -> 秒退；
+      - 交易日 13:00 后未成交 -> 取当日真实价成交，三源全失败则 10 分钟后持续重试；
+      - 跨日发现漏单 -> 按当日真实收盘价自动事后补记；仅历史真实价也三源全失败才亮红灯。
+    StartWhenAvailable=错过尽快补跑；电池不阻止；失败自动重启；单实例 IgnoreNew。
+    """
+    run_level = "HighestAvailable" if highest else "LeastPrivilege"
+    year = datetime.datetime.now().year
+    supervisor = str(Path(root) / "trade_supervisor.py")
+    xml = (
+        '<?xml version="1.0" encoding="UTF-16"?>\r\n'
+        '<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">\r\n'
+        '  <RegistrationInfo><Description>Quant trade guard: idempotent every-10-min live-simulation match guard (local match, no broker). Backfills missed trade days on real close; retries every 10 min unless all 3 price sources fail.</Description></RegistrationInfo>\r\n'
+        '  <Triggers>\r\n'
+        '    <LogonTrigger>\r\n'
+        '      <Enabled>true</Enabled>\r\n'
+        '      <Delay>PT2M</Delay>\r\n'
+        '      <Repetition><Interval>PT10M</Interval><Duration>P1D</Duration><StopAtDurationEnd>false</StopAtDurationEnd></Repetition>\r\n'
+        '    </LogonTrigger>\r\n'
+        '    <CalendarTrigger>\r\n'
+        f'      <StartBoundary>{year}-01-01T13:00:00</StartBoundary>\r\n'
+        '      <Enabled>true</Enabled>\r\n'
+        '      <ScheduleByWeek>\r\n'
+        '        <DaysOfWeek><Monday/><Tuesday/><Wednesday/><Thursday/><Friday/></DaysOfWeek>\r\n'
+        '        <WeeksInterval>1</WeeksInterval>\r\n'
+        '      </ScheduleByWeek>\r\n'
+        '      <Repetition><Interval>PT10M</Interval><Duration>PT10H</Duration><StopAtDurationEnd>false</StopAtDurationEnd></Repetition>\r\n'
+        '    </CalendarTrigger>\r\n'
+        '  </Triggers>\r\n'
+        '  <Principals>\r\n'
+        f'    <Principal id="Author"><LogonType>InteractiveToken</LogonType><RunLevel>{run_level}</RunLevel></Principal>\r\n'
+        '  </Principals>\r\n'
+        '  <Settings>\r\n'
+        '    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>\r\n'
+        '    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>\r\n'
+        '    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>\r\n'
+        '    <AllowHardTerminate>true</AllowHardTerminate>\r\n'
+        '    <StartWhenAvailable>true</StartWhenAvailable>\r\n'
+        '    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>\r\n'
+        '    <IdleSettings><StopOnIdleEnd>false</StopOnIdleEnd><RestartOnIdle>false</RestartOnIdle></IdleSettings>\r\n'
+        '    <AllowStartOnDemand>true</AllowStartOnDemand>\r\n'
+        '    <Enabled>true</Enabled>\r\n'
+        '    <Hidden>false</Hidden>\r\n'
+        '    <RunOnlyIfIdle>false</RunOnlyIfIdle>\r\n'
+        '    <WakeToRun>false</WakeToRun>\r\n'
+        '    <ExecutionTimeLimit>PT15M</ExecutionTimeLimit>\r\n'
+        '    <Priority>7</Priority>\r\n'
+        '    <RestartOnFailure><Interval>PT2M</Interval><Count>3</Count></RestartOnFailure>\r\n'
+        '  </Settings>\r\n'
+        '  <Actions Context="Author">\r\n'
+        '    <Exec>\r\n'
+        f'      <Command>"{pythonw}"</Command>\r\n'
+        f'      <Arguments>"{supervisor}" --guard</Arguments>\r\n'
+        f'      <WorkingDirectory>{root}</WorkingDirectory>\r\n'
+        '    </Exec>\r\n'
+        '  </Actions>\r\n'
+        '</Task>\r\n'
+    )
+    xml_path = Path(tempfile.gettempdir()) / "quant_trade_guard.xml"
+    xml_path.write_text(xml, encoding="utf-16")
+    try:
+        r = _run(["schtasks", "/create", "/tn", "QuantTradeGuard",
+                  "/xml", str(xml_path), "/f"], timeout=30)
+        return (r.returncode == 0), (r.stderr or r.stdout or "")
+    finally:
+        try:
+            xml_path.unlink()
+        except OSError:
+            pass
+
+
 def _create_desktop_shortcut(root, launcher, pythonw):
     """在当前用户桌面创建“AI量化面板”快捷方式（普通权限、幂等）。
 
@@ -134,10 +210,12 @@ def self_register_if_windows(root=None, highest=False):
         command_val = _register_protocol(root, launcher, pythonw)
         guard_ok, guard_msg = _register_guard_task(root, launcher, pythonw, highest)
         sc_ok, sc_msg = _create_desktop_shortcut(root, launcher, pythonw)
+        tg_ok, tg_msg = _register_trade_guard_task(root, pythonw, highest)
         try:
             with open(log_path, "a", encoding="utf-8") as f:
                 f.write(f"{stamp} quant-protocol=ok handler='{command_val}' "
                         f"panel-guard={'ok' if guard_ok else 'fail: ' + guard_msg.strip()[:160]} "
+                        f"trade-guard={'ok' if tg_ok else 'fail: ' + tg_msg.strip()[:160]} "
                         f"desktop-shortcut={'ok' if sc_ok else 'fail: ' + sc_msg.strip()[:160]}\n")
         except Exception:
             pass

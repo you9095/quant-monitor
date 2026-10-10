@@ -150,7 +150,7 @@ STRATEGIES = {
     "r32":    {"name": "三驾马车", "capital": 10000, "pool":
                ["510500", "512040", "512100"], "mom_window": 20, "hold": 1},
     "zhuidian": {"name": "追电策略", "capital": 10000, "pool":
-                 ["513100","513500","513030","513520","513690"], "mom_window": 10, "hold": 1},
+                 ["513100","513500","513030","513520","513690"], "mom_window": 10, "hold": 1, "momentum_threshold": 0.01},
     "sanhe":  {"name": "三合策略", "capital": 10000, "pool":
                ["159915","159967","159980","159981","510300","510500","512100",
                 "512890","513030","513100","513500","513520","518880","588080"],
@@ -179,19 +179,21 @@ ETF_NAMES = {
 # 动量轮动决策
 # ============================================================
 def momentum_rotate(hist_map: dict, window: int, hold: int = 1,
-                     trend_filter: bool = False) -> dict:
+                      trend_filter: bool = False, momentum_threshold: float = 0.0) -> dict:
     scores = []
     for code, closes in hist_map.items():
         if len(closes) < window + 1:
             continue
         mom = closes[-1] / closes[-1 - window] - 1
+        if mom <= momentum_threshold:
+            continue
         if trend_filter:
             ma20 = sum(closes[-20:]) / 20 if len(closes) >= 20 else closes[-1]
             if closes[-1] < ma20:
                 continue
         scores.append((mom, code))
     scores.sort(reverse=True)
-    picks = [(m, c) for m, c in scores if m > 0][:hold]
+    picks = [(m, c) for m, c in scores][:hold]
     if not picks:
         return {}
     w = 1.0 / len(picks)
@@ -202,8 +204,9 @@ def decide_for(sid: str, cfg: dict) -> callable:
     w = cfg.get("mom_window", 20)
     h = cfg.get("hold", 1)
     tf = cfg.get("trend_filter", False)
+    mt = cfg.get("momentum_threshold", 0.0)  # New: momentum threshold
     def _decide(hist_map):
-        return momentum_rotate(hist_map, w, h, tf)
+        return momentum_rotate(hist_map, w, h, tf, mt)
     return _decide
 
 
@@ -212,7 +215,7 @@ DECIDERS = {sid: decide_for(sid, cfg) for sid, cfg in STRATEGIES.items()}
 
 def _write_live_record(sid, cfg, broker, snap, today, phase, trades=None,
                        data_source="Windows实盘引擎(本机模拟撮合)", price_source=None,
-                       price_source_detail=None):
+                       price_source_detail=None, data_nature=None, extra_fields=None):
     """写 live-data/latest 和 daily/<today>/"""
     DAILY_DIR.mkdir(parents=True, exist_ok=True)
     LATEST_DIR.mkdir(parents=True, exist_ok=True)
@@ -238,7 +241,7 @@ def _write_live_record(sid, cfg, broker, snap, today, phase, trades=None,
         "date": today, "strategy_id": sid, "strategy_name": cfg["name"],
         "initial_capital": cfg["capital"],
         "data_source": data_source,
-        "data_nature": "实盘模拟(本机真实撮合, 非回测, 不接券商)",
+        "data_nature": data_nature or "实盘模拟(本机真实撮合, 非回测, 不接券商)",
         "phase": phase,
         "price_source": price_source,
         "price_source_detail": price_source_detail,
@@ -254,6 +257,8 @@ def _write_live_record(sid, cfg, broker, snap, today, phase, trades=None,
         "pending_target": broker.pending_target,
         "trades_today": trades or [],
     }
+    if extra_fields:
+        record.update(extra_fields)
     day_dir = DAILY_DIR / today
     day_dir.mkdir(parents=True, exist_ok=True)
     (day_dir / f"{sid}.json").write_text(
@@ -276,6 +281,102 @@ def already_traded(sid: str, today: str) -> bool:
         return rec.get("date") == today and rec.get("phase") == "trade"
     except Exception:
         return False
+
+
+# ============================================================
+# 历史日 K（多源）——仅用于【事后补记】与信号复盘，绝不用于盘中实时成交
+# ------------------------------------------------------------
+# 盘中成交仍严格走 fetch_realtime_quotes 的当日真实价（三源），绝不用历史旧价
+# 兜底。下列函数只在"对某一历史交易日做事后补记"时使用：取该日真实收盘价做
+# 盯市/补成交，并在落盘时明确标注"事后补记"。
+# 源优先级：本地 etf_cache（Windows 东财 qfq 缓存）→ akshare 东财 qfq →
+#           新浪日 K（不复权）→ 腾讯日 K（qfq）。
+# ============================================================
+def _hist_rows_from_cache(code, end_date, n):
+    try:
+        from api.market_data import _cache_path
+        p = _cache_path(code)
+        if not p.exists():
+            return None
+        import csv as _csv
+        with open(p, encoding="utf-8") as f:
+            rows = list(_csv.reader(f))[1:]
+        pts = [(r[0], float(r[1])) for r in rows if r and r[0] <= end_date]
+        return pts[-n:] if pts else None
+    except Exception:
+        return None
+
+
+def _hist_rows_from_akshare(code, end_date, n):
+    try:
+        import akshare as ak
+        from datetime import datetime as _dt, timedelta as _td
+        start = (_dt.strptime(end_date, "%Y-%m-%d") - _td(days=n * 2 + 60)).strftime("%Y%m%d")
+        df = ak.fund_etf_hist_em(symbol=code, period="daily",
+                                 start_date=start, end_date=end_date.replace("-", ""),
+                                 adjust="qfq")
+        if df is None or len(df) == 0:
+            return None
+        pts = [(str(r["日期"])[:10], float(r["收盘"])) for _, r in df.iterrows()]
+        pts = [x for x in pts if x[0] <= end_date]
+        return pts[-n:] if pts else None
+    except Exception:
+        return None
+
+
+def _hist_rows_from_sina(code, end_date, n):
+    try:
+        import requests as _rq
+        pfx = _market_prefix(code)   # 已含完整代码，如 sz159981，切勿再拼 code
+        url = ("https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/"
+               "CN_MarketData.getKLineData?symbol=" + pfx +
+               f"&scale=240&ma=no&datalen={int(n * 2 + 30)}")
+        r = _rq.get(url, timeout=12, proxies={"http": None, "https": None},
+                    headers={"Referer": "https://finance.sina.com.cn",
+                             "User-Agent": "Mozilla/5.0"})
+        j = r.json()
+        if not j:
+            return None
+        pts = [(x["day"][:10], float(x["close"])) for x in j]
+        pts = [x for x in pts if x[0] <= end_date]
+        return pts[-n:] if pts else None
+    except Exception:
+        return None
+
+
+def _hist_rows_from_tencent(code, end_date, n):
+    try:
+        from datetime import datetime as _dt, timedelta as _td
+        pfx = _market_prefix(code)   # 已含完整代码，如 sh513100
+        start = (_dt.strptime(end_date, "%Y-%m-%d") - _td(days=n * 2 + 60)).strftime("%Y-%m-%d")
+        url = ("https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param="
+               f"{pfx},day,{start},{end_date},{int(n * 2 + 30)},qfq")
+        j = _direct_session().get(url, timeout=12).json()
+        d = j["data"][pfx]
+        rows = d.get("qfqday") or d.get("day")
+        pts = [(x[0], float(x[2])) for x in rows]
+        pts = [x for x in pts if x[0] <= end_date]
+        return pts[-n:] if pts else None
+    except Exception:
+        return None
+
+
+def load_hist_klines(code, end_date, n=60):
+    """取截至 end_date（含）的历史日 K：返回 (rows[(date,close)升序], source)。
+
+    全部源失败返回 ([], "none")。用于事后补记/信号复盘，不用于盘中成交。
+    """
+    for fn, tag in ((_hist_rows_from_cache, "cache"),
+                    (_hist_rows_from_akshare, "akshare"),
+                    (_hist_rows_from_sina, "sina"),
+                    (_hist_rows_from_tencent, "tencent")):
+        try:
+            rows = fn(code, end_date, n)
+            if rows and rows[-1][0] == end_date:
+                return rows, tag
+        except Exception:
+            continue
+    return [], "none"
 
 
 def fetch_realtime_quotes(pool: list, spot_em_df=None):
@@ -389,7 +490,7 @@ def is_trading_day(today: str) -> bool:
 
 
 def run_once(sid: str, cfg: dict, today: str, force: bool = False,
-             spot_em_df=None):
+             spot_em_df=None, hist_map=None, quote_map=None, backfill=None):
     """单段式单策略：决策 → 按当日真实价撮合 → 结算 → 写账本。
 
     返回结构化 dict（绝不以历史旧价成交），status 取值：
@@ -399,22 +500,52 @@ def run_once(sid: str, cfg: dict, today: str, force: bool = False,
       no_history     历史 K 线取不到、无法产生信号（监督器应重试）
       missing_price  必需标的当日真实价未取全（监督器应重试，绝不旧价兜底）
       error          其他异常（监督器记录并重试）
+
+    事后补记参数（仅 scripts/backfill_day.py 使用，盘中实时流程不传）：
+      hist_map   {code: [截至 today 的历史收盘]}，给定则跳过实时历史拉取；
+      quote_map  {code: today 当日真实收盘价}，给定则跳过盘中实时三源；
+      backfill   {"reason": str}，落盘记录明确标注"事后补记"。
     """
     res = {"sid": sid, "status": None, "missing": [], "required": [],
            "target": {}, "price_source": None, "detail": None,
            "trades_n": 0, "rec": None, "error": None, "per_source": {}}
+    # 事后补记的统一落盘标注（盘中实时流程 backfill=None、quote_map=None，不受影响）
+    is_backfill = bool(backfill) or quote_map is not None
+    if is_backfill:
+        _reason = (backfill or {}).get("reason", "当日成交缺失，按当日真实收盘价事后补记")
+        bf_nature = (f"实盘模拟(事后补记,{today}真实收盘价,本机撮合,非回测,不接券商)")
+        bf_source = f"事后补记({today}真实收盘价,本机模拟撮合,不接券商)"
+        bf_extra = {"backfill": True, "backfill_for_date": today,
+                    "backfill_run_at": datetime.now().isoformat(timespec="seconds"),
+                    "backfill_reason": _reason}
+    else:
+        bf_nature = bf_source = bf_extra = None
     if not force and already_traded(sid, today):
         res["status"] = "already"
         return res
 
     from api.market_data import load_etf_close
     try:
+        hist_sources = {}
         # 1) 历史收盘 → 动量目标（历史数据允许读缓存，它不是当日成交价）
-        hist_map = {}
-        for code in cfg["pool"]:
-            closes = load_etf_close(code, days=60)
-            if closes:
-                hist_map[code] = closes
+        if hist_map is not None:
+            # 事后补记：调用方已显式提供截至 today 的历史收盘
+            pass
+        elif quote_map is not None or backfill:
+            # 事后补记：多源历史日 K，严格截至 today（不用 today 之后的数据）
+            hist_map = {}
+            for code in cfg["pool"]:
+                rows, src = load_hist_klines(code, today, n=60)
+                if rows:
+                    hist_map[code] = [p for _, p in rows]
+                    hist_sources[code] = src
+        else:
+            # 盘中实时（现行流程）：akshare/缓存取最新历史收盘
+            hist_map = {}
+            for code in cfg["pool"]:
+                closes = load_etf_close(code, days=60)
+                if closes:
+                    hist_map[code] = closes
         if not hist_map:
             res["status"] = "no_history"
             res["error"] = "历史行情全部取不到"
@@ -438,14 +569,27 @@ def run_once(sid: str, cfg: dict, today: str, force: bool = False,
             broker.save(state_path)
             rec = _write_live_record(
                 sid, cfg, broker, snap, today, "trade", [],
-                data_source="Windows实盘引擎(空仓无信号,本机模拟撮合)",
-                price_source="idle", price_source_detail="no_position_no_target")
+                data_source=(bf_source or "Windows实盘引擎(空仓无信号,本机模拟撮合)"),
+                price_source=("backfill_close" if is_backfill else "idle"),
+                price_source_detail=("backfill:no_position_no_target"
+                                     if is_backfill else "no_position_no_target"),
+                data_nature=bf_nature, extra_fields=bf_extra)
             res.update(status="idle", rec=rec)
             return res
 
-        # 4) 当日真实价（三源）；必需标的缺一个都不撮合，交监督器持续重试
-        quotes, source, detail, per = fetch_realtime_quotes(
-            required, spot_em_df=spot_em_df)
+        # 4) 当日真实价。盘中走三源实时（缺一个都不撮合，交监督器持续重试）；
+        #    事后补记走显式传入的该日真实收盘价 quote_map（同样缺一个都不补）。
+        if quote_map is not None:
+            quotes = {c: p for c, p in quote_map.items() if c in required}
+            src_tags = sorted(set(hist_sources.values()))
+            if not src_tags and backfill and backfill.get("hist_source"):
+                src_tags = [backfill["hist_source"]]
+            source = "backfill_close"
+            detail = "backfill:" + "+".join(src_tags) if src_tags else "backfill"
+            per = {}
+        else:
+            quotes, source, detail, per = fetch_realtime_quotes(
+                required, spot_em_df=spot_em_df)
         res["price_source"], res["detail"], res["per_source"] = source, detail, per
         missing = [c for c in required if c not in quotes]
         if missing:
@@ -460,8 +604,9 @@ def run_once(sid: str, cfg: dict, today: str, force: bool = False,
         broker.save(state_path)
         rec = _write_live_record(
             sid, cfg, broker, snap, today, "trade", trades,
-            data_source="Windows实盘引擎(开机当日真实价成交,本机模拟撮合)",
-            price_source="realtime", price_source_detail=detail)
+            data_source=(bf_source or "Windows实盘引擎(开机当日真实价成交,本机模拟撮合)"),
+            price_source=source, price_source_detail=detail,
+            data_nature=bf_nature, extra_fields=bf_extra)
         res.update(status="traded", trades_n=len(trades), rec=rec)
         return res
     except Exception as e:

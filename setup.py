@@ -380,7 +380,7 @@ def setup_git_auto_update():
                                   capture_output=True, text=True).returncode == 0
         new_ok = all(_exists(t) for t in
                      ("QuantDailyTrade", "QuantDailyNoon", "QuantDailyTradePM",
-                      "QuantBootCheck", "QuantPanelGuard"))
+                      "QuantBootCheck", "QuantPanelGuard", "QuantTradeGuard"))
         old_gone = all(not _exists(t) for t in
                        ("QuantExecuteTask", "QuantDecideTask"))
         if new_ok and old_gone:

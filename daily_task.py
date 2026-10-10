@@ -97,30 +97,31 @@ def step_run_engine(engine_phase):
 
 
 def step_run_supervisor():
-    """启动当日成交监督器（现行主流程）。
+    """跑一次成交周期守护 --guard（幂等、单次即退）。
 
-    与旧的"单次跑引擎、600s 超时"不同：监督器常驻，行情三源全失败时按
-    2/3/5 分钟后固定 10 分钟持续重试，直到当日真实价成交完成或 17:00 窗口结束；
-    15:00 后自动改用当日真实收盘价成交（收盘补成交内置），每轮写健康心跳并上传。
-    超时给足 13:00-17:00 全程（4.5 小时余量），绝不能用短超时把重试进程杀掉。
-    退出码：0=成交完成/非交易日；2=红灯（窗口结束仍未成交，见 trade_health.json）。
+    计划任务（登录后与工作日下午每 10 分钟的 QuantTradeGuard，外加 onlogon/13:05/15:10）
+    会反复唤醒它：非交易日/当日已成交/红标锁定 -> 秒退；交易日 13:00 后未成交 ->
+    取当日真实价成交（盘中实时价、收盘后收盘价），三源全失败则写"重试中"心跳，
+    等下一次（约 10 分钟后）守护继续，绝不用旧价；跨日发现漏单则按当日真实收盘价
+    自动事后补记。只有历史真实价也三源全失败才亮红灯（退出码 2）。
+    单次守护限时 15 分钟（取价+撮合足够），周期任务负责"持续重试"，本进程不长驻。
     """
-    log("启动当日成交监督器（行情失败自动持续重试，绝不用旧价，最长到17:00）...")
+    log("启动成交周期守护 --guard（幂等：跨日补记/当日真实价成交/三源失败10分钟后重试）...")
     sup = BASE_DIR / "trade_supervisor.py"
     try:
-        r = subprocess.run([str(VENV_PY), str(sup)], cwd=str(BASE_DIR),
-                           capture_output=True, text=True, timeout=16500)
-        log("  监督器输出: " + (r.stdout.strip()[-1500:] if r.stdout else "(空)"))
+        r = subprocess.run([str(VENV_PY), str(sup), "--guard"], cwd=str(BASE_DIR),
+                           capture_output=True, text=True, timeout=900)
+        log("  守护输出: " + (r.stdout.strip()[-1500:] if r.stdout else "(空)"))
         if r.returncode == 2:
-            log("  ⚠️ 监督器红灯：17:00 窗口结束仍有策略未成交，"
-                "见 live-data/_run_logs/trade_health.json")
+            log("  ⚠️ 守护红灯：真实价三源（含历史收盘价）持续取不到，"
+                "见 live-data/_run_logs/trade_health.json，等人工核对。")
         elif r.returncode != 0:
-            log("  监督器异常退出 code=%s: %s"
+            log("  守护异常退出 code=%s: %s"
                 % (r.returncode, (r.stderr or "")[-800:]))
         else:
-            log("  监督器正常结束（当日成交完成或非交易日）。")
+            log("  守护本次正常结束（已成交/非交易日/等待下午/重试中，周期任务会再来）。")
     except subprocess.TimeoutExpired:
-        log("  监督器超过 4.5 小时仍未退出（异常），请查 trade_supervisor 日志。")
+        log("  单次守护超过 15 分钟未退出（异常），下个周期会幂等重试，请查守护日志。")
 
 
 def step_push_data():

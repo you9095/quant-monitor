@@ -49,6 +49,7 @@ import trade_redflag as rf  # noqa: E402  # 跨日红灯锁定（禁止自动补
 DATA_REPO = BASE_DIR / "live-data"
 LOG_DIR = DATA_REPO / "_run_logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
+DAILY_DIR = DATA_REPO / "daily"
 
 HEALTH_FILE = LOG_DIR / "trade_health.json"
 LOCK_FILE = LOG_DIR / "supervisor.lock"
@@ -192,12 +193,18 @@ def write_health(payload):
 
 
 def push_to_github(no_push):
-    """提交并上传 live-data（含账本与健康心跳）。失败只告警，不抛异常。"""
+    """提交并上传 live-data（含账本与健康心跳）。失败只告警，不抛异常。
+
+    监督器/守护是事件驱动（非交易日、已成交都会秒退、根本不调用本函数），
+    故用 --force 跳过"仅工作日13-17点"的日常窗口限制：触发心跳、重试心跳、
+    收盘后补成交、跨日补记、红标等都必须能随时上传，让 Mac 端可见。
+    """
     if no_push:
         return False, "no-push(本地测试)"
     try:
         py = sys.executable
-        r = subprocess.run([py, str(BASE_DIR / "scripts" / "sync_live_data.py"), "push"],
+        r = subprocess.run([py, str(BASE_DIR / "scripts" / "sync_live_data.py"),
+                            "push", "--force", "trade supervisor/guard heartbeat"],
                            cwd=str(BASE_DIR), capture_output=True, text=True, timeout=180)
         out = (r.stdout or "") + (r.stderr or "")
         ok = ("[成功]" in out) or ("[提示]" in out)
@@ -395,6 +402,196 @@ def supervise(today, no_push=False, max_minutes=None):
         release_lock()
 
 
+def _import_backfill():
+    sys.path.insert(0, str(BASE_DIR / "scripts"))
+    import backfill_day as bf  # noqa: E402
+    return bf
+
+
+def trading_days_before(today, lookback=12):
+    """today 之前（不含 today）的最近 lookback 个 A股交易日，升序。"""
+    try:
+        from api.market_data import load_trade_dates
+        from datetime import timedelta as _td
+        cal = load_trade_dates()
+        if cal:
+            ds = sorted(d for d in cal if d < today)
+            return ds[-lookback:]
+    except Exception:
+        pass
+    # 兜底：仅跳过周末（节假日近似，权威日历可用时不走这里）
+    from datetime import timedelta as _td
+    cur = datetime.strptime(today, "%Y-%m-%d").date() - _td(days=1)
+    out = []
+    while len(out) < lookback:
+        if cur.weekday() < 5:
+            out.append(cur.isoformat())
+        cur -= _td(days=1)
+    return sorted(out)
+
+
+def _health_date():
+    try:
+        return json.loads(HEALTH_FILE.read_text(encoding="utf-8")).get("date")
+    except Exception:
+        return None
+
+
+# ---------------- 周期守护（--guard，计划任务每 10 分钟幂等唤醒） ----------------
+def guard_once(today=None, no_push=False, now_dt=None):
+    """单次守护，幂等、非交易/已完成秒退，不长驻。
+
+    顺序：
+      0) 单实例锁；每天首次触发先上报一条"守护已触发"心跳（Mac 可区分没触发/触发后崩）；
+      1) 红标激活（历史真实价三源全失败、人工锁定中）→ 维持红灯、秒退，不自动成交；
+      2) 跨日补记：补齐 today 之前缺失的交易日（取当日真实收盘价，自动标"事后补记"），
+         周末/节假日开机也会补最近一个交易日；历史真实价三源全失败才落红标；
+      3) today 非交易日 → 秒退；
+      4) today 交易日上午（<13:00）→ 不抢跑，秒退（用户下午开机）；
+      5) today 13:00 后（盘中实时价 / 收盘后当日收盘价）→ 未成交则跑一轮，
+         取得到当日真实价就成交；三源全失败写"重试中"心跳，下次守护（10 分钟后）再来，
+         绝不用旧价、绝不放弃；当天始终没成，次日由步骤 2 自动按收盘价补记。
+    """
+    from datetime import timedelta as _td
+    n = now_dt or now()
+    today = today or n.strftime("%Y-%m-%d")
+    log("=" * 56)
+    log(f"成交守护唤醒（--guard，{today} {n.strftime('%H:%M')}），幂等补判。")
+
+    if not acquire_lock():
+        return 0
+    try:
+        bf = _import_backfill()
+
+        # 0) 每天首次触发：上报"已触发"心跳并上传一次（最早期可见，之后不重复刷提交）
+        if _health_date() != today:
+            write_health({"date": today, "is_trading_day": eng.is_trading_day(today),
+                          "status": "guard_triggered", "attempt": 0,
+                          "strategies": {}, "next_retry_at": None,
+                          "note": "成交守护已被计划任务触发（本机模拟撮合，不接券商）。"})
+            push_to_github(no_push)
+
+        # 1) 红标锁定中：维持红灯，不自动成交/补单，秒退（红灯一直亮到人工解除）
+        flag = rf.load_redflag(LOG_DIR)
+        if flag:
+            write_health({
+                "date": today, "is_trading_day": None,
+                "status": "pending_overnight", "redflag_active": True,
+                "failed_date": flag.get("failed_date"),
+                "pending_strategies": flag.get("pending_strategies", []),
+                "attempt": flag.get("attempt"), "strategies": flag.get("strategies", {}),
+                "done_count": 0, "total": len(eng.STRATEGIES), "trades_total": 0,
+                "next_retry_at": None,
+                "note": "成交红灯持续中（三源真实价持续取不到）：已冻结自动成交，"
+                        "红灯亮到人工核对解除；解除运行 scripts/ack_trade_redflag.py。"})
+            log(f"🚩 红标锁定中（事故日 {flag.get('failed_date')}），本次守护不成交。")
+            return 2
+
+        # 2) 跨日补记：只补"首个已成交交易日之后、today 之前"的缺口（自动标"事后补记"）。
+        #    系统归零/上线之前的历史日期（daily 里本就没有）不属于漏单，绝不向前乱补。
+        existing_days = set()
+        if DAILY_DIR.exists():
+            existing_days = {p.name for p in DAILY_DIR.iterdir() if p.is_dir()}
+        missing_days = []
+        if existing_days:
+            first_day = min(existing_days)
+            missing_days = [d for d in trading_days_before(today, 40)
+                            if d > first_day and d not in existing_days]
+        for d in missing_days:
+            log(f"检测到上线后交易日 {d} 缺失成交，按当日真实收盘价事后补记...")
+            rc = bf.backfill_one(
+                d, "成交守护跨日补记：当日计划任务未成交，按当日真实收盘价补记"
+                   "（本机模拟撮合，非回测，不接券商）", no_push)
+            if rc == 0:
+                log(f"  {d} 事后补记完成。")
+                push_to_github(no_push)
+            elif rc == 2:
+                log(f"  {d} 非交易日，跳过。")
+            elif rc in (4, 5):
+                # 历史当日真实收盘价三源全失败（理论上几乎不可能）→ 才落红标锁死等人工
+                note = (f"事后补记 {d} 时，东财/腾讯/新浪三源历史真实收盘价均取不到"
+                        f"（rc={rc}）。按铁律不得用旧价/伪造，已落红标，等人工核对。")
+                rf.raise_redflag(
+                    failed_date=d, strategies={},
+                    pending_strategies=list(eng.STRATEGIES.keys()),
+                    retry_reasons={"no_hist_real_price": list(eng.STRATEGIES.keys())},
+                    price_sources={}, attempt=99, note=note, log_dir=LOG_DIR)
+                write_health({"date": today, "is_trading_day": None,
+                              "status": "pending_overnight", "redflag_active": True,
+                              "failed_date": d, "done_count": 0,
+                              "total": len(eng.STRATEGIES), "trades_total": 0,
+                              "next_retry_at": None, "note": note})
+                push_to_github(no_push)
+                log("🚩 " + note)
+                return 2
+            else:
+                # rc=3 乱序/连续性等保护：不亮红灯，记下并停止本轮向前补，等下次守护
+                log(f"  {d} 补记被连续性保护拦截（rc={rc}），本轮跳过，不亮红灯。")
+                break
+
+        # 3) 今日非交易日：秒退（节假日/周末，跨日补记已在上面处理）
+        if not eng.is_trading_day(today):
+            write_health({"date": today, "is_trading_day": False,
+                          "status": "no_trade_day", "attempt": 0,
+                          "strategies": {}, "next_retry_at": None})
+            log("今日非交易日，不成交，秒退。")
+            return 0
+
+        # 4) 今日已齐全：秒退
+        complete, _ = bf.day_already_complete(today)
+        if complete:
+            write_health({"date": today, "is_trading_day": True, "status": "done",
+                          "attempt": 0, "strategies": {}, "done_count": len(eng.STRATEGIES),
+                          "total": len(eng.STRATEGIES), "trades_total": 0,
+                          "next_retry_at": None,
+                          "note": "今日六策略已成交/结算完成（幂等守护，秒退）。"})
+            log("今日六策略已完成，秒退。")
+            return 0
+
+        # 5) 交易日但上午（<13:00）：不抢跑，秒退，等下午的守护
+        if n.hour < 13:
+            write_health({"date": today, "is_trading_day": True,
+                          "status": "waiting_afternoon", "attempt": 0,
+                          "strategies": {}, "next_retry_at": "13:00",
+                          "note": "上午不成交（用户下午开机），等 13:00 后的守护。"})
+            log("上午时段，不抢跑，秒退。")
+            return 0
+
+        # 6) 13:00 后（盘中实时价 / 收盘后当日收盘价）：跑一轮，拿真实价成交
+        log("今日尚未完成且已进入下午成交时段，跑一轮真实价撮合...")
+        all_done, strats, agg = attempt_round(today, 1)
+        if all_done:
+            write_health({"date": today, "is_trading_day": True, "status": "done",
+                          "attempt": 1, "price_sources": agg["per_source"],
+                          "strategies": strats, "done_count": agg["done_count"],
+                          "total": len(eng.STRATEGIES), "trades_total": agg["trades_total"],
+                          "next_retry_at": None,
+                          "note": "守护按当日真实价成交/结算完成（本机模拟撮合，不接券商）。"})
+            push_to_github(no_push)
+            log(f"✅ 守护完成当日成交 {agg['done_count']}/6，成交 {agg['trades_total']} 笔。")
+            return 0
+
+        # 未取全真实价：写"重试中"，下次守护（约 10 分钟）持续重试；不锁死、不用旧价
+        missing_sids = [s for s, v in strats.items() if v["status"] in RETRY_STATUSES]
+        reasons = {}
+        for s in missing_sids:
+            reasons.setdefault(strats[s]["status"], []).append(s)
+        write_health({"date": today, "is_trading_day": True, "status": "retrying",
+                      "attempt": 1, "price_sources": agg["per_source"],
+                      "strategies": strats, "done_count": agg["done_count"],
+                      "total": len(eng.STRATEGIES), "trades_total": agg["trades_total"],
+                      "pending_strategies": missing_sids, "retry_reasons": reasons,
+                      "next_retry_at": (n + _td(minutes=10)).isoformat(timespec="seconds"),
+                      "backoff_seconds": 600,
+                      "note": "守护：当日真实价未取全，约 10 分钟后下次守护持续重试"
+                              "（绝不用旧价）；若当天持续失败，次日自动按收盘价事后补记。"})
+        push_to_github(no_push)
+        log(f"⏳ 守护本轮未完成 {len(missing_sids)}/6（{reasons}），约 10 分钟后重试。")
+        return 0
+    finally:
+        release_lock()
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--date", default=date.today().isoformat(),
@@ -406,6 +603,10 @@ def main():
                     help="人工核对后解除跨日红灯（红标），解除后下一交易窗口恢复自动成交、不补单")
     ap.add_argument("--redflag-status", action="store_true",
                     help="查看当前是否存在未解除的红灯（红标）")
+    ap.add_argument("--guard", action="store_true",
+                    help="周期守护模式：计划任务每10分钟幂等唤醒，跨日自动补记+当日补成交")
+    ap.add_argument("--hour", type=int, default=None,
+                    help="测试用：注入当前小时（配合 --date 模拟上午/下午）")
     args = ap.parse_args()
 
     if args.ack_redflag:
@@ -437,6 +638,13 @@ def main():
                            "pending_strategies", "retry_reasons", "price_sources", "note")},
                          ensure_ascii=False, indent=2))
         sys.exit(2)
+
+    if args.guard:
+        now_dt = None
+        if args.hour is not None:
+            now_dt = datetime.strptime(args.date, "%Y-%m-%d").replace(hour=args.hour, minute=30)
+        code = guard_once(args.date, no_push=args.no_push, now_dt=now_dt)
+        sys.exit(code or 0)
 
     code = supervise(args.date, no_push=args.no_push, max_minutes=args.max_minutes)
     sys.exit(code or 0)

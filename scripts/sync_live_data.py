@@ -73,13 +73,20 @@ def current_branch():
     return out.strip() if ok and out.strip() else "master"
 
 
-def cmd_push():
-    """Windows 端：提交当天实盘数据并 push"""
+def cmd_push(force=False, note=""):
+    """Windows 端：提交当天实盘数据并 push。
+
+    force=True 用于【显式人工/补记修复】（如事后补记、运维补传），跳过
+    "仅交易日 13:00-17:00" 的自动窗口限制；日常无人值守自动上传仍受窗口约束。
+    """
     ok, msg = is_push_window()
-    print(f"[时间窗口检查] {msg}")
-    if not ok:
-        print("[跳过] 不在上传时间窗口，本次不上传数据。")
-        return 0
+    if force:
+        print("[时间窗口检查] 显式强制上传（--force，事后补记/运维补传），跳过窗口限制")
+    else:
+        print(f"[时间窗口检查] {msg}")
+        if not ok:
+            print("[跳过] 不在上传时间窗口，本次不上传数据。")
+            return 0
 
     ok, msg = ensure_repo()
     if not ok:
@@ -91,6 +98,8 @@ def cmd_push():
     git(["pull", "--rebase", "origin", branch], timeout=120)
 
     today = datetime.now().strftime("%Y-%m-%d")
+    msg = note or ("live data backfill/manual sync " + today if force else "")
+    commit_msg = msg if msg else f"live data {today} auto update"
     # 添加所有变更
     git(["add", "-A"])
     # 检查是否有变更
@@ -99,7 +108,7 @@ def cmd_push():
         print("[提示] 今天没有新数据变更，无需上传。")
         return 0
 
-    ok, out = git(["commit", "-m", f"live data {today} auto update"])
+    ok, out = git(["commit", "-m", commit_msg])
     if not ok:
         print(f"[警告] commit 失败: {out}")
         return 1
@@ -154,7 +163,10 @@ def cmd_status():
 if __name__ == "__main__":
     action = sys.argv[1] if len(sys.argv) > 1 else "status"
     if action == "push":
-        sys.exit(cmd_push())
+        rest = sys.argv[2:]
+        force = "--force" in rest
+        note = " ".join(a for a in rest if not a.startswith("--")).strip()
+        sys.exit(cmd_push(force=force, note=note))
     elif action == "pull":
         sys.exit(cmd_pull())
     else:
