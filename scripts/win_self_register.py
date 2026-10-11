@@ -91,13 +91,15 @@ def _register_guard_task(root, launcher, pythonw, highest):
 def _register_trade_guard_task(root, pythonw, highest):
     """QuantTradeGuard：成交周期守护（幂等、秒退，根治"开机却没成交"）。
 
-    触发：① 登录后 2 分钟起，每 10 分钟一次（持续 1 天）；
-          ② 工作日 13:00 起每 10 分钟一次（持续 10 小时，覆盖盘中与收盘后补成交）。
+    主口径=收盘价（与回测一致）：盘中 13:00-15:00 不按跳动的实时价成交，只等待。
+    触发：① 登录后 2 分钟起，每 10 分钟一次（持续 1 天，用于跨日补记/首触发心跳）；
+          ② 工作日 15:00 起每 2 分钟一次（持续 30 分钟，收盘密集窗，取收盘价立即成交）；
+          ③ 工作日 15:30 起每 10 分钟一次（持续 2 小时，收盘后兜底补成交/上传）。
     动作：pythonw trade_supervisor.py --guard
-      - 非交易日 / 当日已成交 / 红标锁定 -> 秒退；
-      - 交易日 13:00 后未成交 -> 取当日真实价成交，三源全失败则 10 分钟后持续重试；
+      - 非交易日 / 当日已成交 / 红标锁定 / 盘中 -> 秒退；
+      - 交易日 15:00 后未成交 -> 按当日收盘价成交，三源全失败则持续重试；
       - 跨日发现漏单 -> 按当日真实收盘价自动事后补记；仅历史真实价也三源全失败才亮红灯。
-    StartWhenAvailable=错过尽快补跑；电池不阻止；失败自动重启；单实例 IgnoreNew。
+    StartWhenAvailable=错过尽快补跑；WakeToRun=可唤醒计算机；电池不阻止；失败自动重启；单实例 IgnoreNew。
     """
     run_level = "HighestAvailable" if highest else "LeastPrivilege"
     year = datetime.datetime.now().year
@@ -112,14 +114,25 @@ def _register_trade_guard_task(root, pythonw, highest):
         '      <Delay>PT2M</Delay>\r\n'
         '      <Repetition><Interval>PT10M</Interval><Duration>P1D</Duration><StopAtDurationEnd>false</StopAtDurationEnd></Repetition>\r\n'
         '    </LogonTrigger>\r\n'
+        # 收盘密集窗：工作日 15:00 起每 2 分钟一次（持续 30 分钟），取收盘价立即成交
         '    <CalendarTrigger>\r\n'
-        f'      <StartBoundary>{year}-01-01T13:00:00</StartBoundary>\r\n'
+        f'      <StartBoundary>{year}-01-01T15:00:00</StartBoundary>\r\n'
         '      <Enabled>true</Enabled>\r\n'
         '      <ScheduleByWeek>\r\n'
         '        <DaysOfWeek><Monday/><Tuesday/><Wednesday/><Thursday/><Friday/></DaysOfWeek>\r\n'
         '        <WeeksInterval>1</WeeksInterval>\r\n'
         '      </ScheduleByWeek>\r\n'
-        '      <Repetition><Interval>PT10M</Interval><Duration>PT10H</Duration><StopAtDurationEnd>false</StopAtDurationEnd></Repetition>\r\n'
+        '      <Repetition><Interval>PT2M</Interval><Duration>PT30M</Duration><StopAtDurationEnd>false</StopAtDurationEnd></Repetition>\r\n'
+        '    </CalendarTrigger>\r\n'
+        # 收盘后重试窗：工作日 15:30 起每 10 分钟一次（持续 2 小时），兜底补成交/上传
+        '    <CalendarTrigger>\r\n'
+        f'      <StartBoundary>{year}-01-01T15:30:00</StartBoundary>\r\n'
+        '      <Enabled>true</Enabled>\r\n'
+        '      <ScheduleByWeek>\r\n'
+        '        <DaysOfWeek><Monday/><Tuesday/><Wednesday/><Thursday/><Friday/></DaysOfWeek>\r\n'
+        '        <WeeksInterval>1</WeeksInterval>\r\n'
+        '      </ScheduleByWeek>\r\n'
+        '      <Repetition><Interval>PT10M</Interval><Duration>PT2H</Duration><StopAtDurationEnd>false</StopAtDurationEnd></Repetition>\r\n'
         '    </CalendarTrigger>\r\n'
         '  </Triggers>\r\n'
         '  <Principals>\r\n'
@@ -137,7 +150,7 @@ def _register_trade_guard_task(root, pythonw, highest):
         '    <Enabled>true</Enabled>\r\n'
         '    <Hidden>false</Hidden>\r\n'
         '    <RunOnlyIfIdle>false</RunOnlyIfIdle>\r\n'
-        '    <WakeToRun>false</WakeToRun>\r\n'
+        '    <WakeToRun>true</WakeToRun>\r\n'
         '    <ExecutionTimeLimit>PT15M</ExecutionTimeLimit>\r\n'
         '    <Priority>7</Priority>\r\n'
         '    <RestartOnFailure><Interval>PT2M</Interval><Count>3</Count></RestartOnFailure>\r\n'

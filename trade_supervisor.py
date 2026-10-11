@@ -57,6 +57,9 @@ LOCK_FILE = LOG_DIR / "supervisor.lock"
 # 成交/上传窗口（工作日）
 WINDOW_START = (13, 0)
 WINDOW_END = (17, 0)
+# A股收盘时刻：13:00-15:00 为盘中（本策略不按跳动的盘中实时价成交，只等待），
+# 15:00 收盘后实时接口现价锁定为当日收盘价，才开始按收盘价撮合。
+MARKET_CLOSE = (15, 0)
 # 退避计划（秒）：前 3 轮快速重试，之后固定 10 分钟
 BACKOFF = [120, 180, 300]
 FAST_RETRY_MAX = len(BACKOFF)
@@ -447,10 +450,11 @@ def guard_once(today=None, no_push=False, now_dt=None):
       2) 跨日补记：补齐 today 之前缺失的交易日（取当日真实收盘价，自动标"事后补记"），
          周末/节假日开机也会补最近一个交易日；历史真实价三源全失败才落红标；
       3) today 非交易日 → 秒退；
-      4) today 交易日上午（<13:00）→ 不抢跑，秒退（用户下午开机）；
-      5) today 13:00 后（盘中实时价 / 收盘后当日收盘价）→ 未成交则跑一轮，
-         取得到当日真实价就成交；三源全失败写"重试中"心跳，下次守护（10 分钟后）再来，
-         绝不用旧价、绝不放弃；当天始终没成，次日由步骤 2 自动按收盘价补记。
+      4) today 交易日上午（<13:00）→ 不抢跑，秒退；
+      4b) today 盘中（13:00-15:00）→ 主口径=收盘价，不按跳动的盘中实时价成交，秒退；
+      5) today 15:00 收盘后（实时接口现价=当日收盘价）→ 未成交则跑一轮，按收盘价成交；
+         三源全失败写"重试中"心跳，下次守护再来，绝不用旧价、绝不放弃；
+         当天始终没成，次日由步骤 2 自动按收盘价补记。
     """
     from datetime import timedelta as _td
     n = now_dt or now()
@@ -548,17 +552,29 @@ def guard_once(today=None, no_push=False, now_dt=None):
             log("今日六策略已完成，秒退。")
             return 0
 
-        # 5) 交易日但上午（<13:00）：不抢跑，秒退，等下午的守护
-        if n.hour < 13:
+        # 5) 交易日但上午（<13:00）：不抢跑，秒退，等下午/收盘的守护
+        cur_min = n.hour * 60 + n.minute
+        if cur_min < 13 * 60:
             write_health({"date": today, "is_trading_day": True,
                           "status": "waiting_afternoon", "attempt": 0,
-                          "strategies": {}, "next_retry_at": "13:00",
-                          "note": "上午不成交（用户下午开机），等 13:00 后的守护。"})
+                          "strategies": {}, "next_retry_at": "15:00",
+                          "note": "上午不成交（主口径=收盘价），等 15:00 收盘后的守护。"})
             log("上午时段，不抢跑，秒退。")
             return 0
 
-        # 6) 13:00 后（盘中实时价 / 收盘后当日收盘价）：跑一轮，拿真实价成交
-        log("今日尚未完成且已进入下午成交时段，跑一轮真实价撮合...")
+        # 5b) 盘中（13:00-15:00）：本策略不按跳动的盘中实时价成交，只等待收盘，秒退。
+        close_min = MARKET_CLOSE[0] * 60 + MARKET_CLOSE[1]
+        if cur_min < close_min:
+            write_health({"date": today, "is_trading_day": True,
+                          "status": "waiting_close", "attempt": 0,
+                          "strategies": {}, "next_retry_at": "15:00",
+                          "note": "盘中不按实时价成交（主口径=收盘价，与回测一致），"
+                                  "等 15:00 收盘后按当日收盘价撮合。"})
+            log("盘中时段（13:00-15:00），不按实时价抢跑，等待收盘，秒退。")
+            return 0
+
+        # 6) 15:00 收盘后：实时接口现价=当日收盘价，跑一轮按收盘价真实撮合
+        log("今日尚未完成且已收盘，按当日真实收盘价跑一轮撮合...")
         all_done, strats, agg = attempt_round(today, 1)
         if all_done:
             write_health({"date": today, "is_trading_day": True, "status": "done",

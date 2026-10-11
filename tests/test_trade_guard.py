@@ -4,7 +4,9 @@
 
 覆盖：
   G1 交易日上午（<13:00）当日未完成 -> waiting_afternoon，不抢跑、不撮合；
-  G2 交易日下午三源真实价全失败 -> retrying 心跳，【不】落红标、不放弃（下次守护重试）；
+  G1b 交易日盘中（13:00-15:00）当日未完成 -> waiting_close，不按跳动实时价撮合（主口径=收盘价）；
+  G2 交易日收盘后（15:00 后）三源真实价全失败 -> retrying 心跳，【不】落红标、不放弃；
+  G2b 交易日收盘后取到收盘价 -> done，attempt_round 被调用一次；
   G3 周末开机、上一交易日漏单 -> 只补"首个已成交日之后"的缺口（10-09），
      绝不向前补系统上线前的 9 月日期。
 """
@@ -84,8 +86,32 @@ def test_g1_morning_wait():
     shutil.rmtree(tmp, ignore_errors=True)
 
 
+def test_g1b_intraday_wait_close():
+    print("场景 G1b：交易日盘中(14:30)未完成 -> waiting_close，不按实时价撮合")
+    tmp = Path(tempfile.mkdtemp())
+    dirs = _patch_dirs(tmp)
+    fake = FakeBF(set())
+    with mock.patch.object(sup, "DATA_REPO", dirs["DATA_REPO"]), \
+         mock.patch.object(sup, "LOG_DIR", dirs["LOG_DIR"]), \
+         mock.patch.object(sup, "DAILY_DIR", dirs["DAILY_DIR"]), \
+         mock.patch.object(sup, "HEALTH_FILE", dirs["HEALTH_FILE"]), \
+         mock.patch.object(sup, "LOCK_FILE", dirs["LOCK_FILE"]), \
+         mock.patch.object(sup, "_import_backfill", lambda: fake), \
+         mock.patch.object(sup.eng, "is_trading_day", lambda d: True), \
+         mock.patch.object(sup, "trading_days_before", lambda d, lookback=12: []), \
+         mock.patch.object(sup, "attempt_round") as ar, \
+         mock.patch.object(sup, "push_to_github", lambda no_push: (True, "")):
+        now_dt = datetime(2026, 10, 9, 14, 30)
+        rc = sup.guard_once("2026-10-09", no_push=True, now_dt=now_dt)
+        h = _health(sup)
+        check("返回码 0", rc == 0)
+        check("状态 waiting_close", h.get("status") == "waiting_close")
+        check("盘中不调用撮合", ar.call_count == 0)
+    shutil.rmtree(tmp, ignore_errors=True)
+
+
 def test_g2_afternoon_all_sources_fail_retry_no_redflag():
-    print("场景 G2：交易日下午三源全失败 -> retrying，不锁死、不放弃")
+    print("场景 G2：交易日收盘后(16:00)三源全失败 -> retrying，不锁死、不放弃")
     tmp = Path(tempfile.mkdtemp())
     dirs = _patch_dirs(tmp)
     fake = FakeBF(set())
@@ -107,13 +133,44 @@ def test_g2_afternoon_all_sources_fail_retry_no_redflag():
          mock.patch.object(sup, "attempt_round", side_effect=fake_round), \
          mock.patch.object(sup, "push_to_github", lambda no_push: (True, "")), \
          mock.patch.object(sup.rf, "raise_redflag") as raise_rf:
-        now_dt = datetime(2026, 10, 9, 14, 30)
+        now_dt = datetime(2026, 10, 9, 16, 0)
         rc = sup.guard_once("2026-10-09", no_push=True, now_dt=now_dt)
         h = _health(sup)
         check("返回码 0（继续等下次守护）", rc == 0)
         check("状态 retrying", h.get("status") == "retrying")
         check("约10分钟后重试", h.get("backoff_seconds") == 600)
         check("三源全失败【不】落红标", raise_rf.call_count == 0)
+    shutil.rmtree(tmp, ignore_errors=True)
+
+
+def test_g2b_after_close_success():
+    print("场景 G2b：交易日收盘后(15:10)取到收盘价 -> done，撮合一次")
+    tmp = Path(tempfile.mkdtemp())
+    dirs = _patch_dirs(tmp)
+    fake = FakeBF(set())
+    strats = {"qixing": {"status": "traded"}}
+    agg = {"per_source": {"tencent": 6}, "done_count": 6, "trades_total": 2}
+
+    def fake_round(today, attempt):
+        return True, strats, agg
+
+    with mock.patch.object(sup, "DATA_REPO", dirs["DATA_REPO"]), \
+         mock.patch.object(sup, "LOG_DIR", dirs["LOG_DIR"]), \
+         mock.patch.object(sup, "DAILY_DIR", dirs["DAILY_DIR"]), \
+         mock.patch.object(sup, "HEALTH_FILE", dirs["HEALTH_FILE"]), \
+         mock.patch.object(sup, "LOCK_FILE", dirs["LOCK_FILE"]), \
+         mock.patch.object(sup, "_import_backfill", lambda: fake), \
+         mock.patch.object(sup.eng, "is_trading_day", lambda d: True), \
+         mock.patch.object(sup, "trading_days_before", lambda d, lookback=12: []), \
+         mock.patch.object(sup, "attempt_round", side_effect=fake_round) as ar, \
+         mock.patch.object(sup, "push_to_github", lambda no_push: (True, "")):
+        now_dt = datetime(2026, 10, 9, 15, 10)
+        rc = sup.guard_once("2026-10-09", no_push=True, now_dt=now_dt)
+        h = _health(sup)
+        check("返回码 0", rc == 0)
+        check("状态 done", h.get("status") == "done")
+        check("收盘后撮合恰好一次", ar.call_count == 1)
+        check("完成 6/6", h.get("done_count") == 6)
     shutil.rmtree(tmp, ignore_errors=True)
 
 
@@ -145,7 +202,9 @@ def test_g3_weekend_backfill_only_after_go_live():
 
 if __name__ == "__main__":
     test_g1_morning_wait()
+    test_g1b_intraday_wait_close()
     test_g2_afternoon_all_sources_fail_retry_no_redflag()
+    test_g2b_after_close_success()
     test_g3_weekend_backfill_only_after_go_live()
     print("\n结果:", "ALL PASS" if not FAIL else f"{len(FAIL)} FAIL: {FAIL}")
     sys.exit(1 if FAIL else 0)
