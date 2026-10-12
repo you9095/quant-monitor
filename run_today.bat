@@ -2,7 +2,12 @@
 chcp 65001 >nul
 set PYTHONUTF8=1
 set PYTHONIOENCODING=utf-8
-cd /d "%~dp0"
+if exist "D:\quant-monitor\daily_task.py" (
+    cd /d "D:\quant-monitor"
+) else (
+    cd /d "%~dp0"
+)
+echo   Working dir: %CD%
 echo ============================================
 echo   AI Quant - Daily Trade Chain (Simulation)
 echo   Local matching, NO real broker account.
