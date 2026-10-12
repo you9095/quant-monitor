@@ -149,6 +149,12 @@ def main():
               "-i", "https://pypi.tuna.tsinghua.edu.cn/simple"], timeout=300)
     emit("deps", rc=rc)
 
+    # 显式注册/修复计划任务（含 QuantTradeGuard 自愈降级），并立即上报，便于远程枚举确认
+    print("\n===== STEP 2.5  注册/修复计划任务 =====")
+    rc_sr = run([str(vpy), "scripts/win_self_register.py"], timeout=90)
+    emit("self_register", rc=rc_sr)
+    run([str(vpy), "scripts/report_deploy.py"], timeout=60, visible=False)
+
     # ---- STEP 3 收盘价成交 ----
     print("\n===== STEP 3  按今日真实收盘价成交 =====")
     rc = run([str(vpy), "trade_supervisor.py", "--guard"], timeout=300)

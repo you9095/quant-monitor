@@ -164,17 +164,56 @@ def _register_trade_guard_task(root, pythonw, highest):
         '  </Actions>\r\n'
         '</Task>\r\n'
     )
-    xml_path = Path(tempfile.gettempdir()) / "quant_trade_guard.xml"
-    xml_path.write_text(xml, encoding="utf-16")
-    try:
-        r = _run(["schtasks", "/create", "/tn", "QuantTradeGuard",
-                  "/xml", str(xml_path), "/f"], timeout=30)
-        return (r.returncode == 0), (r.stderr or r.stdout or "")
-    finally:
+    def _create(xml_text):
+        xp = Path(tempfile.gettempdir()) / "quant_trade_guard.xml"
+        xp.write_text(xml_text, encoding="utf-16")
         try:
-            xml_path.unlink()
-        except OSError:
-            pass
+            r = _run(["schtasks", "/create", "/tn", "QuantTradeGuard",
+                      "/xml", str(xp), "/f"], timeout=30)
+            return r.returncode, (r.stderr or r.stdout or "")
+        finally:
+            try:
+                xp.unlink()
+            except OSError:
+                pass
+
+    rc, msg = _create(xml)
+    if rc == 0:
+        return True, "full(三触发器) ok"
+
+    # 降级版：登录后每 10 分钟跑一次 guard（与已成功注册的 QuantPanelGuard 同构，最易通过）
+    xml_simple = (
+        '<?xml version="1.0" encoding="UTF-16"?>\r\n'
+        '<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">\r\n'
+        '  <RegistrationInfo><Description>Quant trade guard simple: idempotent live-simulation match guard (local match, no broker).</Description></RegistrationInfo>\r\n'
+        '  <Triggers>\r\n'
+        '    <LogonTrigger><Enabled>true</Enabled><Delay>PT2M</Delay>'
+        '<Repetition><Interval>PT10M</Interval><Duration>P1D</Duration>'
+        '<StopAtDurationEnd>false</StopAtDurationEnd></Repetition></LogonTrigger>\r\n'
+        '  </Triggers>\r\n'
+        '  <Principals>\r\n'
+        f'    <Principal id="Author"><LogonType>InteractiveToken</LogonType><RunLevel>{run_level}</RunLevel></Principal>\r\n'
+        '  </Principals>\r\n'
+        '  <Settings>\r\n'
+        '    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>\r\n'
+        '    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>\r\n'
+        '    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>\r\n'
+        '    <ExecutionTimeLimit>PT15M</ExecutionTimeLimit>\r\n'
+        '    <Enabled>true</Enabled>\r\n'
+        '  </Settings>\r\n'
+        '  <Actions Context="Author">\r\n'
+        '    <Exec>\r\n'
+        f'      <Command>"{pythonw}"</Command>\r\n'
+        f'      <Arguments>"{supervisor}" --guard</Arguments>\r\n'
+        f'      <WorkingDirectory>{root}</WorkingDirectory>\r\n'
+        '    </Exec>\r\n'
+        '  </Actions>\r\n'
+        '</Task>\r\n'
+    )
+    rc2, msg2 = _create(xml_simple)
+    if rc2 == 0:
+        return True, "simple(登录后每10分钟) ok；full 被拒: " + msg.strip()[:120]
+    return False, "full: " + msg.strip()[:120] + " | simple: " + msg2.strip()[:120]
 
 
 def _create_desktop_shortcut(root, launcher, pythonw):
