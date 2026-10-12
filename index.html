@@ -3598,11 +3598,19 @@ function toggleDataMode() {
   const next = (window.CURRENT_DATA_MODE === 'simulator') ? 'live' : 'simulator';
   window.CURRENT_DATA_MODE = next;
   localStorage.setItem('data_mode', next);
-  updateDataModeUI();
-  // 同步更新 URL 的 data_mode 参数再加载，否则旧 URL 参数会把模式拉回（data.js 中 URL 优先）
+  // 更新 URL 但不整页刷新（replaceState），避免重新检测时偶发失败跳到"未连接"遮罩
   const u = new URL(location.href);
   u.searchParams.set('data_mode', next);
-  location.href = u.toString();
+  history.replaceState(null, '', u.toString());
+  updateDataModeUI();
+  // 切回模拟：补加载回测 / WFA 图表（首次若直接进实盘，它们尚未加载）
+  if (next === 'simulator') initChart();
+  // 按新模式直接重新取数、局部重渲染；不重启轮询（轮询每次 fetch 自动跟随当前模式）
+  (async () => {
+    const data = await DataLayer.fetchStrategies();
+    strategiesData = data;
+    renderAll(data);
+  })();
 }
 
 // 页面加载时初始化按钮状态
@@ -3746,14 +3754,16 @@ function closeDrawer() {
 let currentChartPeriod = 'live';
 
 function initChart() {
-  // 默认加载实盘净值曲线（三策略对比）
+  // 实盘净值曲线（三策略对比）——实盘 / 模拟都需要
   loadNavCurves('live');
-  // P8 v1.0: 加载 5 策略 Daily P&L 趋势图 (2026-09-13: 60天以覆盖 2026-07-24 起)
+  // 以下为回测 / WFA 过拟合审计图表：实盘模式零回测，直接跳过（也避免空数据报错）
+  if (currentMode() === 'live') return;
+  // P8 v1.0: 5 策略 Daily P&L 趋势图 (2026-09-13: 60天以覆盖 2026-07-24 起)
   loadDailyPnlTrend(60);
-  // P9 v1.0: 加载 WFA 过拟合审计
+  // P9 v1.0: WFA 过拟合审计
   loadWfaSummary();
   loadWfaOosCurve();
-  // P9-D v1.0: 加载参数稳定性监控
+  // P9-D v1.0: 参数稳定性监控
   loadParamStability();
 }
 
@@ -4252,6 +4262,7 @@ async function loadAbComparison() {
   const cardsEl = document.getElementById('ab-comparison-cards');
   
   // 数据源 1: /dashboard/ab_comparison (优先)
+  let abErr = null;
   try {
     const res = await fetch(window.apiUrl(`${DataLayer.config.apiBase}/dashboard/ab_comparison?days=60`), {cache: 'no-store'});
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -4270,14 +4281,16 @@ async function loadAbComparison() {
     window.__abDataSource = 'live';
     return;
   } catch (e) {
+    abErr = e;
     console.warn('[ab_comparison live API failed, try fallback]', e.message, e.stack?.slice(0, 300));
     window.__abLastError = e.message + ' | ' + (e.stack || '').slice(0, 500);
   }
   
   // 2026-08-27 江予白 v5 修复 (派单: 数据真实性失信 + 禁用 mockData 双轨):
   // live API 失败 → 显示 "暂无数据" + 不显示 mock. 不允许 mockData 兜底导致双轨失信.
-  if (meta) meta.textContent = '⚠️ A/B 对照数据不可用 (live API 失败: ' + (e.message || 'unknown') + ')';
-  if (kpiEl) kpiEl.innerHTML = '<div class="risk-card" style="text-align:center;color:var(--text-muted);padding:20px">⚠️ A/B 对照数据不可用<br><small style="color:var(--text-muted);font-size:11px">live API: /api/v1/dashboard/ab_comparison 失败<br>错误: ' + (e.message || 'unknown') + '<br>请检查后端 Flask 是否启动 (lsof -i :8000)</small></div>';
+  const abMsg = (abErr && abErr.message) || 'unknown';
+  if (meta) meta.textContent = '⚠️ A/B 对照数据不可用 (live API 失败: ' + abMsg + ')';
+  if (kpiEl) kpiEl.innerHTML = '<div class="risk-card" style="text-align:center;color:var(--text-muted);padding:20px">⚠️ A/B 对照数据不可用<br><small style="color:var(--text-muted);font-size:11px">live API: /api/v1/dashboard/ab_comparison 失败<br>错误: ' + abMsg + '<br>请检查后端 Flask 是否启动 (lsof -i :8000)</small></div>';
   if (cardsEl) cardsEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px">4 策略 A/B 对照等待后端数据...</div>';
   window.__abDataSource = 'empty';
 }

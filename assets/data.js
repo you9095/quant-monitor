@@ -300,27 +300,46 @@ const DataLayer = {
       mock.data_mode = 'ui_mock';
       return mock;
     }
-    try {
-      const res = await fetch(`${this.config.apiBase}/dashboard/overview?data_mode=${dataMode}`);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const result = await res.json();
-      console.log('[DEBUG] overview code=', result?.code, 'strategies=', result?.data?.strategies?.length);
-      if (result.code === 0) {
-        return this.transformApiData(result.data);
+    // 单次请求（AbortController 8s 超时），失败抛出
+    const _fetchOnce = async () => {
+      const ctrl = new AbortController();
+      const to = setTimeout(() => ctrl.abort(), 8000);
+      try {
+        const res = await fetch(
+          `${this.config.apiBase}/dashboard/overview?data_mode=${dataMode}`,
+          { cache: 'no-store', signal: ctrl.signal });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const result = await res.json();
+        if (result.code === 0) return result;
+        throw new Error(result.message || '接口返回异常');
+      } finally {
+        clearTimeout(to);
       }
-      throw new Error(result.message || '接口返回异常');
-    } catch (err) {
-      // 2026-10-08 P0 真实性修复：连接失败绝不回退到写死盈亏 mock（否则会把 2026-08-03
-      // 的旧假数据冒充实盘 / 模拟盘）。返回错误标志，由页面显示诚实的"未连接"提示。
-      console.error('数据服务连接失败，显示未连接态（不使用任何写死假数据）:', err);
-      return {
-        __error__: true,
-        errorMsg: String((err && err.message) || err),
-        data_mode: dataMode,
-        strategies: [],
-        portfolio: { total_value: 0, total_return: null, last_update: null }
-      };
+    };
+
+    // 自动重试 3 次（0.8s / 1.6s / 3.2s 指数退避）：偶发抖动 / 冷启动不再立刻跳"未连接"全屏
+    let lastErr = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const result = await _fetchOnce();
+        console.log('[DEBUG] overview code=', result?.code,
+          'strategies=', result?.data?.strategies?.length, 'attempt=', attempt);
+        return this.transformApiData(result.data);
+      } catch (err) {
+        lastErr = err;
+        console.warn(`[DEBUG] overview 第${attempt + 1}次请求失败:`, err && err.message);
+        if (attempt < 2) await new Promise(r => setTimeout(r, 800 * Math.pow(2, attempt)));
+      }
     }
+    // 3 次全失败：诚实显示未连接态，绝不回退写死假数据（2026-10-08 P0 真实性修复）
+    console.error('数据服务连续3次连接失败，显示未连接态（不使用任何写死假数据）:', lastErr);
+    return {
+      __error__: true,
+      errorMsg: String((lastErr && lastErr.message) || lastErr),
+      data_mode: dataMode,
+      strategies: [],
+      portfolio: { total_value: 0, total_return: null, last_update: null }
+    };
   },
 
   // API数据格式转换
