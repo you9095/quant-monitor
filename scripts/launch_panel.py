@@ -5,9 +5,10 @@ AI量化面板 · 全自动总控（模拟盘，本机真实撮合，绝不连�
 
 桌面“AI量化面板”图标、quant:// 按钮、计划任务 QuantPanelGuard 都调用本文件。
 双击后无需任何其它操作，自动按顺序完成：
-  STEP 1  更新代码（git fetch + reset --hard origin/master；失败则沿用本地，不阻断）
-  STEP 2  确保数据后台在运行（未运行则静默拉起；后端启动会自动注册/刷新
-          QuantTradeGuard：工作日 15:00 起每 2 分钟、15:30 起每 10 分钟自动成交）
+  STEP 1  更新代码（git fetch + reset --hard origin/master）。
+           若更新确实拉到了新版本，自动“重启自己”一次以执行最新逻辑（用户仍只双击一次）。
+  STEP 2  确保数据后台在运行（未运行则静默拉起）。
+  STEP 2.5 幂等补注册计划任务（含 QuantTradeGuard，注册自愈降级，不依赖后端重启）。
   STEP 3  成交周期守护 trade_supervisor --guard
             · 非交易日 / 当日已成交：秒退
             · 盘中 13-15：秒退，由 QuantTradeGuard 收盘后按真实收盘价自动成交
@@ -109,13 +110,20 @@ def _banner(lf, title):
              + "=" * 24 + "\n")
 
 
+def _git_env():
+    env = os.environ.copy()
+    # SSH 连接短超时，避免国内网络挂起整体卡死
+    env.setdefault("GIT_SSH_COMMAND", "ssh -o ConnectTimeout=15")
+    return env
+
+
 def run_git(args, timeout=120):
     """静默执行 git，输出进日志；返回返回码。"""
     try:
         with open(BOOTLOG, "a", encoding="utf-8") as lf:
             _banner(lf, "git " + " ".join(args))
             kw = dict(cwd=str(ROOT), stdout=lf, stderr=subprocess.STDOUT,
-                      stdin=subprocess.DEVNULL)
+                      stdin=subprocess.DEVNULL, env=_git_env())
             if IS_WIN:
                 kw["creationflags"] = NO_WINDOW
             r = subprocess.run(["git", *args], timeout=timeout, **kw)
@@ -123,6 +131,18 @@ def run_git(args, timeout=120):
     except Exception as exc:
         log(f"git {' '.join(args)} 异常: {exc}")
         return -1
+
+
+def git_head():
+    try:
+        kw = dict(cwd=str(ROOT), capture_output=True, text=True,
+                  timeout=20, env=_git_env())
+        if IS_WIN:
+            kw["creationflags"] = NO_WINDOW
+        r = subprocess.run(["git", "rev-parse", "HEAD"], **kw)
+        return r.stdout.strip()
+    except Exception:
+        return ""
 
 
 def run_py(script_args, timeout=600):
@@ -158,6 +178,29 @@ def spawn_backend():
     proc = subprocess.Popen([str(py), "-u", str(SERVER)], **kw)
     log(f"spawned backend pid={proc.pid}")
     return proc
+
+
+def relaunch_self():
+    """以当前解释器（保持 pythonw 静默）重新启动本文件，标记 --restarted。"""
+    args = [sys.executable, str(Path(__file__).resolve()),
+            "--open", "--restarted"]
+    try:
+        if IS_WIN:
+            flags = (getattr(subprocess, "DETACHED_PROCESS", 0)
+                     | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+                     | NO_WINDOW)
+            subprocess.Popen(args, creationflags=flags, close_fds=True,
+                             stdin=subprocess.DEVNULL,
+                             stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL)
+        else:
+            subprocess.Popen(args, start_new_session=True,
+                             stdin=subprocess.DEVNULL,
+                             stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL)
+        log("relaunched self (--restarted)")
+    except Exception as exc:
+        log(f"relaunch failed: {exc}")
 
 
 def report_heartbeat():
@@ -218,20 +261,29 @@ def wait_healthy():
 
 def main():
     open_browser = "--open" in sys.argv
-    lock = acquire_lock()
+    restarted = "--restarted" in sys.argv
+    if restarted:
+        time.sleep(2)  # 等上一个实例退出、释放文件锁
 
+    lock = acquire_lock()
     if lock is None:
         log("another launcher holds the lock" + ("；wait only" if open_browser else "；exit"))
         if open_browser and wait_healthy():
             open_in_browser()
         return 0
 
-    # STEP 1：自更新（失败不阻断，沿用本地继续）
+    # STEP 1：自更新；若确实拉到新版本则重启自己（只重启一次，--restarted 后不再重启）
     say("STEP 1/6 更新代码…")
+    before = git_head()
     run_git(["fetch", "origin", "master"], timeout=120)
     run_git(["reset", "--hard", "origin/master"], timeout=90)
+    after = git_head()
+    if not restarted and before and after and before != after:
+        log(f"代码已更新 {before[:7]} -> {after[:7]}，自动重启以执行最新逻辑")
+        relaunch_self()
+        return 0  # 锁随本进程退出释放；--restarted 新实例会跑完整个流程
 
-    # STEP 2：确保后台在运行（后端启动会自注册 QuantTradeGuard / 刷新桌面图标）
+    # STEP 2：确保后台在运行
     say("STEP 2/6 检查数据后台…")
     if not healthy():
         say("后台未运行，正在静默启动…")
@@ -244,6 +296,12 @@ def main():
             alert(f"数据后台在 {WAIT_SECONDS} 秒内未就绪。\n\n日志：\n{BOOTLOG}")
             return 1
     say("数据后台已就绪。")
+
+    # STEP 2.5：幂等补注册计划任务（QuantTradeGuard 注册自愈降级；不阻断）
+    say("STEP 2.5 补注册计划任务…")
+    reg = ROOT / "scripts" / "win_self_register.py"
+    if reg.exists():
+        run_py([reg], timeout=90)
 
     # STEP 3：成交守护（盘中秒退、收盘后按收盘价成交、已成交/非交易日秒退）
     say("STEP 3/6 成交周期守护…")
