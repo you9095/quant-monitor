@@ -55,8 +55,8 @@ def main():
         if not vpy.exists():
             return
         subprocess.Popen(
-            [str(vpy), str(Path(__file__).resolve()), str(root)],
-            creationflags=0x10 | 0x200, cwd=str(root),
+            ["cmd", "/k", str(vpy), str(Path(__file__).resolve()), str(root)],
+            creationflags=0x10, cwd=str(root),
         )
         return
 
@@ -172,8 +172,8 @@ def main():
         pass
     if not backend_ok:
         subprocess.Popen(
-            [str(vpy), "-u", "api/real_data_server_v2.py"], cwd=str(root),
-            creationflags=0x10 | 0x200,
+            ["cmd", "/k", str(vpy), "-u", "api/real_data_server_v2.py"],
+            cwd=str(root), creationflags=0x10,
         )
         for _ in range(40):
             time.sleep(1)
