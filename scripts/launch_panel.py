@@ -145,6 +145,27 @@ def git_head():
         return ""
 
 
+def update_code():
+    """三通道自愈更新代码：SSH22 → SSH443(ssh.github.com:443) → HTTPS；成功则 reset。返回 (bool, channel)。"""
+    channels = [
+        ("SSH22", ["fetch", "origin", "master"]),
+        ("SSH443", ["-c",
+                    "core.sshCommand=ssh -p 443 -o ConnectTimeout=15 ssh.github.com",
+                    "fetch", "origin", "master"]),
+        ("HTTPS", ["fetch",
+                   "https://github.com/you9095/quant-monitor.git", "master"]),
+    ]
+    used = None
+    for name, args in channels:
+        if run_git(args, timeout=45) == 0:
+            used = name
+            break
+    if used:
+        run_git(["reset", "--hard", "FETCH_HEAD"], timeout=30)
+        return True, used
+    return False, None
+
+
 def run_py(script_args, timeout=600):
     """用项目 venv python 静默运行脚本，输出进日志；返回返回码。"""
     py = project_py()
@@ -272,12 +293,15 @@ def main():
             open_in_browser()
         return 0
 
-    # STEP 1：自更新；若确实拉到新版本则重启自己（只重启一次，--restarted 后不再重启）
-    say("STEP 1/6 更新代码…")
+    # STEP 1：先建立/探测 GitHub 通道（三通道，写全局 SSH443，代码+数据两仓库都受益），再更新代码
+    say("STEP 1/6 建立连接并更新代码…")
+    gc = ROOT / "scripts" / "github_connect.py"
+    if gc.exists():
+        run_py([gc], timeout=180)
     before = git_head()
-    run_git(["fetch", "origin", "master"], timeout=120)
-    run_git(["reset", "--hard", "origin/master"], timeout=90)
+    updated, channel = update_code()
     after = git_head()
+    log(f"更新 updated={updated} channel={channel} {before[:7]}->{after[:7]}")
     if not restarted and before and after and before != after:
         log(f"代码已更新 {before[:7]} -> {after[:7]}，自动重启以执行最新逻辑")
         relaunch_self()
