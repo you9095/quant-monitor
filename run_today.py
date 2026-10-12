@@ -1,29 +1,33 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-AI 量化监控 —— Windows 一键修复 + 当日收盘价成交 + 启动面板
-============================================================
-双击本文件即可（.py 默认用 python.exe 控制台打开）。
-若被 pythonw（无窗口）关联，本脚本会自动在一个新控制台窗口里重跑自己。
+AI 量化监控 —— Windows 一键修复 + 当日收盘价成交 + 启动面板（强自愈 / 全超时 / 逐步上报）
+========================================================================================
+双击本文件即可。若被 pythonw（无窗口）关联，会自动用 venv 控制台 python 在新窗口重跑自己。
 
-它会按顺序完成：
-  1) 更新代码到最新   2) 检查依赖   3) 按今日真实收盘价成交（本机撮合，不接券商）
-  4) 上传实盘数据到 GitHub
-  5) 在独立窗口启动数据后台   6) 自动打开实盘面板
-全程打印、结束暂停，绝不闪退。
+特性：
+  · 每一步都有“短超时”，任何联网/子步骤卡住都会自动跳过或换通道，绝不整体卡死；
+  · 更新代码三通道自愈：SSH(22) -> SSH(443, ssh.github.com) -> HTTPS；
+  · 每完成一步立即写 live-data/_run_logs/oneclick_status.json 并 push，
+    助手可远程实时看到进度与卡点（无需用户截图）；
+  · 顺序：定位 -> 更新代码 -> 依赖 -> 收盘价成交 -> 上传 -> 起后端(可见窗口) -> 开面板；
+  · 控制台末尾暂停，错误清清楚楚，绝不闪退。
+本机模拟撮合，不连接任何券商真实账号/资金账号。
 """
 import os
 import sys
 import time
+import json
 import subprocess
 import webbrowser
 from pathlib import Path
 
+STAGE_FILE_NAME = Path("_run_logs") / "oneclick_status.json"
+
 
 def locate_root() -> Path:
-    """定位项目根：优先 D:\\quant-monitor；否则用脚本所在目录向上找含 daily_task.py 的目录。"""
-    candidates = [Path(r"D:\quant-monitor"), Path(__file__).resolve().parent]
-    for c in candidates:
+    cands = [Path(r"D:\quant-monitor"), Path(__file__).resolve().parent]
+    for c in cands:
         if (c / "daily_task.py").exists():
             return c.resolve()
     p = Path(__file__).resolve().parent
@@ -44,100 +48,156 @@ def have_console() -> bool:
 def main():
     root = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else locate_root()
     vpy = root / "venv" / "Scripts" / "python.exe"
+    live = root / "live-data"
 
-    # 若无控制台（被 pythonw 静默打开），用 venv 的控制台 python 在新窗口重跑自己
+    # 无控制台：用 venv 控制台 python 在新窗口重跑自己
     if not have_console():
         if not vpy.exists():
-            # 兜底：用当前解释器（pythonw）找不到 venv 时无法弹窗，直接退出
             return
-        CREATE_NEW_CONSOLE = 0x00000010
-        CREATE_NEW_PROCESS_GROUP = 0x00000200
         subprocess.Popen(
             [str(vpy), str(Path(__file__).resolve()), str(root)],
-            creationflags=CREATE_NEW_CONSOLE | CREATE_NEW_PROCESS_GROUP,
-            cwd=str(root),
+            creationflags=0x10 | 0x200, cwd=str(root),
         )
         return
 
-    # 有控制台：切 UTF-8，避免中文乱码
     os.system("chcp 65001 >nul")
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     except Exception:
         pass
 
-    print("=" * 60)
-    print("  AI Quant - One Click Fix and Trade (Simulation)")
-    print(f"  工作目录 : {root}")
-    print("  本机撮合，不连接任何真实券商账号")
-    print("=" * 60)
+    state = {"host": os.environ.get("COMPUTERNAME", "?"),
+             "started_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+             "root": str(root), "steps": {}}
 
+    def emit(stage, **kv):
+        state["steps"][stage] = {"at": time.strftime("%H:%M:%S"), **kv}
+        try:
+            live.mkdir(exist_ok=True)
+            sf = live / STAGE_FILE_NAME
+            sf.parent.mkdir(exist_ok=True)
+            sf.write_text(json.dumps(state, ensure_ascii=False, indent=1),
+                          encoding="utf-8")
+            subprocess.run(["git", "add", str(STAGE_FILE_NAME).replace("\\", "/")],
+                           cwd=str(live), stdout=subprocess.DEVNULL,
+                           stderr=subprocess.DEVNULL, timeout=15)
+            subprocess.run(["git", "commit", "-m", f"oneclick {stage}"],
+                           cwd=str(live), stdout=subprocess.DEVNULL,
+                           stderr=subprocess.DEVNULL, timeout=15)
+            subprocess.run(["git", "push", "origin", "master"], cwd=str(live),
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                           timeout=25)
+        except Exception:
+            pass
+        print(f"[{stage}]", kv if kv else "")
+
+    def run(cmd, timeout, cwd=None, visible=True):
+        try:
+            kw = dict(cwd=str(cwd or root), timeout=timeout)
+            if not visible:
+                kw.update(stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            r = subprocess.run(cmd, **kw)
+            return r.returncode
+        except subprocess.TimeoutExpired:
+            print(f"   !! 超时({timeout}s)，跳过: {' '.join(map(str, cmd))}")
+            return 124
+        except Exception as e:
+            print(f"   !! 异常: {e}")
+            return -1
+
+    print("=" * 64)
+    print("  AI Quant - One Click (强自愈版)  本机撮合，不接券商")
+    print(f"  工作目录: {root}")
+    print("=" * 64)
+
+    emit("locate", vpy_exists=vpy.exists())
     if not vpy.exists():
-        print(f"[错误] 未找到虚拟环境解释器: {vpy}")
-        print("请确认项目位于 D:\\quant-monitor，或重新运行安装器。")
+        print(f"[错误] 未找到 {vpy}")
+        emit("fatal", reason="venv python missing")
         input("按回车键关闭...")
         return
 
-    env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8")
+    # ---- STEP 1 更新代码（三通道自愈，全部短超时）----
+    print("\n===== STEP 1  更新代码 =====")
+    updated = False
+    channels = [
+        ("SSH22", ["git", "fetch", "origin", "master"]),
+        ("SSH443", ["git", "-c", "core.sshCommand=ssh -p 443 -o ConnectTimeout=15 ssh.github.com",
+                    "fetch", "origin", "master"]),
+        ("HTTPS", ["git", "fetch",
+                   "https://github.com/you9095/quant-monitor.git", "master"]),
+    ]
+    used = None
+    for name, cmd in channels:
+        rc = run(cmd, timeout=45, visible=False)
+        print(f"   通道 {name}: rc={rc}")
+        if rc == 0:
+            used, updated = name, True
+            break
+    new_commit = None
+    if updated:
+        run(["git", "reset", "--hard", "FETCH_HEAD"], timeout=30, visible=False)
+        r = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=str(root),
+                           stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=15)
+        new_commit = r.stdout.decode().strip()
+    emit("update", ok=updated, channel=used, commit=new_commit)
+    print(f"   更新: {'成功 ' + str(new_commit) if updated else '失败，沿用本地代码继续'}")
 
-    def step(title, cmd):
-        print(f"\n===== {title} =====")
-        r = subprocess.run(cmd, cwd=str(root), env=env)
-        if r.returncode != 0:
-            print(f"[警告] 本步骤返回码 = {r.returncode}（请留意上方信息）")
-        return r.returncode
+    # ---- STEP 2 依赖 ----
+    print("\n===== STEP 2  检查依赖 =====")
+    rc = run([str(vpy), "-m", "pip", "install", "-q", "-r", "requirements.txt",
+              "-i", "https://pypi.tuna.tsinghua.edu.cn/simple"], timeout=300)
+    emit("deps", rc=rc)
 
-    # 1) 更新代码
-    step("STEP 1/6  更新代码", ["git", "fetch", "origin", "master"])
-    step("STEP 1/6  对齐最新版本", ["git", "reset", "--hard", "origin/master"])
+    # ---- STEP 3 收盘价成交 ----
+    print("\n===== STEP 3  按今日真实收盘价成交 =====")
+    rc = run([str(vpy), "trade_supervisor.py", "--guard"], timeout=300)
+    emit("guard", rc=rc)
 
-    # 2) 依赖
-    step("STEP 2/6  检查依赖", [
-        str(vpy), "-m", "pip", "install", "-q", "-r", "requirements.txt",
-        "-i", "https://pypi.tuna.tsinghua.edu.cn/simple",
-    ])
+    # ---- STEP 4 上传实盘数据 ----
+    print("\n===== STEP 4  上传实盘数据 =====")
+    sync = root / "scripts" / "sync_live_data.py"
+    if sync.exists():
+        rc = run([str(vpy), str(sync), "push"], timeout=120)
+        emit("push", rc=rc)
 
-    # 3) 收盘价成交
-    step("STEP 3/6  按今日真实收盘价成交（不接券商）",
-         [str(vpy), "trade_supervisor.py", "--guard"])
+    # ---- STEP 5 起后端（可见窗口，报错不闪退）----
+    print("\n===== STEP 5  启动数据后台（新窗口，可最小化，勿关闭） =====")
+    backend_ok = False
+    try:
+        import urllib.request
+        with urllib.request.urlopen("http://127.0.0.1:8000/api/v1/health", timeout=2):
+            backend_ok = True
+    except Exception:
+        pass
+    if not backend_ok:
+        subprocess.Popen(
+            [str(vpy), "-u", "api/real_data_server_v2.py"], cwd=str(root),
+            creationflags=0x10 | 0x200,
+        )
+        for _ in range(40):
+            time.sleep(1)
+            try:
+                import urllib.request
+                with urllib.request.urlopen(
+                    "http://127.0.0.1:8000/api/v1/health", timeout=2
+                ) as r:
+                    if r.status == 200:
+                        backend_ok = True
+                        break
+            except Exception:
+                pass
+    emit("backend", ok=backend_ok)
+    print("   后台:", "就绪" if backend_ok else "未就绪，请看后台窗口报错")
 
-    # 4) 上传
-    step("STEP 4/6  上传实盘数据到 GitHub",
-         [str(vpy), "scripts/sync_live_data.py", "push"])
-
-    # 5) 启动后台（独立控制台窗口）
-    print("\n===== STEP 5/6  启动数据后台（新窗口，请勿关闭） =====")
-    CREATE_NEW_CONSOLE = 0x00000010
-    CREATE_NEW_PROCESS_GROUP = 0x00000200
-    subprocess.Popen(
-        [str(vpy), "api/real_data_server_v2.py"],
-        cwd=str(root), env=env,
-        creationflags=CREATE_NEW_CONSOLE | CREATE_NEW_PROCESS_GROUP,
-    )
-    print("后台启动中，等待就绪...")
-    ok = False
-    for _ in range(20):
-        time.sleep(1)
-        try:
-            import urllib.request
-            with urllib.request.urlopen(
-                "http://127.0.0.1:8000/api/v1/health", timeout=2
-            ) as r:
-                if r.status == 200:
-                    ok = True
-                    break
-        except Exception:
-            pass
-    print("后台健康检查:", "通过" if ok else "未就绪（请查看新弹出的后台窗口报错）")
-
-    # 6) 打开实盘面板
-    print("\n===== STEP 6/6  打开实盘面板 =====")
+    # ---- STEP 6 开实盘面板 ----
+    print("\n===== STEP 6  打开实盘面板 =====")
     webbrowser.open("http://localhost:8000/?data_mode=live")
+    emit("done", backend_ok=backend_ok, updated=updated, commit=new_commit)
 
-    print("\n" + "=" * 60)
-    print("  ALL DONE - 面板应已在浏览器打开。")
-    print("  若后台窗口有红色报错，请勿关闭该窗口。")
-    print("=" * 60)
+    print("\n" + "=" * 64)
+    print("  ALL DONE。面板应已打开；后台窗口可最小化、勿关闭。")
+    print("=" * 64)
     input("按回车键关闭本窗口...")
 
 
