@@ -1,16 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-AI量化面板 · 统一启动器（模拟盘，本机真实撮合，绝不连接任何券商真实账号/资金账号）。
+AI量化面板 · 全自动总控（模拟盘，本机真实撮合，绝不连接任何券商真实账号/资金账号）。
 
-quant:// 页面按钮、Windows 计划任务 QuantPanelGuard、启动器 .bat/.command
-全部调用本文件，负责确保本机 8000 端口的 Flask 后台在运行：
-  - 后台已在运行：直接退出（幂等）；
-  - 未运行：以后台/无窗口方式拉起 api/real_data_server_v2.py，
-    启动输出与报错全部追加到 logs/backend_boot.log；
-  - 轮询健康端点，就绪即退出；超时未就绪则在 Windows 弹出明确错误框并指向日志，
-    绝不“黑窗一闪、没有任何提示”。
-自带文件锁，避免按钮点击与计划任务并发拉起多个后台。
+桌面“AI量化面板”图标、quant:// 按钮、计划任务 QuantPanelGuard 都调用本文件。
+双击后无需任何其它操作，自动按顺序完成：
+  STEP 1  更新代码（git fetch + reset --hard origin/master；失败则沿用本地，不阻断）
+  STEP 2  确保数据后台在运行（未运行则静默拉起；后端启动会自动注册/刷新
+          QuantTradeGuard：工作日 15:00 起每 2 分钟、15:30 起每 10 分钟自动成交）
+  STEP 3  成交周期守护 trade_supervisor --guard
+            · 非交易日 / 当日已成交：秒退
+            · 盘中 13-15：秒退，由 QuantTradeGuard 收盘后按真实收盘价自动成交
+            · 收盘后：立即按当日真实收盘价成交（三源全失败则持续重试，不用旧价）
+  STEP 4  上传实盘数据到 GitHub
+  STEP 5  上报部署心跳（含代码版本，便于远程自动核查）
+  STEP 6  用默认浏览器直接打开“实盘”面板
+全程静默、输出写入 logs/backend_boot.log；致命错误弹出明确提示框，绝不闪退无提示。
+自带文件锁，避免并发重复执行。
 """
 
 import os
@@ -28,6 +34,8 @@ LOCKFILE = LOGDIR / "launch_panel.lock"
 SERVER = ROOT / "api" / "real_data_server_v2.py"
 PORT = int(os.environ.get("PORT", "8000"))
 WAIT_SECONDS = 90
+IS_WIN = sys.platform == "win32"
+NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0) if IS_WIN else 0
 
 
 def log(msg):
@@ -54,11 +62,11 @@ def healthy(timeout=1.5):
 
 
 def acquire_lock():
-    """拿到锁返回文件句柄；已有另一个启动器在跑则返回 None。"""
+    """拿到锁返回文件句柄；已有另一个总控在跑则返回 None。"""
     try:
         fh = open(LOCKFILE, "w")
     except Exception:
-        return True  # 锁文件都建不了时不阻塞启动
+        return True
     try:
         import msvcrt  # Windows
         try:
@@ -76,26 +84,75 @@ def acquire_lock():
 
 
 def console_python():
-    """协议处理器通常是 pythonw.exe（无控制台）；启动后端改用同目录 python.exe。"""
+    """协议处理器常为 pythonw.exe（无控制台）；需要控制台 python.exe 时用同目录版本。"""
     exe = Path(sys.executable)
-    if exe.name.lower() == "pythonw.exe":
+    if IS_WIN and exe.name.lower() == "pythonw.exe":
         cand = exe.with_name("python.exe")
         if cand.exists():
             return cand
     return exe
 
 
+def project_py():
+    """项目子步骤统一用项目虚拟环境 python（优先），保证依赖一致。"""
+    cand = ROOT / "venv" / "Scripts" / "python.exe"
+    if cand.exists():
+        return cand
+    cand = ROOT / "api" / "venv" / "bin" / "python"
+    if cand.exists():
+        return cand
+    return console_python()
+
+
+def _banner(lf, title):
+    lf.write("\n" + "=" * 24 + f" {title} @ {time.strftime('%H:%M:%S')} "
+             + "=" * 24 + "\n")
+
+
+def run_git(args, timeout=120):
+    """静默执行 git，输出进日志；返回返回码。"""
+    try:
+        with open(BOOTLOG, "a", encoding="utf-8") as lf:
+            _banner(lf, "git " + " ".join(args))
+            kw = dict(cwd=str(ROOT), stdout=lf, stderr=subprocess.STDOUT,
+                      stdin=subprocess.DEVNULL)
+            if IS_WIN:
+                kw["creationflags"] = NO_WINDOW
+            r = subprocess.run(["git", *args], timeout=timeout, **kw)
+            return r.returncode
+    except Exception as exc:
+        log(f"git {' '.join(args)} 异常: {exc}")
+        return -1
+
+
+def run_py(script_args, timeout=600):
+    """用项目 venv python 静默运行脚本，输出进日志；返回返回码。"""
+    py = project_py()
+    try:
+        with open(BOOTLOG, "a", encoding="utf-8") as lf:
+            _banner(lf, str(py.name) + " " + " ".join(map(str, script_args)))
+            kw = dict(cwd=str(ROOT), stdout=lf, stderr=subprocess.STDOUT,
+                      stdin=subprocess.DEVNULL)
+            if IS_WIN:
+                kw["creationflags"] = NO_WINDOW
+            r = subprocess.run([str(py), *map(str, script_args)],
+                               timeout=timeout, **kw)
+            return r.returncode
+    except Exception as exc:
+        log(f"运行 {script_args} 异常: {exc}")
+        return -1
+
+
 def spawn_backend():
-    py = console_python()
+    py = project_py()
     logf = open(BOOTLOG, "a", encoding="utf-8")
-    logf.write("\n" + "=" * 28 + f" launch @ {time.strftime('%Y-%m-%d %H:%M:%S')} "
-               f"py={py} " + "=" * 28 + "\n")
+    _banner(logf, f"spawn backend py={py}")
     kw = dict(cwd=str(ROOT), stdout=logf, stderr=subprocess.STDOUT,
               stdin=subprocess.DEVNULL, close_fds=True)
-    if sys.platform == "win32":
+    if IS_WIN:
         kw["creationflags"] = (getattr(subprocess, "DETACHED_PROCESS", 0)
                                | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
-                               | getattr(subprocess, "CREATE_NO_WINDOW", 0))
+                               | NO_WINDOW)
     else:
         kw["start_new_session"] = True
     proc = subprocess.Popen([str(py), "-u", str(SERVER)], **kw)
@@ -104,41 +161,35 @@ def spawn_backend():
 
 
 def report_heartbeat():
-    """后端就绪后 best-effort 触发一次部署心跳上报（含当前 git 版本号），便于远程确认。"""
+    """best-effort 触发部署心跳上报（含当前 git 版本号）。"""
     try:
         rep = ROOT / "scripts" / "report_deploy.py"
-        if not rep.exists():
-            return
-        py = console_python()
-        kw = dict(cwd=str(ROOT), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                  stdin=subprocess.DEVNULL, close_fds=True)
-        if sys.platform == "win32":
-            kw["creationflags"] = (getattr(subprocess, "DETACHED_PROCESS", 0)
-                                   | getattr(subprocess, "CREATE_NO_WINDOW", 0))
-        else:
-            kw["start_new_session"] = True
-        subprocess.Popen([str(py), str(rep)], **kw)
-        log("heartbeat reporter triggered")
+        if rep.exists():
+            run_py([rep], timeout=60)
+            log("heartbeat reporter triggered")
     except Exception as exc:
         log(f"heartbeat reporter skipped: {exc}")
 
 
 def alert(msg):
     log("ALERT: " + msg)
-    if sys.platform == "win32":
+    if IS_WIN:
         try:
             import ctypes
-            ctypes.windll.user32.MessageBoxW(0, msg, "AI量化面板启动器", 0x40)
+            ctypes.windll.user32.MessageBoxW(0, msg, "AI量化面板", 0x40)
         except Exception:
             pass
 
 
+def panel_url():
+    return f"http://localhost:{PORT}/?data_mode=live"
+
+
 def open_in_browser():
-    """用系统默认浏览器打开面板（同源 http，绕开 file:// 的一切限制）。"""
-    url = f"http://localhost:{PORT}/"
+    url = panel_url()
     try:
-        if sys.platform == "win32":
-            os.startfile(url)  # Windows 最可靠，pythonw 无控制台也生效
+        if IS_WIN:
+            os.startfile(url)
         elif sys.platform == "darwin":
             subprocess.Popen(["open", url], stdout=subprocess.DEVNULL,
                              stderr=subprocess.DEVNULL)
@@ -148,11 +199,10 @@ def open_in_browser():
         log(f"browser opened: {url}")
         return
     except Exception as exc:
-        log(f"open via os/startfile failed: {exc}")
+        log(f"open failed: {exc}")
     try:
         import webbrowser
         webbrowser.open(url, new=2)
-        log(f"browser opened via webbrowser: {url}")
     except Exception as exc:
         log(f"open_in_browser failed: {exc}")
 
@@ -170,40 +220,61 @@ def main():
     open_browser = "--open" in sys.argv
     lock = acquire_lock()
 
-    # 另一个启动器（如开机守护）正在拉起后台：本进程不重复 spawn，
-    # 但若是用户双击（--open），仍等后台就绪后把面板打开。
     if lock is None:
-        log("another launcher holds the lock; waiting only" if open_browser
-            else "another launcher is starting backend; exit")
+        log("another launcher holds the lock" + ("；wait only" if open_browser else "；exit"))
         if open_browser and wait_healthy():
             open_in_browser()
         return 0
 
-    say("启动器：正在检查数据后台是否已在运行…")
-    if healthy():
-        say("数据后台已在运行，无需重复启动。")
-        if open_browser:
-            open_in_browser()
-        return 0
+    # STEP 1：自更新（失败不阻断，沿用本地继续）
+    say("STEP 1/6 更新代码…")
+    run_git(["fetch", "origin", "master"], timeout=120)
+    run_git(["reset", "--hard", "origin/master"], timeout=90)
 
-    say("数据后台未运行，正在启动（首次约需 30-90 秒，含数据同步）…")
-    try:
-        spawn_backend()
-    except Exception as exc:
-        alert(f"启动数据后台失败：{exc}\n\n请把日志文件发给助手排查：\n{BOOTLOG}")
-        return 2
+    # STEP 2：确保后台在运行（后端启动会自注册 QuantTradeGuard / 刷新桌面图标）
+    say("STEP 2/6 检查数据后台…")
+    if not healthy():
+        say("后台未运行，正在静默启动…")
+        try:
+            spawn_backend()
+        except Exception as exc:
+            alert(f"启动数据后台失败：{exc}\n\n日志：\n{BOOTLOG}")
+            return 2
+        if not wait_healthy():
+            alert(f"数据后台在 {WAIT_SECONDS} 秒内未就绪。\n\n日志：\n{BOOTLOG}")
+            return 1
+    say("数据后台已就绪。")
 
-    if wait_healthy():
-        say(f"数据后台已就绪：http://localhost:{PORT}/")
-        report_heartbeat()
-        if open_browser:
-            open_in_browser()
-        return 0
+    # STEP 3：成交守护（盘中秒退、收盘后按收盘价成交、已成交/非交易日秒退）
+    say("STEP 3/6 成交周期守护…")
+    rc = run_py(["trade_supervisor.py", "--guard"], timeout=600)
+    if rc == 2:
+        log("guard 红灯：真实价三源持续失败，等下次守护/人工核对。")
 
-    alert(f"数据后台在 {WAIT_SECONDS} 秒内仍未就绪。\n\n"
-          f"请把下面的日志文件发给助手排查：\n{BOOTLOG}")
-    return 1
+    # STEP 4：上传实盘数据
+    say("STEP 4/6 上传实盘数据…")
+    sync = ROOT / "scripts" / "sync_live_data.py"
+    if sync.exists():
+        run_py([sync, "push"], timeout=180)
+
+    # STEP 5：心跳
+    say("STEP 5/6 上报心跳…")
+    report_heartbeat()
+
+    # STEP 6：打开实盘面板
+    say("STEP 6/6 打开实盘面板…")
+    if open_browser:
+        open_in_browser()
+
+    say("全自动流程结束。")
+    return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except Exception as exc:
+        import traceback
+        traceback.print_exc()
+        alert(f"总控发生错误：{exc}\n\n日志：\n{BOOTLOG}")
+        sys.exit(1)
