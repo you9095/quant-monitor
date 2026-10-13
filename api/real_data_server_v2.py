@@ -388,7 +388,9 @@ def _live_sync_loop(interval=180):
             print('[live-sync loop]', e)
 
 def start_live_sync():
-    sync_live_data()  # 启动先拉一次
+    # 首次同步放后台线程：git fetch 到被墙的 GitHub 可能阻塞约 90 秒，
+    # 绝不能因此延迟 app.run / bind 端口（否则 launchd 判定低效反复 SIGKILL）。
+    threading.Thread(target=sync_live_data, daemon=True).start()
     threading.Thread(target=_live_sync_loop, daemon=True).start()
 
 # 仅属于模拟盘/回测的端点：实盘模式一律返回"不适用"诚实空态，绝不泄漏回测数字

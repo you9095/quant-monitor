@@ -135,6 +135,7 @@ def _fetch_spot_sina(pool: list) -> dict:
     return out
 
 
+import market_data as md  # noqa: E402  # 固定单一模块对象（避免 api.market_data 双重加载）
 from matching_engine import Broker  # noqa: E402
 
 DATA_REPO = BASE_DIR / "live-data"
@@ -251,6 +252,7 @@ def _write_live_record(sid, cfg, broker, snap, today, phase, trades=None,
         "today_return": today_return,
         "live_total_pnl": snap["total_pnl"],
         "live_total_return": snap["total_return"],
+        "realized_pnl": snap.get("realized_pnl", 0.0),
         "live_days": past_days + 1,
         "cash": snap["cash"], "market_value": snap["market_value"],
         "positions": snap["positions"],
@@ -265,479 +267,200 @@ def _write_live_record(sid, cfg, broker, snap, today, phase, trades=None,
         json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
     (LATEST_DIR / f"{sid}.json").write_text(
         json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    # 同步写入 ~/.hermes/work_logs/<sid>/，供 bridge_worklog_to_signal.py 读取
+    # （含 pending_target，便于恢复 target_etfs 提取）。
+    try:
+        wl = Path.home() / ".hermes" / "work_logs" / sid
+        wl.mkdir(parents=True, exist_ok=True)
+        (wl / f"{today}_{sid}.json").write_text(
+            json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        pass
     return record
 
 
 # ============================================================
-# 现行方案：开机即决策 + 成交（单段式 once）
+# 主流程胶水（once 单段式）：交易日判断 / 当日真实价 / 单策略执行 / 每日入口
 # ============================================================
-def already_traded(sid: str, today: str) -> bool:
-    """当日幂等：今天该策略已按 once 成交过则返回 True（含空仓结果）。"""
-    f = DAILY_DIR / today / f"{sid}.json"
-    if not f.exists():
-        return False
+def is_trading_day(today):
+    """today('YYYY-MM-DD') 是否 A股交易日。日历取不到时退化为周末判断（保守）。"""
+    r = md.is_trade_date(today)
+    if r is None:
+        return datetime.strptime(today, "%Y-%m-%d").weekday() < 5
+    return bool(r)
+
+
+def _prices_from_em(df, pool):
+    """从东财 fund_etf_spot_em 快照（DataFrame）提取 {code: price}。"""
+    out = {}
+    if df is None:
+        return out
     try:
-        rec = json.loads(f.read_text(encoding="utf-8"))
-        return rec.get("date") == today and rec.get("phase") == "trade"
+        for _, r in df.iterrows():
+            c = str(r.get("代码", "")).strip().zfill(6)
+            if c in pool:
+                p = float(r.get("最新价"))
+                if p > 0:
+                    out[c] = p
     except Exception:
-        return False
+        pass
+    return out
 
 
-# ============================================================
-# 历史日 K（多源）——仅用于【事后补记】与信号复盘，绝不用于盘中实时成交
-# ------------------------------------------------------------
-# 盘中成交仍严格走 fetch_realtime_quotes 的当日真实价（三源），绝不用历史旧价
-# 兜底。下列函数只在"对某一历史交易日做事后补记"时使用：取该日真实收盘价做
-# 盯市/补成交，并在落盘时明确标注"事后补记"。
-# 源优先级：本地 etf_cache（Windows 东财 qfq 缓存）→ akshare 东财 qfq →
-#           新浪日 K（不复权）→ 腾讯日 K（qfq）。
-# ============================================================
-def _hist_rows_from_cache(code, end_date, n):
-    try:
-        from api.market_data import _cache_path
-        p = _cache_path(code)
-        if not p.exists():
-            return None
-        import csv as _csv
-        with open(p, encoding="utf-8") as f:
-            rows = list(_csv.reader(f))[1:]
-        pts = [(r[0], float(r[1])) for r in rows if r and r[0] <= end_date]
-        return pts[-n:] if pts else None
-    except Exception:
-        return None
-
-
-def _hist_rows_from_akshare(code, end_date, n):
-    try:
-        import akshare as ak
-        from datetime import datetime as _dt, timedelta as _td
-        start = (_dt.strptime(end_date, "%Y-%m-%d") - _td(days=n * 2 + 60)).strftime("%Y%m%d")
-        df = ak.fund_etf_hist_em(symbol=code, period="daily",
-                                 start_date=start, end_date=end_date.replace("-", ""),
-                                 adjust="qfq")
-        if df is None or len(df) == 0:
-            return None
-        pts = [(str(r["日期"])[:10], float(r["收盘"])) for _, r in df.iterrows()]
-        pts = [x for x in pts if x[0] <= end_date]
-        return pts[-n:] if pts else None
-    except Exception:
-        return None
-
-
-def _hist_rows_from_sina(code, end_date, n):
-    try:
-        import requests as _rq
-        pfx = _market_prefix(code)   # 已含完整代码，如 sz159981，切勿再拼 code
-        url = ("https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/"
-               "CN_MarketData.getKLineData?symbol=" + pfx +
-               f"&scale=240&ma=no&datalen={int(n * 2 + 30)}")
-        r = _rq.get(url, timeout=12, proxies={"http": None, "https": None},
-                    headers={"Referer": "https://finance.sina.com.cn",
-                             "User-Agent": "Mozilla/5.0"})
-        j = r.json()
-        if not j:
-            return None
-        pts = [(x["day"][:10], float(x["close"])) for x in j]
-        pts = [x for x in pts if x[0] <= end_date]
-        return pts[-n:] if pts else None
-    except Exception:
-        return None
-
-
-def _hist_rows_from_tencent(code, end_date, n):
-    try:
-        from datetime import datetime as _dt, timedelta as _td
-        pfx = _market_prefix(code)   # 已含完整代码，如 sh513100
-        start = (_dt.strptime(end_date, "%Y-%m-%d") - _td(days=n * 2 + 60)).strftime("%Y-%m-%d")
-        url = ("https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param="
-               f"{pfx},day,{start},{end_date},{int(n * 2 + 30)},qfq")
-        j = _direct_session().get(url, timeout=12).json()
-        d = j["data"][pfx]
-        rows = d.get("qfqday") or d.get("day")
-        pts = [(x[0], float(x[2])) for x in rows]
-        pts = [x for x in pts if x[0] <= end_date]
-        return pts[-n:] if pts else None
-    except Exception:
-        return None
-
-
-def load_hist_klines(code, end_date, n=60):
-    """取截至 end_date（含）的历史日 K：返回 (rows[(date,close)升序], source)。
-
-    全部源失败返回 ([], "none")。用于事后补记/信号复盘，不用于盘中成交。
-    """
-    for fn, tag in ((_hist_rows_from_cache, "cache"),
-                    (_hist_rows_from_akshare, "akshare"),
-                    (_hist_rows_from_sina, "sina"),
-                    (_hist_rows_from_tencent, "tencent")):
+def fetch_realtime_quotes(pool, spot_em_df=None):
+    """三源取当日真实价（收盘后现价=收盘价）：东财→腾讯→新浪，缺失的再兜底。
+    返回 (prices, mode, source_detail, per_source)。
+    全失败返回 ({}, 'none', 'none', {em:0,tencent:0,sina:0})。"""
+    per_source = {"em": 0, "tencent": 0, "sina": 0}
+    prices = {}
+    if spot_em_df is not None:
+        em = _prices_from_em(spot_em_df, pool)
+        per_source["em"] = len(em)
+        prices.update(em)
+    miss = [c for c in pool if c not in prices]
+    if miss:
         try:
-            rows = fn(code, end_date, n)
-            if rows and rows[-1][0] == end_date:
-                return rows, tag
+            t = _fetch_spot_tencent(miss)
+            per_source["tencent"] = len(t)
+            prices.update(t)
         except Exception:
-            continue
-    return [], "none"
-
-
-def fetch_realtime_quotes(pool: list, spot_em_df=None):
-    """仅取三源【当日真实价】（盘中=实时最新价；收盘后接口现价=当日收盘价）。
-
-    【铁律 · 2026-10-08 起】绝不使用历史日线收盘价（load_etf_close）兜底成交：
-    旧价一旦在行情故障时被当成当日价，会造成"作废价成交"的假账。三源全失败或
-    个别必需标的缺失时，如实返回缺失，由 trade_supervisor 按退避计划持续重试，
-    直到拿到当日真实价（15:00 后即真实收盘价），从机制上消灭"旧价成交"。
-
-    源链：东财 akshare(含代理绕过+直连) → 腾讯 qt.gtimg.cn → 新浪 hq.sinajs.cn，
-    前源缺失标的由后源补齐。spot_em_df 可传入本轮已取的东财快照以避免重复请求。
-    返回 (prices, source, detail, per_source)：
-      prices  仅含三源真实命中的 {code: price}；
-      source  realtime(pool 全命中) / partial(部分命中) / none(全部失败)；
-      detail  实际命中源标签，如 tencent、em+tencent、none；
-      per_source 各源命中数 {em:n, tencent:n, sina:n}。
-    """
-    hits = []  # (源标签, {code: price})，按优先级
-
-    # 源1：东财 akshare（已含 NO_PROXY + 禁代理直连；其节点偶发 502）
-    try:
-        df = spot_em_df if spot_em_df is not None else _ak_spot_em_no_proxy()
-        got = {}
-        for code in pool:
-            row = df[df["代码"] == code]
-            if len(row):
-                v = float(row.iloc[0]["最新价"])
-                if v > 0:
-                    got[code] = v
-        hits.append(("em", got))
-        print(f"  [行情] 东财源取到 {len(got)}/{len(pool)}")
-    except Exception as e:
-        print(f"  [行情] 东财源不可用: {str(e)[:120]}")
-
-    # 源2/3：腾讯、新浪（requests trust_env=False 强制直连，不读系统代理）
-    for tag, fn in (("tencent", _fetch_spot_tencent),
-                    ("sina", _fetch_spot_sina)):
+            pass
+    miss = [c for c in pool if c not in prices]
+    if miss:
         try:
-            got = fn(pool)
-            hits.append((tag, got))
-            print(f"  [行情] {tag}源取到 {len(got)}/{len(pool)}")
-        except Exception as e:
-            print(f"  [行情] {tag}源不可用: {str(e)[:120]}")
-
-    # 按源优先级合并：先到先得，后续源只补缺失标的（绝不补历史旧价）
-    realtime, detail, per_source = {}, [], {}
-    for tag, got in hits:
-        per_source[tag] = len(got)
-        added = 0
-        for code, price in got.items():
-            if code in pool and code not in realtime:
-                realtime[code] = price
-                added += 1
-        if added:
-            detail.append(tag)
-
-    if pool and len(realtime) == len(pool):
-        source = "realtime"
-    elif realtime:
-        source = "partial"
-    else:
-        source = "none"
-    detail_str = "+".join(detail) if detail else "none"
-    print(f"  [行情] 汇总: 当日真实价 {len(realtime)}/{len(pool)} "
-          f"source={source} detail={detail_str} per_source={per_source}")
-    return dict(realtime), source, detail_str, per_source
+            s = _fetch_spot_sina(miss)
+            per_source["sina"] = len(s)
+            prices.update(s)
+        except Exception:
+            pass
+    if not prices:
+        return {}, "none", "none", per_source
+    detail = "+".join(k for k, v in per_source.items() if v)
+    return prices, "realtime", detail, per_source
 
 
-def fetch_trade_prices(pool: list, spot_em_df=None):
-    """兼容旧签名（三元组）的严格真实价获取——已移除历史日线旧价兜底。
-    返回 (prices, source, detail)，source ∈ realtime / partial / none。
-    """
-    prices, source, detail, _ = fetch_realtime_quotes(pool, spot_em_df=spot_em_df)
-    return prices, source, detail
+def load_hist_map(pool, days=60):
+    """拉取 pool 全部历史收盘 {code: closes}；个别失败不影响其它。"""
+    hist = {}
+    for code in pool:
+        cl = md.load_etf_close(code, days=max(days, 60))
+        if cl:
+            hist[code] = cl
+    return hist
 
 
-def is_trading_day(today: str) -> bool:
-    """今天是否 A股交易日（节假日不成交）。
-
-    优先用权威交易日历（akshare 新浪日历，覆盖全年，盘中/盘后都准确），
-    休市日（如国庆 10-01~10-07）即使开机也不会拿上一交易日旧价误成交。
-    交易日历取不到（断网等）才退回兜底：周末必不交易；盘后用最新日线日期
-    复核；盘中无法确认时不阻断真实交易日。
-    """
-    # 1) 优先权威交易日历（盘中/盘后都准确，休市日开机也不会拿旧价误成交）
+def run_once(sid, cfg, today, force=False, spot_em_df=None):
+    """单策略完整执行：加载账本→历史动量目标→当日真实价→撮合→结算→写记录→存账本。
+    返回 dict（status/rec/per_source/missing/required/target/trades_n/price_source/detail）。
+    当日已成交（非 force）幂等返回 already。"""
+    state_file = STATE_DIR / f"{sid}.json"
+    day_file = DAILY_DIR / today / f"{sid}.json"
+    if not force and day_file.exists():
+        try:
+            old = json.loads(day_file.read_text(encoding="utf-8"))
+            if old.get("phase") == "trade":
+                return {"status": "already", "rec": None, "per_source": None,
+                        "missing": [], "required": [], "target": None,
+                        "trades_n": 0, "price_source": old.get("price_source"),
+                        "detail": None}
+        except Exception:
+            pass
     try:
-        from api.market_data import is_trade_date
-        cal = is_trade_date(today)
-        if cal is not None:
-            return bool(cal)
+        pool = cfg["pool"]
+        broker = Broker.load_or_new(state_file, cfg["capital"], sid)
+        broker.end_of_day()  # 上一交易日买入转为可卖（T+1）
+
+        # 1) 历史收盘 → 动量目标
+        hist = load_hist_map(pool)
+        if not hist:
+            return {"status": "no_history", "rec": None, "per_source": None,
+                    "missing": [], "required": pool, "target": None,
+                    "trades_n": 0, "price_source": None, "detail": None}
+        target = DECIDERS[sid](hist)
+        broker.pending_target = target
+
+        # 2) 当日真实价（收盘价）
+        prices, mode, detail, per_source = fetch_realtime_quotes(pool, spot_em_df)
+        # 三源全失败是整体性故障：任何策略（含空仓无目标）都不在本轮落盘，等行情恢复
+        if mode == "none":
+            return {"status": "missing_price", "rec": None, "per_source": per_source,
+                    "missing": pool, "required": pool, "target": target,
+                    "trades_n": 0, "price_source": mode, "detail": detail}
+        required = list(target.keys()) + list(broker.positions.keys())
+        missing = [c for c in required if c not in prices]
+        if missing:
+            # 缺真实价（卖出现持仓 / 买入目标都需要）：绝不动账、绝不用旧价，等重试
+            return {"status": "missing_price", "rec": None, "per_source": per_source,
+                    "missing": missing, "required": required, "target": target,
+                    "trades_n": 0, "price_source": mode, "detail": detail}
+
+        # 3) 真实撮合（先卖非目标、再买目标）
+        names = {c: ETF_NAMES.get(c, "") for c in pool}
+        trades = broker.rebalance(target, prices, date=today, names=names)
+        # 4) 当日结算
+        snap = broker.settle(prices)
+        # 5) 状态：有成交=traded；无成交但已持有目标=traded（就位）；空仓无目标=idle
+        if trades or broker.positions:
+            status = "traded"
+        else:
+            status = "idle"
+        # 6) 写记录 + 存账本
+        rec = _write_live_record(sid, cfg, broker, snap, today, "trade",
+                                 trades=trades, price_source=mode,
+                                 price_source_detail=detail)
+        broker.save(state_file)
+        return {"status": status, "rec": rec, "per_source": per_source,
+                "missing": [], "required": required, "target": target,
+                "trades_n": len(trades), "price_source": mode, "detail": detail}
+    except Exception as e:
+        import traceback
+        return {"status": "error", "rec": None, "per_source": None,
+                "missing": [], "required": [], "target": None,
+                "trades_n": 0, "error": str(e), "tb": traceback.format_exc()}
+
+
+def main(argv=None):
+    """每日入口（run_daily.py 转发）：once 单段式，遍历六策略。"""
+    ap = argparse.ArgumentParser()
+    ap.add_argument("phase", nargs="?", default="once",
+                    choices=["once", "decide", "execute"])
+    ap.add_argument("--date", default=datetime.now().strftime("%Y-%m-%d"))
+    ap.add_argument("--force", action="store_true")
+    args = ap.parse_args(argv)
+    today = args.date
+    print(f"[每日引擎] {today} 模式 {args.phase}（模拟盘，本机真实撮合，不接券商）")
+
+    # 红标闸门：红标锁定时，在任何交易日判断 / 成交之前直接拒绝（退出码 3）
+    try:
+        import trade_redflag as _rf
+        if _rf.load_redflag(DATA_REPO / "_run_logs"):
+            print(f"🚩 成交红标锁定中（事故日 "
+                  f"{_rf.load_redflag(DATA_REPO / '_run_logs').get('failed_date')}），"
+                  "本次不成交、不补单；解除运行 scripts/ack_trade_redflag.py。")
+            sys.exit(3)
+    except SystemExit:
+        raise
     except Exception:
         pass
 
-    # 2) 交易日历取不到时的保守兜底
-    now = datetime.now()
-    if now.weekday() >= 5:
-        return False
-    if now.hour < 15:
-        return True
-    try:
-        from api.market_data import load_etf_dates
-        for code in ("510300", "513100", "518880"):
-            dates = load_etf_dates(code, days=3)
-            if dates and dates[-1] == today:
-                return True
-        return False
-    except Exception:
-        # 取不到日期就不阻断（宁可不误杀真实交易日）
-        return True
-
-
-def run_once(sid: str, cfg: dict, today: str, force: bool = False,
-             spot_em_df=None, hist_map=None, quote_map=None, backfill=None):
-    """单段式单策略：决策 → 按当日真实价撮合 → 结算 → 写账本。
-
-    返回结构化 dict（绝不以历史旧价成交），status 取值：
-      already        当日已成交（幂等跳过）
-      traded         已按当日真实价结算/成交（含换手 0 笔的继续持有）
-      idle           无持仓且无目标（空仓 HOLD），已落盘当日记录
-      no_history     历史 K 线取不到、无法产生信号（监督器应重试）
-      missing_price  必需标的当日真实价未取全（监督器应重试，绝不旧价兜底）
-      error          其他异常（监督器记录并重试）
-
-    事后补记参数（仅 scripts/backfill_day.py 使用，盘中实时流程不传）：
-      hist_map   {code: [截至 today 的历史收盘]}，给定则跳过实时历史拉取；
-      quote_map  {code: today 当日真实收盘价}，给定则跳过盘中实时三源；
-      backfill   {"reason": str}，落盘记录明确标注"事后补记"。
-    """
-    res = {"sid": sid, "status": None, "missing": [], "required": [],
-           "target": {}, "price_source": None, "detail": None,
-           "trades_n": 0, "rec": None, "error": None, "per_source": {}}
-    # 事后补记的统一落盘标注（盘中实时流程 backfill=None、quote_map=None，不受影响）
-    is_backfill = bool(backfill) or quote_map is not None
-    if is_backfill:
-        _reason = (backfill or {}).get("reason", "当日成交缺失，按当日真实收盘价事后补记")
-        bf_nature = (f"实盘模拟(事后补记,{today}真实收盘价,本机撮合,非回测,不接券商)")
-        bf_source = f"事后补记({today}真实收盘价,本机模拟撮合,不接券商)"
-        bf_extra = {"backfill": True, "backfill_for_date": today,
-                    "backfill_run_at": datetime.now().isoformat(timespec="seconds"),
-                    "backfill_reason": _reason}
-    else:
-        bf_nature = bf_source = bf_extra = None
-    if not force and already_traded(sid, today):
-        res["status"] = "already"
-        return res
-
-    from api.market_data import load_etf_close
-    try:
-        hist_sources = {}
-        # 1) 历史收盘 → 动量目标（历史数据允许读缓存，它不是当日成交价）
-        if hist_map is not None:
-            # 事后补记：调用方已显式提供截至 today 的历史收盘
-            pass
-        elif quote_map is not None or backfill:
-            # 事后补记：多源历史日 K，严格截至 today（不用 today 之后的数据）
-            hist_map = {}
-            for code in cfg["pool"]:
-                rows, src = load_hist_klines(code, today, n=60)
-                if rows:
-                    hist_map[code] = [p for _, p in rows]
-                    hist_sources[code] = src
-        else:
-            # 盘中实时（现行流程）：akshare/缓存取最新历史收盘
-            hist_map = {}
-            for code in cfg["pool"]:
-                closes = load_etf_close(code, days=60)
-                if closes:
-                    hist_map[code] = closes
-        if not hist_map:
-            res["status"] = "no_history"
-            res["error"] = "历史行情全部取不到"
-            return res
-        target = DECIDERS.get(sid, lambda h: {})(
-            {c: hist_map.get(c, []) for c in cfg["pool"]})
-        res["target"] = target
-
-        # 2) 载入账户、T+1 解冻，确定当日"必须有真实价"的标的 = 目标 ∪ 现持仓
-        state_path = STATE_DIR / f"{sid}.json"
-        broker = Broker.load_or_new(state_path, cfg["capital"], sid)
-        broker.end_of_day()                          # T+1：昨日买入转可卖
-        held = sorted(broker.positions.keys())
-        required = sorted(set(target) | set(held))
-        res["required"] = required
-
-        # 3) 空仓且无目标 → 无需行情，直接落一条 idle(HOLD) 当日记录
-        if not required:
-            broker.pending_target = {}
-            snap = broker.settle({})
-            broker.save(state_path)
-            rec = _write_live_record(
-                sid, cfg, broker, snap, today, "trade", [],
-                data_source=(bf_source or "Windows实盘引擎(空仓无信号,本机模拟撮合)"),
-                price_source=("backfill_close" if is_backfill else "idle"),
-                price_source_detail=("backfill:no_position_no_target"
-                                     if is_backfill else "no_position_no_target"),
-                data_nature=bf_nature, extra_fields=bf_extra)
-            res.update(status="idle", rec=rec)
-            return res
-
-        # 4) 当日真实价。盘中走三源实时（缺一个都不撮合，交监督器持续重试）；
-        #    事后补记走显式传入的该日真实收盘价 quote_map（同样缺一个都不补）。
-        if quote_map is not None:
-            quotes = {c: p for c, p in quote_map.items() if c in required}
-            src_tags = sorted(set(hist_sources.values()))
-            if not src_tags and backfill and backfill.get("hist_source"):
-                src_tags = [backfill["hist_source"]]
-            source = "backfill_close"
-            detail = "backfill:" + "+".join(src_tags) if src_tags else "backfill"
-            per = {}
-        else:
-            quotes, source, detail, per = fetch_realtime_quotes(
-                required, spot_em_df=spot_em_df)
-        res["price_source"], res["detail"], res["per_source"] = source, detail, per
-        missing = [c for c in required if c not in quotes]
-        if missing:
-            res["status"] = "missing_price"
-            res["missing"] = missing
-            return res
-
-        # 5) 真实撮合 → 结算 → 落盘
-        broker.pending_target = target
-        trades = broker.rebalance(target, quotes, date=today, names=ETF_NAMES)
-        snap = broker.settle(quotes)
-        broker.save(state_path)
-        rec = _write_live_record(
-            sid, cfg, broker, snap, today, "trade", trades,
-            data_source=(bf_source or "Windows实盘引擎(开机当日真实价成交,本机模拟撮合)"),
-            price_source=source, price_source_detail=detail,
-            data_nature=bf_nature, extra_fields=bf_extra)
-        res.update(status="traded", trades_n=len(trades), rec=rec)
-        return res
-    except Exception as e:
-        import traceback
-        res["status"] = "error"
-        res["error"] = f"{type(e).__name__}: {e}"
-        res["tb"] = traceback.format_exc()
-        return res
-
-
-def run_once_all(today: str, force: bool = False, spot_em_df=None):
-    """单轮尝试所有策略（命令行 once / makeup 用）。返回 {trading_day, results}。
-    带持续重试与心跳的常驻流程见 trade_supervisor.py。"""
     if not is_trading_day(today):
-        print(f"=== [{today}] 判断为非交易日，不成交。 ===")
-        return {"trading_day": False, "results": {}}
-    print(f"=== [{today}] 开机即决策+成交（单段式·单轮） ===")
-    if spot_em_df is None:
-        try:
-            spot_em_df = _ak_spot_em_no_proxy()
-        except Exception as e:
-            print(f"  [行情] 东财快照预取失败（将以腾讯/新浪为主）: {str(e)[:120]}")
-            spot_em_df = None
-    results = {}
+        print("非交易日，跳过。")
+        return 0
+    spot = None
+    try:
+        spot = _ak_spot_em_no_proxy()
+    except Exception as e:
+        print("东财快照预取失败，腾讯/新浪兜底:", str(e)[:120])
+    done, trades_total = 0, 0
     for sid, cfg in STRATEGIES.items():
-        r = run_once(sid, cfg, today, force=force, spot_em_df=spot_em_df)
-        results[sid] = r
-        st, rec = r["status"], r.get("rec")
-        if st in ("traded", "idle"):
-            tgt = list(rec["pending_target"].keys())
-            print(f"  [{sid}] {st} 成交{r['trades_n']}笔 持仓{len(rec['positions'])}只 "
-                  f"现金={rec['cash']:.0f} 目标={tgt or '空仓'} 价源={rec['price_source']}")
-        elif st == "already":
-            print(f"  [{sid}] 今日已成交，幂等跳过。")
-        else:
-            print(f"  [{sid}] 未成交 status={st} missing={r.get('missing')} "
-                  f"价源={r.get('price_source')} {r.get('error') or ''}")
-    return {"trading_day": True, "results": results}
+        r = run_once(sid, cfg, today, force=args.force, spot_em_df=spot)
+        st = r["status"]
+        asset = (r.get("rec") or {}).get("total_asset")
+        print(f"  [{sid}] {st} 成交 {r.get('trades_n')} 笔 总资产 {asset}")
+        if st in ("traded", "idle", "already"):
+            done += 1
+        trades_total += r.get("trades_n", 0)
+    print(f"[每日引擎] 完成 {done}/{len(STRATEGIES)}，成交 {trades_total} 笔。")
+    return 0 if done == len(STRATEGIES) else 1
 
-
-# ============================================================
-# 旧两段式（保留兼容，不再注册任务）
-# ============================================================
-def run_decide(sid, cfg, hist_map, prices_close, today):
-    """end_of_day → settle → 算信号存 pending_target，不买卖"""
-    state_path = STATE_DIR / f"{sid}.json"
-    broker = Broker.load_or_new(state_path, cfg["capital"], sid)
-    broker.end_of_day()                       # T+1：昨日买入转可卖
-    snap = broker.settle(prices_close)        # 按收盘价记录今日净值
-    decider = DECIDERS.get(sid, lambda h: {})
-    broker.pending_target = decider(
-        {c: hist_map.get(c, []) for c in cfg["pool"]})
-    broker.save(state_path)
-    rec = _write_live_record(sid, cfg, broker, snap, today, "decide")
-    return rec
-
-
-def run_execute(sid, cfg, prices_open, today):
-    """按昨日 pending_target 用今天开盘价真实撮合"""
-    state_path = STATE_DIR / f"{sid}.json"
-    broker = Broker.load_or_new(state_path, cfg["capital"], sid)
-    if not broker.pending_target:
-        snap = broker.settle(prices_open)
-        rec = _write_live_record(sid, cfg, broker, snap, today, "execute_hold")
-        return rec
-    trades = broker.rebalance(broker.pending_target, prices_open, date=today,
-                              names=ETF_NAMES)
-    snap = broker.settle(prices_open)
-    broker.save(state_path)
-    rec = _write_live_record(sid, cfg, broker, snap, today, "execute", trades)
-    return rec
-
-
-def fetch_realtime_prices(pool: list) -> dict:
-    """开盘后：拉实时价（接近开盘价）"""
-    prices, _, _ = fetch_trade_prices(pool)
-    return prices
-
-
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("phase", nargs="?", default="once",
-                    choices=["once", "decide", "execute", "both"])
-    ap.add_argument("--force", action="store_true",
-                    help="once 模式忽略当日幂等，强制再成交（慎用）")
-    args = ap.parse_args()
-    today = date.today().isoformat()
-    from api.market_data import load_etf_close
-
-    # 跨日红灯锁定（纵深防御）：红标未人工解除前，任何命令行成交/决策入口一律拒绝，
-    # 杜绝绕过监督器的自动补单。
-    import trade_redflag as rf
-    flag = rf.load_redflag(DATA_REPO / "_run_logs")
-    if flag:
-        print(f"🚩 成交红灯锁定中（事故日 {flag.get('failed_date')}）：已冻结自动成交与补单，"
-              f"本次 phase={args.phase} 拒绝执行。请人工核对账目后运行 "
-              f"scripts/ack_trade_redflag.py 解除（被冻结日不补单）。")
-        sys.exit(3)
-
-    if args.phase == "once":
-        run_once_all(today, force=args.force)
-        return
-
-    if args.phase in ("decide", "both"):
-        print(f"=== [{today}] 阶段1：收盘决策 ===")
-        for sid, cfg in STRATEGIES.items():
-            hist_map, prices = {}, {}
-            for code in cfg["pool"]:
-                closes = load_etf_close(code, days=60)
-                if closes:
-                    hist_map[code] = closes
-                    prices[code] = closes[-1]
-            if not prices:
-                print(f"  [{sid}] 行情失败，跳过")
-                continue
-            rec = run_decide(sid, cfg, hist_map, prices, today)
-            tgt = list(rec["pending_target"].keys())
-            print(f"  [{sid}] 净值={rec['cash']+rec['market_value']:.0f} "
-                  f"明日目标={tgt or '空仓'}")
-
-    if args.phase in ("execute", "both"):
-        print(f"=== [{today}] 阶段2：开盘执行 ===")
-        for sid, cfg in STRATEGIES.items():
-            prices = fetch_realtime_prices(cfg["pool"])
-            if not prices:
-                print(f"  [{sid}] 实时价失败，跳过")
-                continue
-            rec = run_execute(sid, cfg, prices, today)
-            print(f"  [{sid}] 成交{len(rec['trades_today'])}笔 "
-                  f"持仓{len(rec['positions'])}只 现金={rec['cash']:.0f}")
-
-
-if __name__ == "__main__":
-    main()

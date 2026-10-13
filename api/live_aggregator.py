@@ -190,6 +190,37 @@ def build_trades(strategy="", action="", start="", end="", root: Path = None):
 # ============================================================
 # 2) 盈亏历史
 # ============================================================
+def _all_strategy_ids(root: Path, observed: set) -> list:
+    """完整策略集合：daily / latest / _account_state 出现的所有 sid，按 STRATEGY_ORDER 排序。"""
+    ids = set(observed)
+    for sub in ("latest", "_account_state"):
+        d = root / sub
+        if d.exists():
+            for f in d.glob("*.json"):
+                ids.add(f.stem)
+    ordered = [s for s in STRATEGY_ORDER if s in ids]
+    ordered += sorted(ids - set(ordered))
+    return ordered
+
+
+def _init_capital_for(sid: str, sid_hist: dict, root: Path,
+                      default: float = 10000.0) -> float:
+    """某策略初始本金：优先历史 daily 记录的 initial_capital，再 latest / _account_state。"""
+    for dd in sorted(sid_hist.get(sid, {})):
+        ic = sid_hist[sid][dd].get("initial_capital")
+        if ic:
+            return _num(ic, default)
+    for sub in ("latest", "_account_state"):
+        f = root / sub / f"{sid}.json"
+        if f.exists():
+            try:
+                r = json.loads(f.read_text(encoding="utf-8"))
+                return _num(r.get("initial_capital"), default)
+            except Exception:
+                pass
+    return default
+
+
 def build_pnl_history(strategy="", start="", end="", root: Path = None):
     root = root or LIVE_ROOT
     mock = is_mock(root)
@@ -224,6 +255,35 @@ def build_pnl_history(strategy="", start="", end="", root: Path = None):
                        _num(p.get("qty")) * _num(p.get("current_price")))
             if pmv > day["top_mv"]:
                 day["top_mv"] = pmv
+
+    # ---- 补齐：空仓观望 / 拉不到历史K线（no_history）的策略当日可能不写 daily 快照，
+    # 聚合若只读 daily 会漏算它们的现金（本金）。用 forward-fill（最近日记录）或初始
+    # 本金补回，保证总权益 = 现金 + 市值完整。这些日期该策略无动作，不贡献当日盈亏。 ----
+    dates = sorted(by_day.keys())
+    all_sids = _all_strategy_ids(root, {sid for _, sid, _ in records})
+    full = _load_daily_records(strategy, "", "", root)  # 含范围外，用于前向填充
+    sid_hist = {}
+    for d, sid, rec in full:
+        sid_hist.setdefault(sid, {})[d] = rec
+    for d in dates:
+        day = by_day[d]
+        present = {sid for dd, sid, _ in records if dd == d}
+        for sid in all_sids:
+            if sid in present:
+                continue
+            init = _init_capital_for(sid, sid_hist, root)
+            init_capital.setdefault(sid, init)
+            prior = [dd for dd in sid_hist.get(sid, {}) if dd <= d]
+            if prior:  # 延续最近交易日状态
+                rec = sid_hist[sid][max(prior)]
+                cash = _num(rec.get("cash"))
+                mv = _num(rec.get("market_value"))
+                asset = _num(rec.get("total_asset"), cash + mv)
+            else:  # 该日之前从未记录：账户保持初始态（空仓、现金=本金）
+                cash, mv, asset = init, 0.0, init
+            day["cash"] += cash
+            day["mv"] += mv
+            day["asset"] += asset
 
     initial_total = sum(init_capital.values()) if init_capital else 0.0
     history = []
