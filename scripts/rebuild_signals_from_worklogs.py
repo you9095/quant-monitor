@@ -11,10 +11,10 @@
      （scripts/goldcombo_daily_run.py，venv+backtrader，V24 锁死、实盘起点前不交易），
      与 5 个 ETF 策略走同一条逐日 work_logs → signals 链路；
      棘轮回测结果一律不得进入 work_logs/signals（规则7：回测/实盘严格分离）。
-
 用法:
   python3 rebuild_signals_from_worklogs.py            # 全量重建
 """
+
 import json
 import sys
 import argparse
@@ -42,11 +42,40 @@ ACTION_MAP = {
 
 
 def parse_worklog_first_json(wl_path: Path):
-    """work_logs 是 JSONL, 取第一行（或含 daily_pnl 的 afternoon 行）"""
+    """从 work_logs 读取第一个完整的 JSON 对象（支持多行 JSON 格式）。
+    work_logs 文件包含多行 JSON 对象，每个对象包含 daily_pnl 等字段。
+    返回第一个包含 daily_pnl 的对象，优先 afternoon session。
+    """
     try:
         text = wl_path.read_text(encoding='utf-8')
     except Exception:
         return None
+    # 尝试查找第一个完整的 JSON 对象（通过 brace 匹配，支持多行格式）
+    depth = 0
+    start = None
+    end = None
+    for i, ch in enumerate(text):
+        if ch == '{' and start is None:
+            start = i
+        if start is not None:
+            if ch == '{':
+                depth += 1
+            elif ch == '}':
+                depth -= 1
+                if depth == 0:
+                    end = i + 1
+                    break
+    if start is None or end is None:
+        return None
+    json_str = text[start:end]
+    try:
+        obj = json.loads(json_str)
+    except Exception:
+        return None
+    # 如果对象包含 daily_pnl，直接返回
+    if isinstance(obj, dict) and obj.get('daily_pnl'):
+        return obj
+    # 否则回退到逐行查找（兼容 JSONL 格式）
     afternoon = None
     morning = None
     first = None
@@ -68,7 +97,7 @@ def parse_worklog_first_json(wl_path: Path):
 
 
 def collect_dates(wl_dir: Path, sid: str):
-    """返回 {date_str: {'fusion': path|None, 'live': path|None, 'legacy': path|None}}"""
+    """返回 {date_str: {'fusion': path|None, 'live': path|None, 'legacy': pathNone}}"""
     dates = {}
     for f in wl_dir.glob(f'{sid}_*.json'):
         if 'baseline' in f.name:
@@ -91,13 +120,20 @@ def collect_dates(wl_dir: Path, sid: str):
                     continue
         if not date_str:
             continue
-        dates.setdefault(date_str, {'fusion': None, 'live': None, 'legacy': None})
+        dates.setdefault(date_str, {'fusion': None, 'legacy': None, 'live': None})
         if is_fusion:
             dates[date_str]['fusion'] = f
-        elif is_live:
+        elif is_live and dates[date_str]['live'] is None and dates[date_str]['legacy'] is None:
+            # Live: only if no fusion/legacy exists yet
             dates[date_str]['live'] = f
-        else:
+        elif dates[date_str]['legacy'] is None:
+            # Legacy: set if not already set (will be enforced as priority later)
             dates[date_str]['legacy'] = f
+    # Enforce legacy priority: if both legacy and live are set for a date, prefer legacy
+    for d in dates:
+        if dates[d]['legacy'] is not None and dates[d]['live'] is not None:
+            dates[d]['live'] = None
+    # else: both fusion and legacy already set; live skipped
     return dates
 
 
@@ -166,10 +202,28 @@ def build_etf_signal(sid, sname, date_str, wl_file, live_days, initial_cap):
 
     # === 旧格式映射（原有逻辑）===
     sig = wl.get('signal') if isinstance(wl.get('signal'), dict) else {}
-    action_en = sig.get('action', '')
+    # 从 worklog signal 字段搬运 target_etfs（针对 zhuidian 等策略，2026-09-22 修复）
+    # 此字段在 worklog 中完整存在，但重建信号时曾被忽略，导致 target_etfs 一律为 []
+    if sid == 'zhuidian' and isinstance(sig, dict):
+        wl_target_etfs = sig.get('target_etfs', [])
+        valid_etfs = [t for t in wl_target_etfs if float(t.get('target_value', 0)) > 0]
+        if valid_etfs:
+            signal['target_etfs'] = valid_etfs
+            tw = sig.get('target_weight')
+            if tw and float(tw) > 0:
+                signal['target_weight'] = float(tw)
+            else:
+                n = len(valid_etfs)
+                signal['target_weight'] = round(1.0 / n, 4) if n else 0
+        else:
+            signal['target_etfs'] = []
+            signal['target_weight'] = 0
+    # signal.action 可能是 dict（如 {'type': 'REBALANCE', 'label': '调仓', ...}）或字符串
+    raw_action = sig.get('action', '') if isinstance(sig.get('action'), dict) else (sig.get('action', '') or '')
+    action_en = raw_action.get('type', '') if isinstance(raw_action, dict) else (raw_action or '')
     signal['action'] = {
         'type': action_en,
-        'label': ACTION_MAP.get(action_en, action_en),
+        'label': ACTION_MAP.get(action_en, action_en) if isinstance(action_en, str) else action_en,
         'target_etf': sig.get('target_etf', ''),
         'target_weight': sig.get('target_weight', 0),
     }
@@ -298,8 +352,7 @@ def main():
             count += 1
         print(f'  {sid}: 重建 {count} 个真实 signals（{sorted(dates)[0]} ~ {sorted(dates)[-1]}，本金 {initial_cap:.0f}）')
         total += count
-
-    print(f'\n✅ 重建完成: 共 {total} 个真实 signals，无任何快照/前向填充/回测冒充')
+    print(f'\n✅ 重建完成: 共 {total} 个真实 signals，无任何快照/前向填充/回测冒充\n')
 
 
 if __name__ == '__main__':
