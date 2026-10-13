@@ -70,10 +70,21 @@ def step_update_code():
                        capture_output=True, text=True, timeout=120)
     if r.returncode != 0:
         log(f"  fetch 失败（沿用本地版本）: {r.stderr.strip()[:200]}")
-        return
+        return False
+    try:
+        before = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(BASE_DIR),
+                                capture_output=True, text=True).stdout.strip()
+    except Exception:
+        before = ""
     r = subprocess.run(["git", "reset", "--hard", "origin/master"], cwd=str(BASE_DIR),
                        capture_output=True, text=True, timeout=60)
+    try:
+        after = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(BASE_DIR),
+                               capture_output=True, text=True).stdout.strip()
+    except Exception:
+        after = before
     log("  代码已同步到最新")
+    return bool(before and after and before != after)
 
 
 def step_install_deps():
@@ -97,31 +108,37 @@ def step_run_engine(engine_phase):
 
 
 def step_run_supervisor():
-    """跑一次成交周期守护 --guard（幂等、单次即退）。
+    """启动成交监督器（按是否已收盘分流，全程幂等、当日已成交自动跳过）。
 
-    计划任务（登录后与工作日下午每 10 分钟的 QuantTradeGuard，外加 onlogon/13:05/15:10）
-    会反复唤醒它：非交易日/当日已成交/红标锁定 -> 秒退；交易日 13:00 后未成交 ->
-    取当日真实价成交（盘中实时价、收盘后收盘价），三源全失败则写"重试中"心跳，
-    等下一次（约 10 分钟后）守护继续，绝不用旧价；跨日发现漏单则按当日真实收盘价
-    自动事后补记。只有历史真实价也三源全失败才亮红灯（退出码 2）。
-    单次守护限时 15 分钟（取价+撮合足够），周期任务负责"持续重试"，本进程不长驻。
+    盘中（13:00-15:00，登录/13:05 任务）：跑 --guard 单次幂等，盘中秒退、不抢跑，仅维持心跳。
+    收盘后（>=15:00，即 15:10 的 QuantDailyTradePM 兜底）：跑常驻 supervise（不带 --guard），
+      按当日真实收盘价成交；三源失败则在进程内 2/3/5 分钟、其后每 10 分钟持续重试到 17:00，
+      到 17:00 仍全失败才落红标。这样"持续重试"由已以管理员注册、必定运行的 15:10
+      任务在进程内完成，不依赖普通权限无法创建的 QuantTradeGuard 计划任务。
     """
-    log("启动成交周期守护 --guard（幂等：跨日补记/当日真实价成交/三源失败10分钟后重试）...")
     sup = BASE_DIR / "trade_supervisor.py"
+    cur = datetime.now()
+    after_close = cur.weekday() < 5 and (cur.hour, cur.minute) >= (15, 0)
+    if after_close:
+        log("收盘后启动常驻成交监督器（按收盘价成交、进程内持续重试到17:00，无需 QuantTradeGuard）...")
+        args, tmo, tail = [str(VENV_PY), str(sup)], 7200, 1800
+    else:
+        log("盘中启动成交守护 --guard（单次幂等、盘中秒退不抢跑）...")
+        args, tmo, tail = [str(VENV_PY), str(sup), "--guard"], 900, 1500
     try:
-        r = subprocess.run([str(VENV_PY), str(sup), "--guard"], cwd=str(BASE_DIR),
-                           capture_output=True, text=True, timeout=900)
-        log("  守护输出: " + (r.stdout.strip()[-1500:] if r.stdout else "(空)"))
+        r = subprocess.run(args, cwd=str(BASE_DIR),
+                           capture_output=True, text=True, timeout=tmo)
+        log("  监督输出: " + (r.stdout.strip()[-tail:] if r.stdout else "(空)"))
         if r.returncode == 2:
-            log("  ⚠️ 守护红灯：真实价三源（含历史收盘价）持续取不到，"
+            log("  ⚠️ 监督红灯：真实价三源（含历史收盘价）持续取不到，"
                 "见 live-data/_run_logs/trade_health.json，等人工核对。")
         elif r.returncode != 0:
-            log("  守护异常退出 code=%s: %s"
+            log("  监督异常退出 code=%s: %s"
                 % (r.returncode, (r.stderr or "")[-800:]))
         else:
-            log("  守护本次正常结束（已成交/非交易日/等待下午/重试中，周期任务会再来）。")
+            log("  监督正常结束（已成交/非交易日/等待下午/重试收尾）。")
     except subprocess.TimeoutExpired:
-        log("  单次守护超过 15 分钟未退出（异常），下个周期会幂等重试，请查守护日志。")
+        log("  监督超时未退出（异常），请查监督日志，下个交易日会幂等重试。")
 
 
 def step_push_data():
@@ -170,7 +187,13 @@ def main():
     try:
         if phase == "trade":
             # 更新代码/依赖只做一次；监督器常驻负责 重试→成交→上传→健康心跳
-            step_update_code()
+            updated = step_update_code()
+            # 若更新到了新代码，重启自己以确保本次跑的是最新逻辑（环境标记只重启一次，防循环）
+            if updated and not os.environ.get("QUANT_TASK_RESTARTED"):
+                new_env = dict(os.environ)
+                new_env["QUANT_TASK_RESTARTED"] = "1"
+                log("代码已更新，重启自己以运行最新版本...")
+                os.execve(sys.executable, [sys.executable] + sys.argv, new_env)
             step_install_deps()
             step_run_supervisor()
             step_push_data()          # 兜底再上传一次（幂等，无变更则跳过）
