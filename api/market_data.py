@@ -43,7 +43,8 @@ def load_etf_close(code: str, days: int = 120, use_cache: bool = True) -> list:
             df = ak.fund_etf_hist_em(symbol=code, period="daily",
                                      start_date=start, end_date=end, adjust="qfq")
             if df is None or len(df) == 0:
-                return []
+                time.sleep(2)
+                continue   # 空数据：重试，而非第一次就放弃
             closes = []
             with open(cache, "w", encoding="utf-8", newline="") as f:
                 w = csv.writer(f)
@@ -59,15 +60,15 @@ def load_etf_close(code: str, days: int = 120, use_cache: bool = True) -> list:
             if attempt == 2:
                 print(f"  [行情] {code} 拉取失败: {e}")
             time.sleep(2)   # 失败退避2秒再试
-        # 兜底：读旧缓存
-        if cache.exists():
-            try:
-                with open(cache, encoding="utf-8") as f:
-                    rows = list(csv.reader(f))
-                return [float(r[1]) for r in rows[1:]][-days:]
-            except Exception:
-                pass
-        return []
+    # 3次都失败才兜底旧缓存（旧数据也强于无数据）
+    if cache.exists():
+        try:
+            with open(cache, encoding="utf-8") as f:
+                rows = list(csv.reader(f))
+            return [float(r[1]) for r in rows[1:]][-days:]
+        except Exception:
+            pass
+    return []
 
 
 def load_etf_dates(code: str, days: int = 5, use_cache: bool = True) -> list:
