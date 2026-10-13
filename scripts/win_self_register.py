@@ -13,6 +13,7 @@ Windows 运行时自我注册（普通用户权限、幂等、绝不阻断面板
 """
 
 import sys
+import json
 import base64
 import subprocess
 import tempfile
@@ -89,131 +90,118 @@ def _register_guard_task(root, launcher, pythonw, highest):
 
 
 def _register_trade_guard_task(root, pythonw, highest):
-    """QuantTradeGuard：成交周期守护（幂等、秒退，根治"开机却没成交"）。
+    """QuantTradeGuard 多级自愈注册，返回 (ok, detail)。
 
-    主口径=收盘价（与回测一致）：盘中 13:00-15:00 不按跳动的实时价成交，只等待。
-    触发：① 登录后 2 分钟起，每 10 分钟一次（持续 1 天，用于跨日补记/首触发心跳）；
-          ② 工作日 15:00 起每 2 分钟一次（持续 30 分钟，收盘密集窗，取收盘价立即成交）；
-          ③ 工作日 15:30 起每 10 分钟一次（持续 2 小时，收盘后兜底补成交/上传）。
-    动作：pythonw trade_supervisor.py --guard
-      - 非交易日 / 当日已成交 / 红标锁定 / 盘中 -> 秒退；
-      - 交易日 15:00 后未成交 -> 按当日收盘价成交，三源全失败则持续重试；
-      - 跨日发现漏单 -> 按当日真实收盘价自动事后补记；仅历史真实价也三源全失败才亮红灯。
-    StartWhenAvailable=错过尽快补跑；WakeToRun=可唤醒计算机；电池不阻止；失败自动重启；单实例 IgnoreNew。
+    依次尝试：full(三触发器) → simple(登录后每10分钟) → minimal(纯登录触发)
+              → schtasks 命令行(完全不依赖 xml)。每一级的真实报错都收进 detail，
+    由调用方写到数据仓库 _run_logs/guard_register.json 供 macOS 远程核对。
     """
     run_level = "HighestAvailable" if highest else "LeastPrivilege"
     year = datetime.datetime.now().year
     supervisor = str(Path(root) / "trade_supervisor.py")
-    xml = (
-        '<?xml version="1.0" encoding="UTF-16"?>\r\n'
-        '<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">\r\n'
-        '  <RegistrationInfo><Description>Quant trade guard: idempotent every-10-min live-simulation match guard (local match, no broker). Backfills missed trade days on real close; retries every 10 min unless all 3 price sources fail.</Description></RegistrationInfo>\r\n'
-        '  <Triggers>\r\n'
-        '    <LogonTrigger>\r\n'
-        '      <Enabled>true</Enabled>\r\n'
-        '      <Delay>PT2M</Delay>\r\n'
-        '      <Repetition><Interval>PT10M</Interval><Duration>P1D</Duration><StopAtDurationEnd>false</StopAtDurationEnd></Repetition>\r\n'
-        '    </LogonTrigger>\r\n'
-        # 收盘密集窗：工作日 15:00 起每 2 分钟一次（持续 30 分钟），取收盘价立即成交
-        '    <CalendarTrigger>\r\n'
-        f'      <StartBoundary>{year}-01-01T15:00:00</StartBoundary>\r\n'
-        '      <Enabled>true</Enabled>\r\n'
-        '      <ScheduleByWeek>\r\n'
-        '        <DaysOfWeek><Monday/><Tuesday/><Wednesday/><Thursday/><Friday/></DaysOfWeek>\r\n'
-        '        <WeeksInterval>1</WeeksInterval>\r\n'
-        '      </ScheduleByWeek>\r\n'
-        '      <Repetition><Interval>PT2M</Interval><Duration>PT30M</Duration><StopAtDurationEnd>false</StopAtDurationEnd></Repetition>\r\n'
-        '    </CalendarTrigger>\r\n'
-        # 收盘后重试窗：工作日 15:30 起每 10 分钟一次（持续 2 小时），兜底补成交/上传
-        '    <CalendarTrigger>\r\n'
-        f'      <StartBoundary>{year}-01-01T15:30:00</StartBoundary>\r\n'
-        '      <Enabled>true</Enabled>\r\n'
-        '      <ScheduleByWeek>\r\n'
-        '        <DaysOfWeek><Monday/><Tuesday/><Wednesday/><Thursday/><Friday/></DaysOfWeek>\r\n'
-        '        <WeeksInterval>1</WeeksInterval>\r\n'
-        '      </ScheduleByWeek>\r\n'
-        '      <Repetition><Interval>PT10M</Interval><Duration>PT2H</Duration><StopAtDurationEnd>false</StopAtDurationEnd></Repetition>\r\n'
-        '    </CalendarTrigger>\r\n'
-        '  </Triggers>\r\n'
-        '  <Principals>\r\n'
-        f'    <Principal id="Author"><LogonType>InteractiveToken</LogonType><RunLevel>{run_level}</RunLevel></Principal>\r\n'
-        '  </Principals>\r\n'
-        '  <Settings>\r\n'
-        '    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>\r\n'
-        '    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>\r\n'
-        '    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>\r\n'
-        '    <AllowHardTerminate>true</AllowHardTerminate>\r\n'
-        '    <StartWhenAvailable>true</StartWhenAvailable>\r\n'
-        '    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>\r\n'
-        '    <IdleSettings><StopOnIdleEnd>false</StopOnIdleEnd><RestartOnIdle>false</RestartOnIdle></IdleSettings>\r\n'
-        '    <AllowStartOnDemand>true</AllowStartOnDemand>\r\n'
-        '    <Enabled>true</Enabled>\r\n'
-        '    <Hidden>false</Hidden>\r\n'
-        '    <RunOnlyIfIdle>false</RunOnlyIfIdle>\r\n'
-        '    <WakeToRun>true</WakeToRun>\r\n'
-        '    <ExecutionTimeLimit>PT15M</ExecutionTimeLimit>\r\n'
-        '    <Priority>7</Priority>\r\n'
-        '    <RestartOnFailure><Interval>PT2M</Interval><Count>3</Count></RestartOnFailure>\r\n'
-        '  </Settings>\r\n'
-        '  <Actions Context="Author">\r\n'
-        '    <Exec>\r\n'
-        f'      <Command>"{pythonw}"</Command>\r\n'
-        f'      <Arguments>"{supervisor}" --guard</Arguments>\r\n'
-        f'      <WorkingDirectory>{root}</WorkingDirectory>\r\n'
-        '    </Exec>\r\n'
-        '  </Actions>\r\n'
-        '</Task>\r\n'
-    )
-    def _create(xml_text):
-        xp = Path(tempfile.gettempdir()) / "quant_trade_guard.xml"
+    attempts = []
+
+    def _create_xml(name, xml_text):
+        xp = Path(tempfile.gettempdir()) / ("quant_%s.xml" % name)
         xp.write_text(xml_text, encoding="utf-16")
         try:
             r = _run(["schtasks", "/create", "/tn", "QuantTradeGuard",
                       "/xml", str(xp), "/f"], timeout=30)
-            return r.returncode, (r.stderr or r.stdout or "")
+            return r.returncode, (r.stderr or r.stdout or "").strip()
         finally:
             try:
                 xp.unlink()
             except OSError:
                 pass
 
-    rc, msg = _create(xml)
-    if rc == 0:
-        return True, "full(三触发器) ok"
+    def _wrap(inner_triggers, exec_limit="PT15M"):
+        return (
+            '<?xml version="1.0" encoding="UTF-16"?>\r\n'
+            '<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">\r\n'
+            '  <RegistrationInfo><Description>Quant trade guard: idempotent live-simulation match guard (local match, no broker).</Description></RegistrationInfo>\r\n'
+            '  <Triggers>\r\n' + inner_triggers + '  </Triggers>\r\n'
+            '  <Principals>\r\n'
+            f'    <Principal id="Author"><LogonType>InteractiveToken</LogonType><RunLevel>{run_level}</RunLevel></Principal>\r\n'
+            '  </Principals>\r\n'
+            '  <Settings>\r\n'
+            '    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>\r\n'
+            '    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>\r\n'
+            '    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>\r\n'
+            '    <StartWhenAvailable>true</StartWhenAvailable>\r\n'
+            '    <WakeToRun>true</WakeToRun>\r\n'
+            f'    <ExecutionTimeLimit>{exec_limit}</ExecutionTimeLimit>\r\n'
+            '    <Enabled>true</Enabled>\r\n'
+            '  </Settings>\r\n'
+            '  <Actions Context="Author">\r\n'
+            '    <Exec>\r\n'
+            f'      <Command>"{pythonw}"</Command>\r\n'
+            f'      <Arguments>"{supervisor}" --guard</Arguments>\r\n'
+            f'      <WorkingDirectory>{root}</WorkingDirectory>\r\n'
+            '    </Exec>\r\n'
+            '  </Actions>\r\n'
+            '</Task>\r\n'
+        )
 
-    # 降级版：登录后每 10 分钟跑一次 guard（与已成功注册的 QuantPanelGuard 同构，最易通过）
-    xml_simple = (
-        '<?xml version="1.0" encoding="UTF-16"?>\r\n'
-        '<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">\r\n'
-        '  <RegistrationInfo><Description>Quant trade guard simple: idempotent live-simulation match guard (local match, no broker).</Description></RegistrationInfo>\r\n'
-        '  <Triggers>\r\n'
-        '    <LogonTrigger><Enabled>true</Enabled><Delay>PT2M</Delay>'
-        '<Repetition><Interval>PT10M</Interval><Duration>P1D</Duration>'
-        '<StopAtDurationEnd>false</StopAtDurationEnd></Repetition></LogonTrigger>\r\n'
-        '  </Triggers>\r\n'
-        '  <Principals>\r\n'
-        f'    <Principal id="Author"><LogonType>InteractiveToken</LogonType><RunLevel>{run_level}</RunLevel></Principal>\r\n'
-        '  </Principals>\r\n'
-        '  <Settings>\r\n'
-        '    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>\r\n'
-        '    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>\r\n'
-        '    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>\r\n'
-        '    <ExecutionTimeLimit>PT15M</ExecutionTimeLimit>\r\n'
-        '    <Enabled>true</Enabled>\r\n'
-        '  </Settings>\r\n'
-        '  <Actions Context="Author">\r\n'
-        '    <Exec>\r\n'
-        f'      <Command>"{pythonw}"</Command>\r\n'
-        f'      <Arguments>"{supervisor}" --guard</Arguments>\r\n'
-        f'      <WorkingDirectory>{root}</WorkingDirectory>\r\n'
-        '    </Exec>\r\n'
-        '  </Actions>\r\n'
-        '</Task>\r\n'
+    logon_10 = (
+        '    <LogonTrigger>\r\n'
+        '      <Enabled>true</Enabled>\r\n'
+        '      <Delay>PT2M</Delay>\r\n'
+        '      <Repetition><Interval>PT10M</Interval><Duration>P1D</Duration>'
+        '<StopAtDurationEnd>false</StopAtDurationEnd></Repetition>\r\n'
+        '    </LogonTrigger>\r\n'
     )
-    rc2, msg2 = _create(xml_simple)
-    if rc2 == 0:
-        return True, "simple(登录后每10分钟) ok；full 被拒: " + msg.strip()[:120]
-    return False, "full: " + msg.strip()[:120] + " | simple: " + msg2.strip()[:120]
+    cal_1500 = (
+        '    <CalendarTrigger>\r\n'
+        f'      <StartBoundary>{year}-01-01T15:00:00</StartBoundary>\r\n'
+        '      <Enabled>true</Enabled>\r\n'
+        '      <ScheduleByWeek><DaysOfWeek><Monday/><Tuesday/><Wednesday/><Thursday/><Friday/></DaysOfWeek>'
+        '<WeeksInterval>1</WeeksInterval></ScheduleByWeek>\r\n'
+        '      <Repetition><Interval>PT2M</Interval><Duration>PT30M</Duration>'
+        '<StopAtDurationEnd>false</StopAtDurationEnd></Repetition>\r\n'
+        '    </CalendarTrigger>\r\n'
+    )
+    cal_1530 = (
+        '    <CalendarTrigger>\r\n'
+        f'      <StartBoundary>{year}-01-01T15:30:00</StartBoundary>\r\n'
+        '      <Enabled>true</Enabled>\r\n'
+        '      <ScheduleByWeek><DaysOfWeek><Monday/><Tuesday/><Wednesday/><Thursday/><Friday/></DaysOfWeek>'
+        '<WeeksInterval>1</WeeksInterval></ScheduleByWeek>\r\n'
+        '      <Repetition><Interval>PT10M</Interval><Duration>PT2H</Duration>'
+        '<StopAtDurationEnd>false</StopAtDurationEnd></Repetition>\r\n'
+        '    </CalendarTrigger>\r\n'
+    )
+    logon_plain = (
+        '    <LogonTrigger>\r\n'
+        '      <Enabled>true</Enabled>\r\n'
+        '      <Delay>PT2M</Delay>\r\n'
+        '    </LogonTrigger>\r\n'
+    )
+
+    rc, msg = _create_xml("tg_full", _wrap(logon_10 + cal_1500 + cal_1530))
+    attempts.append(["full", rc, msg])
+    if rc == 0:
+        return True, {"ok": "full", "attempts": attempts}
+
+    rc, msg = _create_xml("tg_simple", _wrap(logon_10))
+    attempts.append(["simple", rc, msg])
+    if rc == 0:
+        return True, {"ok": "simple", "attempts": attempts}
+
+    rc, msg = _create_xml("tg_minimal", _wrap(logon_plain))
+    attempts.append(["minimal", rc, msg])
+    if rc == 0:
+        return True, {"ok": "minimal", "attempts": attempts}
+
+    # 最后兜底：schtasks 命令行（完全不经过 xml，最朴素）
+    tr = '"%s" "%s" --guard' % (pythonw, supervisor)
+    rl_flag = "HIGHEST" if highest else "LIMITED"
+    r = _run(["schtasks", "/create", "/tn", "QuantTradeGuard", "/sc", "onlogon",
+              "/rl", rl_flag, "/tr", tr, "/f"], timeout=30)
+    attempts.append(["cmd_onlogon", r.returncode, (r.stderr or r.stdout or "").strip()])
+    if r.returncode == 0:
+        return True, {"ok": "cmd_onlogon", "attempts": attempts}
+
+    return False, {"ok": None, "attempts": attempts}
 
 
 def _create_desktop_shortcut(root, launcher, pythonw):
@@ -262,12 +250,25 @@ def self_register_if_windows(root=None, highest=False):
         command_val = _register_protocol(root, launcher, pythonw)
         guard_ok, guard_msg = _register_guard_task(root, launcher, pythonw, highest)
         sc_ok, sc_msg = _create_desktop_shortcut(root, launcher, pythonw)
-        tg_ok, tg_msg = _register_trade_guard_task(root, pythonw, highest)
+        tg_ok, tg_detail = _register_trade_guard_task(root, pythonw, highest)
+        # 逐级注册结果写到数据仓库，供 macOS 远程核对（launch_panel 随后 STEP4 会 push）
         try:
+            runlog_dir = root / "live-data" / "_run_logs"
+            runlog_dir.mkdir(parents=True, exist_ok=True)
+            payload = {"report_time": stamp, "ok": bool(tg_ok),
+                       "run_level": ("HighestAvailable" if highest else "LeastPrivilege"),
+                       "detail": tg_detail}
+            with open(runlog_dir / "guard_register.json", "w", encoding="utf-8") as f:
+                json.dump(payload, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
+        try:
+            tg_brief = str(tg_detail.get("ok")) if tg_ok else json.dumps(
+                tg_detail.get("attempts"), ensure_ascii=False)[:320]
             with open(log_path, "a", encoding="utf-8") as f:
                 f.write(f"{stamp} quant-protocol=ok handler='{command_val}' "
                         f"panel-guard={'ok' if guard_ok else 'fail: ' + guard_msg.strip()[:160]} "
-                        f"trade-guard={'ok' if tg_ok else 'fail: ' + tg_msg.strip()[:160]} "
+                        f"trade-guard={'ok ' + tg_brief if tg_ok else 'fail ' + tg_brief} "
                         f"desktop-shortcut={'ok' if sc_ok else 'fail: ' + sc_msg.strip()[:160]}\n")
         except Exception:
             pass
