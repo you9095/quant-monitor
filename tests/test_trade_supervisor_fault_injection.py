@@ -20,7 +20,7 @@ sys.path.insert(0, str(BASE)); sys.path.insert(0, str(BASE / "api"))
 
 import run_daily_engine as eng
 import trade_supervisor as ts
-import api.market_data as md
+import market_data as md
 
 tmp = Path(tempfile.mkdtemp(prefix="qm_ft_"))
 ld = tmp / "live-data"; (ld / "_run_logs").mkdir(parents=True)
@@ -58,10 +58,12 @@ def em_fail():
 eng._ak_spot_em_no_proxy = em_fail
 
 # 三源行情：前 2 轮全失败(none)，第 3 轮起给真实价
+# 每轮对每个策略各调用一次（本测试2策略），故失败次数 = 轮数 × 策略数
 state = {"calls": 0, "fail_rounds": 2}
+n_strats = len(eng.STRATEGIES)
 def fake_quotes(pool, spot_em_df=None):
     state["calls"] += 1
-    if state["calls"] <= state["fail_rounds"]:
+    if state["calls"] <= state["fail_rounds"] * n_strats:
         return {}, "none", "none", {"em": 0, "tencent": 0, "sina": 0}
     prices = {c: 2.3764 for c in pool}
     return prices, "realtime", "tencent+sina", {"em": 0, "tencent": len(pool), "sina": len(pool)}
