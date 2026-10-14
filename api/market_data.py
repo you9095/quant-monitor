@@ -135,3 +135,74 @@ def is_trade_date(date_str: str):
     if cal is None:
         return None
     return date_str in cal
+
+
+# ===== 历史日K多源（东财断连时用新浪/腾讯兜底，供事后补记取真实收盘价）=====
+_NOPROXY = {"http": None, "https": None}
+
+
+def _mkt_prefix(code: str) -> str:
+    """沪市 ETF（5/6 开头）→ sh；深市（1 开头）→ sz。"""
+    return "sh" if code[:1] in ("5", "6") else "sz"
+
+
+def sina_etf_hist(code: str, days: int = 120):
+    """新浪日K（不复权），返回 [(date, close), ...]；失败 []。"""
+    import requests
+    pre = _mkt_prefix(code)
+    u = ("http://money.finance.sina.com.cn/quotes_service/api/json_v2.php/"
+         "CN_MarketData.getKLineData"
+         f"?symbol={pre}{code}&scale=240&ma=no&datalen={int(days)}")
+    r = requests.get(u, timeout=15, proxies=_NOPROXY)
+    data = json.loads(r.text)
+    return [(str(x["day"])[:10], float(x["close"])) for x in data]
+
+
+def tencent_etf_hist(code: str, days: int = 120):
+    """腾讯日K（前复权），返回 [(date, close), ...]；失败 []。"""
+    import requests
+    pre = _mkt_prefix(code)
+    u = ("http://web.ifzq.gtimg.cn/appstock/app/fqkline/get"
+         f"?param={pre}{code},day,,,{int(days)},qfq")
+    r = requests.get(u, timeout=15, proxies=_NOPROXY)
+    d = r.json()["data"][pre + code]
+    rows = d.get("qfqday") or d.get("day") or []
+    return [(str(x[0])[:10], float(x[2])) for x in rows]
+
+
+def load_hist_klines_multi(code: str, day: str, n: int = 60):
+    """截至 day 的日K（旧→新），多源：东财缓存/东财→新浪→腾讯。
+    返回 (rows, src)：rows=[(date, close), ...]，末日应为 day；失败 ([], "none")。
+    只取 day 及之前，杜绝未来数据。"""
+    # 1) 东财（含本地缓存）
+    rows = []
+    try:
+        cl = load_etf_close(code, days=max(n, 90))
+        dates = load_etf_dates(code, days=max(n, 90))
+        if cl and dates and len(cl) == len(dates):
+            rows = list(zip(dates, cl))
+    except Exception:
+        rows = []
+    # 2) 新浪兜底
+    if (not rows) or rows[-1][0] < day:
+        try:
+            s = sina_etf_hist(code, days=max(n, 90))
+            if s and (not rows or s[-1][0] >= rows[-1][0]):
+                rows = s
+        except Exception:
+            pass
+    # 3) 腾讯兜底
+    if (not rows) or rows[-1][0] < day:
+        try:
+            t = tencent_etf_hist(code, days=max(n, 90))
+            if t and (not rows or t[-1][0] >= rows[-1][0]):
+                rows = t
+        except Exception:
+            pass
+    if not rows:
+        return [], "none"
+    rows = [r for r in rows if r[0] <= day]
+    if len(rows) > n:
+        rows = rows[-n:]
+    src = "multi(sina/tencent/em)" if rows else "none"
+    return rows, src

@@ -350,10 +350,20 @@ def load_hist_map(pool, days=60):
     return hist
 
 
-def run_once(sid, cfg, today, force=False, spot_em_df=None):
+def load_hist_klines(code, day, n=60):
+    """拉取截至 day 的日K（旧→新），多源（东财缓存/东财→新浪→腾讯），返回 (rows, src)。
+    rows=[(date_str, close_float), ...]，最后一交易日应为 day；失败返回 ([], "none")。
+    供事后补记（backfill_day）取当日真实收盘价；只取 day 及之前，杜绝未来数据。"""
+    return md.load_hist_klines_multi(code, day, n)
+
+
+def run_once(sid, cfg, today, force=False, spot_em_df=None,
+             hist_map=None, quote_map=None, backfill=None):
     """单策略完整执行：加载账本→历史动量目标→当日真实价→撮合→结算→写记录→存账本。
     返回 dict（status/rec/per_source/missing/required/target/trades_n/price_source/detail）。
-    当日已成交（非 force）幂等返回 already。"""
+    当日已成交（非 force）幂等返回 already。
+    补记（backfill 非空）：用传入的 hist_map（截至 today）/quote_map（当日真实收盘价），
+    不重新拉实时价，记录标注"事后补记"。"""
     state_file = STATE_DIR / f"{sid}.json"
     day_file = DAILY_DIR / today / f"{sid}.json"
     if not force and day_file.exists():
@@ -372,7 +382,11 @@ def run_once(sid, cfg, today, force=False, spot_em_df=None):
         broker.end_of_day()  # 上一交易日买入转为可卖（T+1）
 
         # 1) 历史收盘 → 动量目标
-        hist = load_hist_map(pool)
+        #    补记：用预取的、截至 today 的历史（不含未来）；正常：实时拉取
+        if hist_map is not None:
+            hist = {c: hist_map[c] for c in pool if c in hist_map}
+        else:
+            hist = load_hist_map(pool)
         if not hist:
             return {"status": "no_history", "rec": None, "per_source": None,
                     "missing": [], "required": pool, "target": None,
@@ -381,7 +395,15 @@ def run_once(sid, cfg, today, force=False, spot_em_df=None):
         broker.pending_target = target
 
         # 2) 当日真实价（收盘价）
-        prices, mode, detail, per_source = fetch_realtime_quotes(pool, spot_em_df)
+        #    补记：用预取的当日真实收盘价（不重新拉实时价）；正常：三源实时取
+        if quote_map is not None:
+            prices = {c: float(quote_map[c]) for c in pool if c in quote_map}
+            _hs = (backfill or {}).get("hist_source", "")
+            mode = "backfill_real_close"
+            detail = f"事后补记：当日真实收盘价（{_hs}）"
+            per_source = {"backfill": 1}
+        else:
+            prices, mode, detail, per_source = fetch_realtime_quotes(pool, spot_em_df)
         # 三源全失败是整体性故障：任何策略（含空仓无目标）都不在本轮落盘，等行情恢复
         if mode == "none":
             return {"status": "missing_price", "rec": None, "per_source": per_source,
@@ -405,10 +427,19 @@ def run_once(sid, cfg, today, force=False, spot_em_df=None):
             status = "traded"
         else:
             status = "idle"
-        # 6) 写记录 + 存账本
+        # 6) 写记录 + 存账本（补记则标注"事后补记"）
+        extra = None
+        if backfill:
+            extra = {
+                "is_backfill": True,
+                "backfill_reason": backfill.get("reason"),
+                "backfill_hist_source": backfill.get("hist_source"),
+                "data_nature": "实盘模拟(事后补记, 本机真实撮合, 非回测, 不接券商)",
+            }
         rec = _write_live_record(sid, cfg, broker, snap, today, "trade",
                                  trades=trades, price_source=mode,
-                                 price_source_detail=detail)
+                                 price_source_detail=detail,
+                                 extra_fields=extra)
         broker.save(state_file)
         return {"status": status, "rec": rec, "per_source": per_source,
                 "missing": [], "required": required, "target": target,
