@@ -16,7 +16,7 @@ import json
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 # ---- 费用参数 ----
 COMMISSION_RATE = 0.00025   # 佣金万2.5
@@ -53,6 +53,7 @@ class Broker:
         self.realized_pnl: float = 0.0
         self.strategy_id = strategy_id
         self.pending_target: Dict[str, float] = {}   # 明日目标持仓 {code: weight}
+        self.strategy_state: Dict[str, Any] = {}     # 策略私有状态（止损峰值/调仓日/待止损）
 
     # ---------- 买入 ----------
     def buy(self, code: str, price: float, amount_yuan: float, name: str = "",
@@ -242,6 +243,7 @@ class Broker:
             "positions": {c: asdict(p) for c, p in self.positions.items()},
             "trades": self.trades[-500:],   # 只留最近500条
             "pending_target": self.pending_target,
+            "strategy_state": self.strategy_state,
         }
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -256,6 +258,7 @@ class Broker:
             b.positions[code] = Position(**pd)
         b.trades = d.get("trades", [])
         b.pending_target = d.get("pending_target", {})
+        b.strategy_state = d.get("strategy_state", {})
         return b
 
     @classmethod

@@ -251,6 +251,21 @@ function renderChart() {
     }
   }
   
+  // 纵轴：回撤图固定 0 在顶部、至少显示到 -10%，避免小回撤被自动放大成"崩盘"；
+  // 日盈亏以 0 为基准；权益曲线自动范围（便于看清绝对水平）。
+  let yScale = { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'var(--tertiaryLabel)' } };
+  if (currentChartType === 'drawdown') {
+    const worst = Math.min(0, ...data);
+    yScale = {
+      max: 0,
+      min: Math.min(-10, Math.floor(worst * 1.15)),
+      grid: { color: 'rgba(255,255,255,0.05)' },
+      ticks: { color: 'var(--tertiaryLabel)', callback: v => v + '%' }
+    };
+  } else if (currentChartType === 'pnl') {
+    yScale = { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'var(--tertiaryLabel)' } };
+  }
+
   if (pnlChart) pnlChart.destroy();
   
   pnlChart = new Chart(ctx, {
@@ -287,7 +302,7 @@ function renderChart() {
       },
       scales: {
         x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'var(--tertiaryLabel)', maxTicksLimit: 10 } },
-        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'var(--tertiaryLabel)' } }
+        y: yScale
       }
     }
   });
@@ -334,6 +349,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('filter-start').value = monthAgo;
   document.getElementById('filter-end').value = today;
   
+  // 筛选控件变化即自动重新加载，无需再点刷新
+  ['filter-strategy','filter-start','filter-end'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', loadPnLHistory);
+  });
+
   loadPnLHistory();
   
   setInterval(() => {

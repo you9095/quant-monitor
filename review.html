@@ -828,58 +828,6 @@ function renderFromReviewJson(d) {
   renderTradesForDate(currentDate);
 }
 
-function renderSummary(d) {
-  const strategies = d.strategies || {};
-  const sList = Object.entries(strategies).map(([k, v]) => ({
-    strategy_id: k.startsWith('sanhe_5y') ? 'sanhe' : k.startsWith('sanhe_2y') ? 'sanhe' : k,
-    strategy_name: STRATEGY_NAMES[k.startsWith('sanhe') ? 'sanhe' : k] || k,
-    today_pnl: v.today_pnl != null ? v.today_pnl : null,
-    today_return: v.today_return != null ? v.today_return : null,
-    total_return: v.total_return || 0,
-    annualized_return: v.annualized_return || 0,
-    max_drawdown: v.max_drawdown || 0,
-    sharpe: v.sharpe || 0,
-    trades_count: v.trades_count || 0,
-    version: v.version || '',
-  }));
-
-  // 计算组合指标（5 策略 × 10k 本金）
-  const initial = 50000;
-  const totalValue = sList.reduce((sum, s) => sum + 10000 * (1 + (s.total_return || 0) / 100), 0);
-  const totalPnl = totalValue - initial;
-  const totalReturn = (totalPnl / initial) * 100;
-  const best = sList.reduce((a, b) => (a.today_return > b.today_return ? a : b), { today_return: -Infinity, strategy_name: '—' });
-  const worst = sList.reduce((a, b) => (a.today_return < b.today_return ? a : b), { today_return: Infinity, strategy_name: '—' });
-
-  const summaryGrid = document.getElementById('summary-grid');
-  summaryGrid.innerHTML = `
-    <div class="summary-card">
-      <div class="label">总资金</div>
-      <div class="value ${totalReturn >= 0 ? 'up' : 'down'}">¥${totalValue.toLocaleString('zh-CN', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
-      <div class="sub">初始 ¥${initial.toLocaleString()} · ${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%</div>
-    </div>
-    <div class="summary-card">
-      <div class="label">总盈亏</div>
-      <div class="value ${totalPnl >= 0 ? 'up' : 'down'}">${totalPnl >= 0 ? '+' : ''}¥${totalPnl.toLocaleString('zh-CN', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
-      <div class="sub">${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}% · 5 策略</div>
-    </div>
-    <div class="summary-card">
-      <div class="label">交易笔数</div>
-      <div class="value">${sList.reduce((sum, s) => sum + (s.trades_count || 0), 0)}</div>
-      <div class="sub">${sList.length} 个策略合计</div>
-    </div>
-    <div class="summary-card">
-      <div class="label">最佳 / 最差</div>
-      <div class="value ${best.today_return >= 0 ? 'up' : 'down'}" style="font-size:18px">
-        ${best.strategy_name} ${best.today_return === -Infinity ? '--' : (best.today_return >= 0 ? '+' : '') + best.today_return.toFixed(2) + '%'}
-      </div>
-      <div class="sub ${worst.today_return >= 0 ? 'up' : 'down'}">
-        ${worst.strategy_name} ${worst.today_return === Infinity ? '--' : (worst.today_return >= 0 ? '+' : '') + worst.today_return.toFixed(2) + '%'}
-      </div>
-    </div>
-  `;
-}
-
 function renderStrategyReviewsFromJson(d) {
   const container = document.getElementById('strategy-reviews');
   const strategies = d.strategies || {};
@@ -894,30 +842,58 @@ function renderStrategyReviewsFromJson(d) {
     return;
   }
 
-  // 把 sanhe_2y / sanhe_5y 合并成 sanhe 一组展示
+  // 新 schema：strategies 按 sid 索引，每个含 name/action/pnl_today/
+  // return_pct_cumulative/key_metrics{trades_count,annualized_return_2y,sharpe_2y,
+  // max_drawdown_2y}/version/reason。兼容旧的 sanhe_2y/sanhe_5y 拆分。
   const grouped = {};
   for (const [k, v] of Object.entries(strategies)) {
     const sid = k.startsWith('sanhe') ? 'sanhe' : k;
     if (!grouped[sid]) grouped[sid] = [];
     grouped[sid].push({ key: k, data: v });
   }
+  const n = x => (typeof x === 'number' && isFinite(x)) ? x : 0;
+  const pick = (a, b) => (typeof a === 'number' && isFinite(a)) ? a : n(b);
+  const fields = v => {
+    const km = v.key_metrics || {};
+    return {
+      name: v.name || STRATEGY_NAMES[v] || '',
+      action: v.action || '',
+      pnlToday: n(v.pnl_today),
+      cumRet: pick(v.return_pct_cumulative, v.total_return),
+      ann: pick(km.annualized_return_2y, v.annualized_return),
+      dd: pick(km.max_drawdown_2y, v.max_drawdown),
+      sharpe: pick(km.sharpe_2y, v.sharpe),
+      trades: pick(km.trades_count, v.trades_count),
+      version: v.version || '',
+      reason: v.reason || '',
+    };
+  };
+  const fmtPct = x => `${x >= 0 ? '+' : ''}${x.toFixed(2)}%`;
 
   container.innerHTML = Object.entries(grouped).map(([sid, items]) => {
     const color = STRATEGY_COLORS[sid] || '#888';
-    const main = items[0].data;
-    const pnlClass = (main.today_return || 0) >= 0 ? 'up' : 'down';
-    const versions = items.map(i => `<span class="tlt-tag" style="font-size:10px;padding:2px 6px;background:rgba(255,255,255,0.05);border-radius:4px;margin-right:4px">${i.key}: ${i.data.version || '—'}</span>`).join('');
+    const f = fields(items[0].data);
+    const pnlClass = f.cumRet >= 0 ? 'up' : 'down';
+    const versions = items.map(i => {
+      const ff = fields(i.data);
+      return `<span class="tlt-tag" style="font-size:10px;padding:2px 6px;background:rgba(255,255,255,0.05);border-radius:4px;margin-right:4px">${ff.version || '—'}</span>`;
+    }).join('');
 
-    const reviewRowsHtml = items.map(i => `
+    const reviewRowsHtml = items.map(i => {
+      const ff = fields(i.data);
+      return `
       <div class="review-block" style="margin-bottom:12px">
         <h4>${i.key === 'sanhe_2y' ? '2Y 口径' : i.key === 'sanhe_5y' ? '5Y 口径' : '关键指标'}</h4>
-        <div class="review-row"><span class="key">总收益</span><span class="val ${(i.data.total_return||0) >= 0 ? 'up' : 'down'}">${(i.data.total_return||0) >= 0 ? '+' : ''}${(i.data.total_return||0).toFixed(2)}%</span></div>
-        <div class="review-row"><span class="key">年化</span><span class="val ${(i.data.annualized_return||0) >= 0 ? 'up' : 'down'}">${(i.data.annualized_return||0) >= 0 ? '+' : ''}${(i.data.annualized_return||0).toFixed(2)}%</span></div>
-        <div class="review-row"><span class="key">回撤</span><span class="val ${(i.data.max_drawdown||0) >= 0 ? 'down' : 'down'}">${(i.data.max_drawdown||0).toFixed(2)}%</span></div>
-        <div class="review-row"><span class="key">夏普</span><span class="val">${(i.data.sharpe||0).toFixed(2)}</span></div>
-        <div class="review-row"><span class="key">交易笔数</span><span class="val">${i.data.trades_count||0}</span></div>
-      </div>
-    `).join('');
+        <div class="review-row"><span class="key">动作</span><span class="val">${ff.action || '—'}</span></div>
+        <div class="review-row"><span class="key">今日盈亏</span><span class="val ${ff.pnlToday >= 0 ? 'up' : 'down'}">${ff.pnlToday >= 0 ? '+' : ''}${ff.pnlToday.toFixed(2)}</span></div>
+        <div class="review-row"><span class="key">累计收益</span><span class="val ${ff.cumRet >= 0 ? 'up' : 'down'}">${fmtPct(ff.cumRet)}</span></div>
+        <div class="review-row"><span class="key">年化</span><span class="val ${ff.ann >= 0 ? 'up' : 'down'}">${fmtPct(ff.ann)}</span></div>
+        <div class="review-row"><span class="key">回撤</span><span class="val down">${ff.dd.toFixed(2)}%</span></div>
+        <div class="review-row"><span class="key">夏普</span><span class="val">${ff.sharpe.toFixed(2)}</span></div>
+        <div class="review-row"><span class="key">交易笔数</span><span class="val">${ff.trades}</span></div>
+        ${ff.reason ? `<div class="review-row"><span class="key">依据</span><span class="val" style="text-align:right;font-size:11px">${ff.reason}</span></div>` : ''}
+      </div>`;
+    }).join('');
 
     return `
       <div class="strategy-review">
@@ -927,7 +903,7 @@ function renderStrategyReviewsFromJson(d) {
             ${STRATEGY_NAMES[sid] || sid}
             <span style="margin-left:8px">${versions}</span>
           </div>
-          <div class="pnl ${pnlClass}">${(main.total_return||0) >= 0 ? '+' : ''}${(main.total_return||0).toFixed(2)}%</div>
+          <div class="pnl ${pnlClass}">${fmtPct(f.cumRet)}</div>
         </div>
         <div class="review-body" id="review-${sid}">
           ${reviewRowsHtml}
@@ -982,36 +958,52 @@ async function renderTradesForDate(date) {
 }
 
 function renderSummary(data) {
-  const c = data.combined;
-  const s = data.strategies;
-  const totalTrades = s.reduce((sum, st) => sum + (st.trades_count || 0), 0);
-  
-  const best = s.reduce((a, b) => (a.today_return > b.today_return ? a : b));
-  const worst = s.reduce((a, b) => (a.today_return < b.today_return ? a : b));
-  
+  // 兼容新旧 schema：策略可能是数组或按 sid 索引的对象；汇总优先用 performance 字段
+  const perf = data.performance || {};
+  const stratMap = data.strategies_L2 || data.strategies || {};
+  const s = Array.isArray(stratMap) ? stratMap : Object.values(stratMap);
+  const num = v => (typeof v === 'number' && isFinite(v)) ? v : 0;
+
+  // 总资金 / 累计收益
+  const totalAsset = num(perf.current_value);
+  const initCap = num(perf.initial_capital) || 0;
+  const totalRet = num(perf.return_pct_cumulative);
+  // 今日盈亏（汇总各策略 pnl_today）
+  const todayPnl = s.reduce((sum, st) => sum + num(st.pnl_today), 0);
+  // 交易笔数（汇总各策略 key_metrics.trades_count）
+  const totalTrades = s.reduce((sum, st) =>
+    sum + num((st.key_metrics || st).trades_count), 0);
+  // 最佳 / 最差：优先 performance.ranked_by_pnl，否则按累计收益率排
+  let ranked = Array.isArray(perf.ranked_by_pnl) ? perf.ranked_by_pnl :
+    s.map(st => ({ name: st.name, return_pct: num(st.return_pct_cumulative) }));
+  ranked = [...ranked].sort((a, b) => num(b.return_pct) - num(a.return_pct));
+  const best = ranked[0] || { name: '—', return_pct: 0 };
+  const worst = ranked[ranked.length - 1] || { name: '—', return_pct: 0 };
+  const fmtPct = v => `${num(v) >= 0 ? '+' : ''}${num(v).toFixed(2)}%`;
+
   const html = `
     <div class="summary-card">
       <div class="label">总资金</div>
-      <div class="value ${c.total_return >= 0 ? 'up' : 'down'}">¥${c.total_asset.toLocaleString('zh-CN', {minimumFractionDigits:2})}</div>
-      <div class="sub">初始 ¥30,000 · ${c.total_return >= 0 ? '+' : ''}${c.total_return}%</div>
+      <div class="value ${totalRet >= 0 ? 'up' : 'down'}">¥${totalAsset.toLocaleString('zh-CN', {minimumFractionDigits:2})}</div>
+      <div class="sub">初始 ¥${initCap.toLocaleString()} · ${fmtPct(totalRet)}</div>
     </div>
     <div class="summary-card">
       <div class="label">今日盈亏</div>
-      <div class="value ${pnlClass(c.today_pnl)}">${fmtPnl(c.today_pnl)}</div>
-      <div class="sub">${fmtReturn(c.today_return)}</div>
+      <div class="value ${pnlClass(todayPnl)}">${fmtPnl(todayPnl)}</div>
+      <div class="sub">当日各策略合计</div>
     </div>
     <div class="summary-card">
       <div class="label">交易笔数</div>
       <div class="value">${totalTrades}</div>
-      <div class="sub">三策略合计</div>
+      <div class="sub">${s.length} 策略累计</div>
     </div>
     <div class="summary-card">
       <div class="label">最佳 / 最差</div>
-      <div class="value ${best.today_return >= 0 ? 'up' : 'down'}" style="font-size:20px">
-        ${best.strategy_name} ${best.today_return >= 0 ? '+' : ''}${best.today_return}%
+      <div class="value ${num(best.return_pct) >= 0 ? 'up' : 'down'}" style="font-size:20px">
+        ${best.name} ${fmtPct(best.return_pct)}
       </div>
-      <div class="sub ${worst.today_return >= 0 ? 'up' : 'down'}">
-        ${worst.strategy_name} ${worst.today_return >= 0 ? '+' : ''}${worst.today_return}%
+      <div class="sub ${num(worst.return_pct) >= 0 ? 'up' : 'down'}">
+        ${worst.name} ${fmtPct(worst.return_pct)}
       </div>
     </div>
   `;

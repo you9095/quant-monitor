@@ -159,8 +159,14 @@ STRATEGIES = {
     "lightning": {"name": "闪电策略", "capital": 10000,
                   "pool": ["513100", "513520", "513030", "513130"],
                   "mom_window": 3, "hold": 1},
-    "goldcombo": {"name": "黄金组合A", "capital": 10000, "pool":
-                  ["518880"], "mom_window": 20, "hold": 1, "trend_filter": True},
+    "goldcombo": {"name": "黄金组合A", "capital": 10000,
+                  "engine": "cross_asset",
+                  "hist_days": 260,
+                  "pool": ["510300", "510500", "159915", "512880", "513100",
+                           "513500", "513030", "513520", "513130", "518880",
+                           "161226", "511260", "511880"],
+                  "params": {"trend_w": 200, "mom_w": 120, "top_n": 5,
+                             "stop": -0.08, "cap": 0.40}},
 }
 
 # ETF 代码 → 名称（成交记录/对账单显示用；实时行情接口返回名称时以接口为准）
@@ -169,10 +175,10 @@ ETF_NAMES = {
     "159915": "创业板ETF", "513100": "纳指ETF", "513520": "日经ETF",
     "518880": "黄金ETF", "159985": "豆粕ETF", "588080": "科创50ETF",
     "512100": "中证1000ETF", "512040": "国泰价值ETF", "512890": "红利低波ETF",
-    "513130": "恒生科技ETF", "513030": "纳指科技ETF", "161226": "国泰商品ETF",
+    "513130": "恒生科技ETF", "513030": "德国ETF", "161226": "白银LOF",
     "159967": "创成长ETF", "159980": "有色ETF", "159981": "能源化工ETF",
     "513080": "法国CAC40ETF", "513500": "标普500ETF", "513690": "恒生股息ETF",
-    "501018": "南方原油LOF",
+    "501018": "南方原油LOF", "512880": "证券ETF", "511260": "国债ETF",
 }
 
 
@@ -341,10 +347,13 @@ def fetch_realtime_quotes(pool, spot_em_df=None):
 
 
 def load_hist_map(pool, days=60):
-    """拉取 pool 全部历史收盘 {code: closes}；个别失败不影响其它。"""
+    """拉取 pool 全部历史收盘 {code: closes}（前复权、多源）；个别失败不影响其它。"""
     hist = {}
+    need = max(days, 60)
     for code in pool:
-        cl = md.load_etf_close(code, days=max(days, 60))
+        cl = md.load_close_qfq_multi(code, days=need)
+        if not cl:
+            cl = md.load_etf_close(code, days=need)
         if cl:
             hist[code] = cl
     return hist
@@ -383,17 +392,15 @@ def run_once(sid, cfg, today, force=False, spot_em_df=None,
 
         # 1) 历史收盘 → 动量目标
         #    补记：用预取的、截至 today 的历史（不含未来）；正常：实时拉取
+        hist_days = cfg.get("hist_days", 60)
         if hist_map is not None:
             hist = {c: hist_map[c] for c in pool if c in hist_map}
         else:
-            hist = load_hist_map(pool)
+            hist = load_hist_map(pool, days=hist_days)
         if not hist:
             return {"status": "no_history", "rec": None, "per_source": None,
                     "missing": [], "required": pool, "target": None,
                     "trades_n": 0, "price_source": None, "detail": None}
-        target = DECIDERS[sid](hist)
-        broker.pending_target = target
-
         # 2) 当日真实价（收盘价）
         #    补记：用预取的当日真实收盘价（不重新拉实时价）；正常：三源实时取
         if quote_map is not None:
@@ -407,8 +414,23 @@ def run_once(sid, cfg, today, force=False, spot_em_df=None,
         # 三源全失败是整体性故障：任何策略（含空仓无目标）都不在本轮落盘，等行情恢复
         if mode == "none":
             return {"status": "missing_price", "rec": None, "per_source": per_source,
-                    "missing": pool, "required": pool, "target": target,
+                    "missing": pool, "required": pool, "target": None,
                     "trades_n": 0, "price_source": mode, "detail": detail}
+
+        # 3) 计算目标权重
+        #    跨资产策略：必须在拿到当日真实价后决策（含止损/峰值/月末调仓）
+        #    其余策略：用历史收盘的通用动量决策
+        if cfg.get("engine") == "cross_asset":
+            import sys as _sys
+            if str(BASE_DIR) not in _sys.path:
+                _sys.path.insert(0, str(BASE_DIR))
+            from strategies.goldcombo import cross_asset_allocation as _ca
+            target = _ca.decide(hist, broker, today, prices,
+                                is_trading_day, cfg.get("params"))
+        else:
+            target = DECIDERS[sid](hist)
+        broker.pending_target = target
+
         required = list(target.keys()) + list(broker.positions.keys())
         missing = [c for c in required if c not in prices]
         if missing:

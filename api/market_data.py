@@ -170,6 +170,36 @@ def tencent_etf_hist(code: str, days: int = 120):
     return [(str(x[0])[:10], float(x[2])) for x in rows]
 
 
+def load_close_qfq_multi(code: str, days: int = 200) -> list:
+    """前复权收盘价（多源，旧→新）：东财(akshare qfq)→腾讯(qfq，最多约642根)。
+    用于需要长窗口（如 200 日趋势）的策略：保证价格连续、不受份额折算/分红污染，
+    且在东财直连不通时由腾讯兜底。返回 list；都失败返回 []。"""
+    need = int(days)
+    # 1) 东财前复权（含本地缓存）
+    try:
+        cl = load_etf_close(code, days=need)
+        if cl and len(cl) >= need:
+            return cl[-need:]
+    except Exception:
+        pass
+    # 2) 腾讯前复权兜底（约 642 根，2.7 年）
+    try:
+        t = tencent_etf_hist(code, days=max(need, 300))
+        if t:
+            closes = [c for _, c in t]
+            return closes[-need:] if len(closes) >= need else closes
+    except Exception:
+        pass
+    # 3) 东财根数不足时，返回其结果（聊胜于无）
+    try:
+        cl = load_etf_close(code, days=need)
+        if cl:
+            return cl
+    except Exception:
+        pass
+    return []
+
+
 def load_hist_klines_multi(code: str, day: str, n: int = 60):
     """截至 day 的日K（旧→新），多源：东财缓存/东财→新浪→腾讯。
     返回 (rows, src)：rows=[(date, close), ...]，末日应为 day；失败 ([], "none")。

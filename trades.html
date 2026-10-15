@@ -317,7 +317,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const monthAgo = new Date(Date.now() - 30*86400000).toISOString().split('T')[0];
   document.getElementById('filter-start').value = new Date(Date.now() - 30*86400000).toISOString().split('T')[0];
   document.getElementById('filter-end').value = today;
-  
+
+  // 筛选控件变化即自动重新加载，无需再点刷新
+  ['filter-strategy','filter-action','filter-start','filter-end'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', loadTrades);
+  });
+
   loadTrades();
   
   setInterval(() => {

@@ -261,6 +261,9 @@ def build_pnl_history(strategy="", start="", end="", root: Path = None):
     # 本金补回，保证总权益 = 现金 + 市值完整。这些日期该策略无动作，不贡献当日盈亏。 ----
     dates = sorted(by_day.keys())
     all_sids = _all_strategy_ids(root, {sid for _, sid, _ in records})
+    if strategy:
+        # 选定单策略时，补齐只针对该策略，杜绝把其它策略现金/资产误并入
+        all_sids = [sid for sid in all_sids if sid == strategy]
     full = _load_daily_records(strategy, "", "", root)  # 含范围外，用于前向填充
     sid_hist = {}
     for d, sid, rec in full:
