@@ -28,7 +28,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 LIVE = ROOT / "live-data"
 SIX = ["qixing", "r32", "zhuidian", "sanhe", "lightning", "goldcombo"]
-REQUIRED_TASKS = ["QuantTradeGuard", "QuantPanelGuard"]
+REQUIRED_TASKS = ["QuantTradeGuard", "QuantPanelGuard", "QuantWakeResume"]
 REQUIRED_DEPS = ["flask", "akshare", "pandas", "numpy", "requests"]
 
 

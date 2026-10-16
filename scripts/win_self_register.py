@@ -54,7 +54,7 @@ def _register_guard_task(root, launcher, pythonw, highest):
         '    <LogonTrigger>\r\n'
         '      <Enabled>true</Enabled>\r\n'
         '      <Delay>PT30S</Delay>\r\n'
-        '      <Repetition><Interval>PT5M</Interval><Duration>P3650D</Duration><StopAtDurationEnd>false</StopAtDurationEnd></Repetition>\r\n'
+        '      <Repetition><Interval>PT2M</Interval><Duration>P3650D</Duration><StopAtDurationEnd>false</StopAtDurationEnd></Repetition>\r\n'
         '    </LogonTrigger>\r\n'
         '  </Triggers>\r\n'
         '  <Principals>\r\n'
@@ -64,6 +64,7 @@ def _register_guard_task(root, launcher, pythonw, highest):
         '    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>\r\n'
         '    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>\r\n'
         '    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>\r\n'
+        '    <StartWhenAvailable>true</StartWhenAvailable>\r\n'
         '    <ExecutionTimeLimit>PT5M</ExecutionTimeLimit>\r\n'
         '    <Enabled>true</Enabled>\r\n'
         '  </Settings>\r\n'
@@ -166,7 +167,7 @@ def _register_trade_guard_task(root, pythonw, highest):
         '      <Enabled>true</Enabled>\r\n'
         '      <ScheduleByWeek><DaysOfWeek><Monday/><Tuesday/><Wednesday/><Thursday/><Friday/></DaysOfWeek>'
         '<WeeksInterval>1</WeeksInterval></ScheduleByWeek>\r\n'
-        '      <Repetition><Interval>PT10M</Interval><Duration>PT2H</Duration>'
+        '      <Repetition><Interval>PT2M</Interval><Duration>PT2H</Duration>'
         '<StopAtDurationEnd>false</StopAtDurationEnd></Repetition>\r\n'
         '    </CalendarTrigger>\r\n'
     )
@@ -202,6 +203,94 @@ def _register_trade_guard_task(root, pythonw, highest):
         return True, {"ok": "cmd_onlogon", "attempts": attempts}
 
     return False, {"ok": None, "attempts": attempts}
+
+
+def _register_wake_resume_task(root, launcher, pythonw, highest):
+    """QuantWakeResume 唤醒即继续任务（普通用户权限、幂等）。
+
+    触发器：
+      - 系统唤醒事件 Kernel-Power 107（睡眠/休眠恢复）/ 507（退出新式待机）/
+        566（现代待机 S0 恢复）——唤醒后立刻执行；
+      - 工作站解锁（SessionUnlock）——唤醒后需要登录时；
+      - 登录（LogonTrigger，兜底）。
+    唤醒后立即运行完整总控 launch_panel.py，由其自动补做未完成任务
+    （更新代码→后台→补成交→上传→心跳）。多层自愈：xml → schtasks。
+    返回 (ok, detail)。
+    """
+    run_level = "HighestAvailable" if highest else "LeastPrivilege"
+    # 事件订阅：覆盖传统睡眠/休眠(S3)、新式待机(S0)、休眠
+    inner = (
+        "<QueryList><Query Id=\"0\" Path=\"System\">"
+        "<Select Path=\"System\">*[System[Provider[@Name='Microsoft-Windows-Kernel-Power'] "
+        "and (EventID=107 or EventID=507 or EventID=566)]]</Select>"
+        "</Query></QueryList>"
+    )
+    # 在 Task XML 中，订阅内容须转义成文本
+    sub_escaped = (inner.replace("&", "&amp;")
+                   .replace("<", "&lt;").replace(">", "&gt;"))
+    triggers = (
+        '    <EventTrigger>\r\n'
+        '      <Enabled>true</Enabled>\r\n'
+        f'      <Subscription>{sub_escaped}</Subscription>\r\n'
+        '    </EventTrigger>\r\n'
+        '    <SessionStateChangeTrigger>\r\n'
+        '      <Enabled>true</Enabled>\r\n'
+        '      <StateChange>SessionUnlock</StateChange>\r\n'
+        '    </SessionStateChangeTrigger>\r\n'
+        '    <LogonTrigger>\r\n'
+        '      <Enabled>true</Enabled>\r\n'
+        '      <Delay>PT15S</Delay>\r\n'
+        '    </LogonTrigger>\r\n'
+    )
+    xml = (
+        '<?xml version="1.0" encoding="UTF-16"?>\r\n'
+        '<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">\r\n'
+        '  <RegistrationInfo><Description>Quant wake-resume: immediately resume pending tasks after wake/unlock (simulation only, no broker).</Description></RegistrationInfo>\r\n'
+        '  <Triggers>\r\n' + triggers + '  </Triggers>\r\n'
+        '  <Principals>\r\n'
+        f'    <Principal id="Author"><LogonType>InteractiveToken</LogonType><RunLevel>{run_level}</RunLevel></Principal>\r\n'
+        '  </Principals>\r\n'
+        '  <Settings>\r\n'
+        '    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>\r\n'
+        '    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>\r\n'
+        '    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>\r\n'
+        '    <StartWhenAvailable>true</StartWhenAvailable>\r\n'
+        '    <WakeToRun>false</WakeToRun>\r\n'
+        '    <ExecutionTimeLimit>PT15M</ExecutionTimeLimit>\r\n'
+        '    <Enabled>true</Enabled>\r\n'
+        '  </Settings>\r\n'
+        '  <Actions Context="Author">\r\n'
+        '    <Exec>\r\n'
+        f'      <Command>"{pythonw}"</Command>\r\n'
+        f'      <Arguments>"{launcher}"</Arguments>\r\n'
+        f'      <WorkingDirectory>{root}</WorkingDirectory>\r\n'
+        '    </Exec>\r\n'
+        '  </Actions>\r\n'
+        '</Task>\r\n'
+    )
+    xp = Path(tempfile.gettempdir()) / "quant_wake_resume.xml"
+    xp.write_text(xml, encoding="utf-16")
+    detail = {}
+    try:
+        r = _run(["schtasks", "/create", "/tn", "QuantWakeResume",
+                  "/xml", str(xp), "/f"], timeout=30)
+        ok, msg = r.returncode == 0, (r.stderr or r.stdout or "").strip()
+    finally:
+        try:
+            xp.unlink()
+        except OSError:
+            pass
+    detail["xml"] = ok
+    if ok:
+        return True, detail
+    # 兜底：schtasks onlogon（至少保证登录/解锁链路；唤醒事件靠 TradeGuard 高频兜底）
+    tr = '"%s" "%s"' % (pythonw, launcher)
+    rl_flag = "HIGHEST" if highest else "LIMITED"
+    r = _run(["schtasks", "/create", "/tn", "QuantWakeResume", "/sc", "onlogon",
+              "/rl", rl_flag, "/tr", tr, "/f"], timeout=30)
+    detail["cmd_onlogon"] = r.returncode == 0
+    detail["xml_error"] = msg
+    return r.returncode == 0, detail
 
 
 def _create_desktop_shortcut(root, launcher, pythonw):
@@ -251,11 +340,15 @@ def self_register_if_windows(root=None, highest=False):
         guard_ok, guard_msg = _register_guard_task(root, launcher, pythonw, highest)
         sc_ok, sc_msg = _create_desktop_shortcut(root, launcher, pythonw)
         tg_ok, tg_detail = _register_trade_guard_task(root, pythonw, highest)
+        wr_ok, wr_detail = _register_wake_resume_task(
+            root, launcher, pythonw, highest)
         # 逐级注册结果写到数据仓库，供 macOS 远程核对（launch_panel 随后 STEP4 会 push）
         try:
             runlog_dir = root / "live-data" / "_run_logs"
             runlog_dir.mkdir(parents=True, exist_ok=True)
             payload = {"report_time": stamp, "ok": bool(tg_ok),
+                       "wake_resume_ok": bool(wr_ok),
+                       "wake_resume_detail": wr_detail,
                        "run_level": ("HighestAvailable" if highest else "LeastPrivilege"),
                        "detail": tg_detail}
             with open(runlog_dir / "guard_register.json", "w", encoding="utf-8") as f:
@@ -269,6 +362,7 @@ def self_register_if_windows(root=None, highest=False):
                 f.write(f"{stamp} quant-protocol=ok handler='{command_val}' "
                         f"panel-guard={'ok' if guard_ok else 'fail: ' + guard_msg.strip()[:160]} "
                         f"trade-guard={'ok ' + tg_brief if tg_ok else 'fail ' + tg_brief} "
+                        f"wake-resume={'ok' if wr_ok else 'fail: ' + json.dumps(wr_detail, ensure_ascii=False)[:160]} "
                         f"desktop-shortcut={'ok' if sc_ok else 'fail: ' + sc_msg.strip()[:160]}\n")
         except Exception:
             pass
